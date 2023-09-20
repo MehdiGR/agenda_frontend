@@ -26,6 +26,15 @@ export default function CreateEventSection({
   );
   const [selectedClient, setSelectedClient] = useState(null);
   const [agenda_prestationArr, setPrestationArr] = useState([]);
+  const [formData, setFormData] = useState({
+    client: "",
+    date: "",
+    time: "",
+    prestation: "",
+    agenda: "",
+    duree: "",
+    prix: "",
+  });
 
   // Cancel creation event
   const cancelCreationEvent = () => {
@@ -143,6 +152,11 @@ export default function CreateEventSection({
     formState: { errors },
     control,
   } = useForm({ resolver: yupResolver(schema) });
+  //
+  const handleInputChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
   return (
     <div className={` w-full ${!active ? "hidden" : ""}`}>
       {/* <RadioButtont /> */}
@@ -190,7 +204,10 @@ export default function CreateEventSection({
               ? { disabled: false }
               : { disabled: true })}
             styles={{ ...selectClientStyles }}
-            onChange={handleOptionChangeClt}
+            onChange={(e) => {
+              handleOptionChangeClt;
+              handleInputChange(e);
+            }}
           />
 
           {clientIsRef}
