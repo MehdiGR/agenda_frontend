@@ -24,6 +24,11 @@ export default async function CalendarPage() {
   });
   const prestations = await responsePrs.json();
 
+  const responseAgPR = await fetch("http://localhost:3000/api/prestation", {
+    cache: "no-cache",
+  });
+  const agenda_prestation = await responseAgPR.json();
+
   return (
     <div className="h-screen  p-6">
       <Home
@@ -31,6 +36,7 @@ export default async function CalendarPage() {
         villes={villes}
         collaborateurs={collaborateurs}
         prestations={prestations}
+        agenda_prestation={agenda_prestation}
       />
     </div>
   );

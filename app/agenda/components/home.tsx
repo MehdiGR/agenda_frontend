@@ -5,7 +5,13 @@ import MyCalendar from "./mycalendar";
 import CreateEventSection from "./createeventsection";
 import { Props, ScriptProps } from "next/script";
 
-export default function Home({ clients, villes, collaborateurs, prestations }) {
+export default function Home({
+  clients,
+  villes,
+  collaborateurs,
+  prestations,
+  agenda_prestation,
+}) {
   useEffect(() => {
     // console.log(props.clients);
     //   console.log(props);
@@ -24,6 +30,7 @@ export default function Home({ clients, villes, collaborateurs, prestations }) {
         villes={villes}
         collaborateurs={collaborateurs}
         prestations={prestations}
+        agenda_prestation={agenda_prestation}
       />
       <MyCalendar
         handleDateClick={handleDateClick}

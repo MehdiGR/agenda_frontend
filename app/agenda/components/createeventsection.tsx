@@ -3,6 +3,9 @@ import React, { useState } from "react";
 import ModalClient from "./modalclient";
 import Select from "react-select";
 import PrestationSlider from "./prestationsSlider";
+import { Controller, useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
 
 export default function CreateEventSection({
   active,
@@ -11,6 +14,7 @@ export default function CreateEventSection({
   villes,
   collaborateurs,
   prestations,
+  agenda_prestation,
 }) {
   const [modalIsOpen, setIsOpen] = useState(false);
   const [clientIsRef, setIsRef] = useState(true);
@@ -21,6 +25,7 @@ export default function CreateEventSection({
     })
   );
   const [selectedClient, setSelectedClient] = useState(null);
+  const [agenda_prestationArr, setPrestationArr] = useState([]);
 
   // Cancel creation event
   const cancelCreationEvent = () => {
@@ -29,9 +34,9 @@ export default function CreateEventSection({
   // handle radio button (client) change
   const handleOptionChangeTypeClt = (changeEvent: any) => {
     let value = changeEvent.target.value;
-    value == "client_ref" ? setIsRef(true) : setIsRef(false);
-    console.log(clientIsRef);
-    setSelectedClientType(value);
+    // value == "client_ref" ? setIsRef(true) : setIsRef(false);
+    // console.log(clientIsRef);
+    // setSelectedClientType(value);
   };
   const handleOptionChangeClt = (selectedOption: any) => {
     setSelectedClient(selectedOption);
@@ -67,6 +72,11 @@ export default function CreateEventSection({
     }
 
     console.log(selectedClient);
+  };
+
+  const addPrestation = (data: any) => {
+    // setPrestationArr((previousState)=>{...previousState,{data.id}})
+    console.log("work");
   };
   // const clientOptions = clients.map((client) => {
   //   return { value: client.id, label: client.nom };
@@ -109,10 +119,37 @@ export default function CreateEventSection({
     }),
   };
 
+  //
+  // validation
+  const schema = yup.object().shape({
+    code: yup.string().required("Saisi le code"),
+    nom: yup.string().required("Saisi le nom"),
+    ville: yup
+      .object()
+      .shape({
+        label: yup.string().required("Sélectionnez une ville"),
+        value: yup.string().required(),
+      })
+      .required(),
+    collaborateur: yup.object().shape({
+      label: yup.string().required("Sélectionnez un collaborateur"),
+      value: yup.string().required(),
+    }),
+  });
+  // use form
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    control,
+  } = useForm({ resolver: yupResolver(schema) });
   return (
     <div className={` w-full ${!active ? "hidden" : ""}`}>
       {/* <RadioButtont /> */}
-      <form action="" className="relative space-y-4 h-full">
+      <form
+        onSubmit={handleSubmit(saveClient)}
+        className="relative space-y-4 h-full"
+      >
         <div className="flex gap-3">
           <input
             type="radio"
@@ -145,6 +182,7 @@ export default function CreateEventSection({
         </div>
         <div className="flex gap-[1px] ">
           <Select
+            id="select_client"
             placeholder="Sélectionnez un Clients"
             options={clientOptions}
             value={selectedClient}
@@ -171,9 +209,9 @@ export default function CreateEventSection({
               className="flex-grow border border-gray-300 rounded-md px-4 h-full"
             />
           </div>
-
           <div className="flex gap-0">
             <Select
+              id="select_hour"
               placeholder=""
               options={Array.from({ length: 24 }, (_, i) => ({
                 value: i.toString().padStart(2, "0"),
@@ -183,6 +221,7 @@ export default function CreateEventSection({
             />
             <span className="font-medium m-2">h</span>
             <Select
+              id="select_minute"
               placeholder=""
               options={Array.from({ length: 60 }, (_, i) => ({
                 value: i.toString().padStart(2, "0"),
@@ -205,18 +244,28 @@ export default function CreateEventSection({
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td colSpan="5" className="text-center py-4">
-                  Aucune prestation
-                </td>
-              </tr>
-              <tr className="">
-                <td className=""></td>
-                <td className=""></td>
-                <td className=""></td>
-                <td className=""></td>
-                <td className=""></td>
-              </tr>
+              {agenda_prestationArr.length == 0 ? (
+                <tr>
+                  <td colSpan={5} className="text-center py-4">
+                    Aucune prestation
+                  </td>
+                </tr>
+              ) : (
+                agenda_prestationArr.map((ag_pr: any, index) => {
+                  return (
+                    <tr key={index}>
+                      <td className="text-center py-4">
+                        {ag_pr.prestation_intitule}
+                      </td>
+                      <td className="text-center py-4">
+                        {ag_pr.agenda_intitule}
+                      </td>
+                      <td className="text-center py-4">{ag_pr.duree}</td>
+                      <td className="text-center py-4">{ag_pr.prix}</td>
+                    </tr>
+                  );
+                })
+              )}
             </tbody>
             <tfoot>
               <tr>
@@ -228,7 +277,10 @@ export default function CreateEventSection({
             </tfoot>
           </table>
         </div>
-        <PrestationSlider prestations={prestations} />
+        <PrestationSlider
+          prestations={prestations}
+          addPrestation={addPrestation}
+        />
         <div className="absolute bottom-0 w-full flex gap-2 justify-center">
           <button
             className="py-1 px-4 bg-gray-800 text-white rounded-md "

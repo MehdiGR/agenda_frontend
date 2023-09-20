@@ -32,7 +32,7 @@ export default function MyCalendar({ handleDateClick }) {
   return (
     <div className="w-full" style={{ zIndex: 0 }}>
       <FullCalendar
-        height="100%"
+        // height="100%"
         locale={frLocale}
         schedulerLicenseKey="CC-Attribution-NonCommercial-NoDerivatives"
         plugins={[resourceTimeGridPlugin, interactionPlugin]}
