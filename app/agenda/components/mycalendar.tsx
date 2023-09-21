@@ -9,7 +9,7 @@ import resourceTimelinePlugin from "@fullcalendar/resource-timeline";
 import resourceTimeGridPlugin from "@fullcalendar/resource-timegrid";
 import frLocale from "@fullcalendar/core/locales/fr";
 
-export default function MyCalendar({ handleDateClick }) {
+export default function MyCalendar({ handleDateClick, active }) {
   const resources = [
     { id: "a", title: "Room A", building: "Building 1" },
     { id: "b", title: "Room B", building: "Building 2" },

@@ -5,7 +5,7 @@ export default function Prestation({ prestation, addPrestation }) {
   return (
     <div
       className="relative w-[200px] h-[200px]"
-      onClick={() => addPrestation(1)}
+      onClick={() => addPrestation(prestation)}
     >
       <Image
         src={`http://localhost/agenda/backend/upload/images_articles/${image}`}

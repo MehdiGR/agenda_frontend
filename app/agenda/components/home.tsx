@@ -11,18 +11,21 @@ export default function Home({
   collaborateurs,
   prestations,
   agenda_prestation,
+  agendas,
 }) {
   useEffect(() => {
     // console.log(props.clients);
     //   console.log(props);
   }, []);
   const [activeEventSection, setActiveEventSection] = useState(false);
-  const handleDateClick = (arg: any) => {
+  const handleDateClick = (info: any) => {
     // console.log("Date clicked:", arg.date);
     setActiveEventSection(() => true);
+    info.dayEl.style.backgroundColor = "red";
+    info.unselect();
   };
   return (
-    <div className="flex sm:flex-wrap gap-10  h-full   ">
+    <div className="flex  gap-10  h-full   ">
       <CreateEventSection
         active={activeEventSection}
         setActive={setActiveEventSection}
@@ -30,7 +33,7 @@ export default function Home({
         villes={villes}
         collaborateurs={collaborateurs}
         prestations={prestations}
-        agenda_prestation={agenda_prestation}
+        agendas={agendas}
       />
       <MyCalendar
         handleDateClick={handleDateClick}
