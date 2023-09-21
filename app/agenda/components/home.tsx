@@ -21,8 +21,7 @@ export default function Home({
   const handleDateClick = (info: any) => {
     // console.log("Date clicked:", arg.date);
     setActiveEventSection(() => true);
-    info.dayEl.style.backgroundColor = "red";
-    info.unselect();
+    // info.dayEl.style.backgroundColor = "red";
   };
   return (
     <div className="flex  gap-10  h-full   ">
