@@ -40,3 +40,7 @@
 .slick-next{
 background-color: red;
 }
+.added-event {
+  background-color: yellow;
+  border-color: yellow;
+}

@@ -21,12 +21,9 @@ const PrestationSlider = ({ prestations, addPrestation }) => {
   return (
     <div className="flex flex-wrap pb-16">
       {/* <Slider {...settings}> */}
-      {prestations?.map((prestation: any) => {
+      {prestations?.map((prestation: any, index: number) => {
         return (
-          <div
-            key={prestation.id}
-            className="w-[200px] h-[200px] mx-2 cursor-pointer"
-          >
+          <div key={index} className="w-[200px] h-[200px] mx-2 cursor-pointer">
             <Prestation prestation={prestation} addPrestation={addPrestation} />
           </div>
         );

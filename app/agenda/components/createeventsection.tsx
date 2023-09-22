@@ -17,6 +17,7 @@ export default function CreateEventSection({
   collaborateurs,
   prestations,
   agendas,
+  eventAgenda,
 }) {
   const [modalIsOpen, setIsOpen] = useState(false);
   const [clientIsRef, setIsRef] = useState(true);
@@ -26,15 +27,15 @@ export default function CreateEventSection({
       return { value: client.id, label: client.nom };
     })
   );
-  const [agendaOptions, setagendaOptions] = useState(
+  const [agendaOptions, setAgendaOptions] = useState(
     agendas.map((agenda: any) => {
       return { value: agenda.id, label: agenda.nom };
     })
   );
   const [selectedClient, setSelectedClient] = useState(null);
-  const [selectedAgenda, setSelectedAgenda] = useState(null);
+  const [selectedAgenda, setSelectedAgenda] = useState();
   const [agenda_prestationArr, setAgendaPrestationArr] = useState<any[]>([]);
-  const [date, setDate] = useState();
+  const [date, setDate] = useState("");
   const [hour, setHour] = useState();
   const [minutes, setMinutes] = useState();
   const [formData, setFormData] = useState({
@@ -171,9 +172,8 @@ export default function CreateEventSection({
   };
 
   useEffect(() => {
-    console.log(agenda_prestationArr.length);
-    console.log(agenda_prestationArr);
-  }, [agenda_prestationArr]);
+    setSelectedAgenda(eventAgenda);
+  }, [agenda_prestationArr, selectedAgenda]);
 
   return (
     <div className={`relative   h-fit w-full ${!active ? "hidden" : ""}`}>
@@ -210,7 +210,7 @@ export default function CreateEventSection({
         </div>
         <div className="flex gap-[1px] ">
           <Select
-            id="select_client"
+            instanceId="select_client"
             placeholder="Sélectionnez un Clients"
             options={clientOptions}
             value={selectedClient}
@@ -223,6 +223,7 @@ export default function CreateEventSection({
                 ...provided,
                 borderTopRightRadius: "0px !important",
                 borderBottomRightRadius: "0px !important",
+                width: "100%",
               }),
             }}
             onChange={handleOptionChangeClt}
@@ -241,22 +242,23 @@ export default function CreateEventSection({
             <input
               type="date"
               className="flex-grow border border-gray-300 rounded-md px-4 h-full"
+              onChange={(e) => setDate(e.target.value)}
             />
           </div>
           <div className="flex gap-0">
             <Select
-              id="select_hour"
+              instanceId="select_hour"
               placeholder=""
               options={Array.from({ length: 24 }, (_, i) => ({
                 value: i.toString().padStart(2, "0"),
                 label: i.toString().padStart(2, "0"),
               }))}
-              styles={{ ...selectHourStyles, width: "fit-content" }}
+              styles={{ ...selectHourStyles }}
             />
 
             <span className="font-medium m-2">h</span>
             <Select
-              id="select_minute"
+              instanceId="select_minute"
               placeholder=""
               options={Array.from({ length: 60 }, (_, i) => ({
                 value: i.toString().padStart(2, "0"),
@@ -292,9 +294,10 @@ export default function CreateEventSection({
                       <td className="py-4">
                         <Select
                           className="m-auto"
-                          id="select_Agenda"
+                          instanceId="select_Agenda"
                           placeholder="Sélectionnez un Agendas"
                           options={agendaOptions}
+                          value={selectedAgenda}
                           styles={{
                             ...selectDefaultStyle,
                             container: (provided) => ({
@@ -307,7 +310,7 @@ export default function CreateEventSection({
                       </td>
                       <td className="text-center py-4 flex justify-center ">
                         <Select
-                          id="select_hour"
+                          instanceId="select_hour_tb"
                           placeholder=""
                           options={Array.from({ length: 24 }, (_, i) => ({
                             value: i.toString().padStart(2, "0"),
@@ -323,7 +326,7 @@ export default function CreateEventSection({
                         />
                         <span className="font-medium m-2">h</span>
                         <Select
-                          id="select_minute"
+                          instanceId="select_minute_tb"
                           placeholder=""
                           options={Array.from({ length: 60 }, (_, i) => ({
                             value: i.toString().padStart(2, "0"),

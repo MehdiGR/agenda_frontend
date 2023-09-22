@@ -8,27 +8,27 @@ import resourceDayGridPlugin from "@fullcalendar/resource-daygrid";
 import resourceTimelinePlugin from "@fullcalendar/resource-timeline";
 import resourceTimeGridPlugin from "@fullcalendar/resource-timegrid";
 import frLocale from "@fullcalendar/core/locales/fr";
+import { useState } from "react";
 
-export default function MyCalendar({ handleDateClick, active }) {
-  const resources = [
-    { id: "a", title: "Room A", building: "Building 1" },
-    { id: "b", title: "Room B", building: "Building 2" },
-    { id: "c", title: "Room C", building: "Building 1" },
-  ];
-
-  const events = [
-    {
-      title: "Event 1",
-      start: "2023-07-31",
-      resourceId: "a", // Assigning the event to resource with ID 'a'
-    },
-    {
-      title: "Event 2",
-      start: "2023-08-01",
-      resourceId: "b", // Assigning the event to resource with ID 'b'
-    },
-  ];
-
+export default function MyCalendar({
+  handleDateClick,
+  handleEventResize,
+  active,
+  events,
+  agendas,
+  addedEventId,
+  handleEventRender,
+}) {
+  // const resources = [
+  //   { id: "a", title: "Room A", building: "Building 1" },
+  //   { id: "b", title: "Room B", building: "Building 2" },
+  //   { id: "c", title: "Room C", building: "Building 1" },
+  // ];
+  const resources = agendas.map((agenda: any) => ({
+    id: agenda.id,
+    title: agenda.nom,
+    building: agenda.nom,
+  }));
   return (
     <div className="w-full" style={{ zIndex: 0 }}>
       <FullCalendar
@@ -53,6 +53,15 @@ export default function MyCalendar({ handleDateClick, active }) {
         }}
         datesAboveResources={true}
         dateClick={handleDateClick}
+        // eventClick={handleDateClick}
+        // Add the eventResize callback
+        eventResize={handleEventResize} // Add the eventResize callback
+        editable={true} // Enable event editing
+        eventResizableFromStart={true} // Enable resizing from the start point
+        eventStartEditable={true} // Disable dragging from the start point
+        eventOverlap={true}
+        // eventContent={handleEventRender}
+        // eventClassNames={"added-event"}
       />
     </div>
   );
