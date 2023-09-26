@@ -233,7 +233,11 @@ export default function CreateEventSection({
                     styles={{ ...selectHourStyles }}
                     onChange={(selectedOption) => {
                       field.onChange(selectedOption);
-                      handleOptionChangeHour(selectedOption, setTotalDuration);
+                      handleOptionChangeHour(
+                        selectedOption,
+                        setTotalDuration,
+                        field.value
+                      );
                     }}
                   />
                 )}
@@ -257,7 +261,8 @@ export default function CreateEventSection({
                       field.onChange(selectedOption);
                       handleOptionChangeMinute(
                         selectedOption,
-                        setTotalDuration
+                        setTotalDuration,
+                        field.value
                       );
                     }}
                   />
@@ -329,6 +334,15 @@ export default function CreateEventSection({
                               width: "fit-content",
                             }),
                           }}
+                          onChange={(selectedOption) => {
+                            handleOptionChangeHour(
+                              selectedOption,
+                              setTotalDuration,
+                              (prevValue: any) => {
+                                return prevValue.value;
+                              }
+                            );
+                          }}
                         />
                         <span className="font-medium m-2">h</span>
                         <Select
@@ -346,6 +360,13 @@ export default function CreateEventSection({
                               width: "fit-content",
                             }),
                           }}
+                          onChange={(selectedOption) => {
+                            handleOptionChangeMinute(
+                              selectedOption,
+                              setTotalDuration,
+                              selectedOption?.value
+                            );
+                          }}
                         />
                       </td>
                       <td className="text-center py-4">{ag_pr.prixTTC}</td>
@@ -355,7 +376,9 @@ export default function CreateEventSection({
                           priority
                           alt="supprimer"
                           src={removeIcon}
-                          onClick={() => removePrestation(index)}
+                          onClick={() =>
+                            removePrestation(index, setAgendaPrestationArr)
+                          }
                         />
                       </td>
                     </tr>

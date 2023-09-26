@@ -64,13 +64,30 @@ export const removePrestation = (index, setAgendaPrestationArr) => {
   });
 };
 
-export const handleOptionChangeHour = (selectedOption, setTotalDuration) => {
+export const handleOptionChangeHour = (
+  selectedOption,
+  setTotalDuration,
+  prevSelectedOption
+) => {
+  console.log(prevSelectedOption);
+  // Reduce the previous selected option value from the total duration
+  prevSelectedOption
+    ? setTotalDuration(
+        (prevDuration) => prevDuration - parseInt(prevSelectedOption.value) * 60
+      )
+    : "";
+
+  // Add the new selected option value to the total duration
   setTotalDuration(
     (prevDuration) => prevDuration + parseInt(selectedOption.value) * 60
-  ); // convert hours to minutes
+  );
 };
 
-export const handleOptionChangeMinute = (selectedOption, setTotalDuration) => {
+export const handleOptionChangeMinute = (
+  selectedOption,
+  setTotalDuration,
+  prevSelectedOption
+) => {
   setTotalDuration(
     (prevDuration) => prevDuration + parseInt(selectedOption.value)
   ); // add minutes to duration
