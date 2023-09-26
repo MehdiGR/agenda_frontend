@@ -9,6 +9,21 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import removeIcon from "../../../public/square_remove.svg";
 import Image from "next/image";
+import {
+  openModal,
+  closeModal,
+  addPrestation,
+  removePrestation,
+  formatDuration,
+  handleOptionChangeAg,
+  handleOptionChangeClt,
+  handleOptionChangeHour,
+  handleOptionChangeMinute,
+  handleOptionChangeTypeClt,
+  saveReservat,
+  saveClient,
+  cancelCreationEvent,
+} from "../../js/agenda_fn";
 
 export default function CreateEventSection({
   active,
@@ -36,101 +51,9 @@ export default function CreateEventSection({
   const [selectedClient, setSelectedClient] = useState(null);
   const [selectedAgenda, setSelectedAgenda] = useState();
   const [agenda_prestationArr, setAgendaPrestationArr] = useState<any[]>([]);
-  // const [date, setDate] = useState("");
-  // const [hour, setHour] = useState();
-  // const [minutes, setMinutes] = useState();
-  // const [formData, setFormData] = useState({
-  //   client: "",
-  //   date: "",
-  //   time: "",
-  //   agenda_prestation: {},
-  // });
-
-  // Cancel creation event
-  const cancelCreationEvent = () => {
-    setActive(false);
-  };
-
-  // handle radio button (client) change
-  const handleOptionChangeTypeClt = (changeEvent: any) => {
-    let value = changeEvent.target.value;
-    value == "client_ref" ? setIsRef(true) : setIsRef(false);
-    setSelectedClientType(value);
-  };
-
-  const handleOptionChangeClt = (selectedOption: any) => {
-    setSelectedClient(selectedOption);
-  };
-
-  const handleOptionChangeAg = (selectedOption: any) => {
-    setSelectedAgenda(selectedOption);
-  };
-
-  function openModal() {
-    setIsOpen(true);
-  }
-
-  function closeModal() {
-    setIsOpen(false);
-  }
-
-  const saveClient = async (formData: any) => {
-    const response = await fetch("http://localhost:3000/api/client", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(formData),
-    });
-
-    if (response.ok) {
-      // Request was successful
-      const data = await response.json();
-      // Handle the response data
-      const newClient = { value: data.clientId, label: formData.nom };
-      // add the new client to select client element
-      setClientOptions((prevOptions: any) => [...prevOptions, newClient]);
-      // update selected client
-      setSelectedClient(newClient);
-      closeModal();
-    } else {
-      // Request failed
-      console.error("POST request failed");
-    }
-  };
-  const saveReservat = async (formData: any) => {
-    const { heurDB, minuteDB, ...rest } = formData;
-    const time = `${heurDB.value}:${minuteDB.value}`;
-    const updatedFormData = { ...rest, time };
-    // console.log(updatedFormData);
-    // return;
-    const response = await fetch("http://localhost:3000/api/reservat", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(updatedFormData),
-    });
-
-    if (response.ok) {
-    } else {
-      // Request failed
-      console.error("POST request failed");
-    }
-  };
-
-  const addPrestation = (data: any) => {
-    setAgendaPrestationArr((previousState) => {
-      return [...previousState, { ...data }];
-    });
-  };
-
-  const removePrestation = (index: any) => {
-    setAgendaPrestationArr((previousState) => {
-      return previousState.filter((_, i) => i !== index);
-    });
-  };
-
+  const [totalDuration, setTotalDuration] = useState(0);
+  const [totalPrice, setTotalPrice] = useState(0);
+  // Default style select
   const selectDefaultStyle = {
     control: (provided: any) => ({
       ...provided,
@@ -194,12 +117,17 @@ export default function CreateEventSection({
     control,
   } = useForm({ resolver: yupResolver(schema) });
 
-  // const handleInputChange = (e: any) => {
-  //   setFormData({ ...formData, [e.target.name]: e.target.value });
-  // };
-
   useEffect(() => {
+    let totalDuration = 0;
+    let totalPrice = 0;
+    agenda_prestationArr.forEach((item) => {
+      totalDuration += item.duree;
+      totalPrice += item.prixTTC;
+    });
+    setTotalDuration(totalDuration);
+    setTotalPrice(totalPrice);
     setSelectedAgenda(eventAgenda);
+    console.log(totalDuration);
     // register form inputs
     console.log(agenda_prestationArr);
   }, [agenda_prestationArr, selectedAgenda]);
@@ -303,6 +231,10 @@ export default function CreateEventSection({
                       label: i.toString().padStart(2, "0"),
                     }))} // Convert to readonly array
                     styles={{ ...selectHourStyles }}
+                    onChange={(selectedOption) => {
+                      field.onChange(selectedOption);
+                      handleOptionChangeHour(selectedOption, setTotalDuration);
+                    }}
                   />
                 )}
               />
@@ -321,6 +253,13 @@ export default function CreateEventSection({
                       label: i.toString().padStart(2, "0"),
                     }))}
                     styles={{ ...selectHourStyles }}
+                    onChange={(selectedOption) => {
+                      field.onChange(selectedOption);
+                      handleOptionChangeMinute(
+                        selectedOption,
+                        setTotalDuration
+                      );
+                    }}
                   />
                 )}
               />
@@ -329,8 +268,7 @@ export default function CreateEventSection({
           <div>
             <label className="font-semibold">Fin:</label>
             <div className="flex items-center mt-2 ">
-              {" "}
-              <p>09 h 20</p>
+              <p className="hour_fn"></p>
             </div>
           </div>
         </div>
@@ -428,8 +366,12 @@ export default function CreateEventSection({
             <tfoot>
               <tr>
                 <th colSpan={2} className="border-r-2 bg-slate-800"></th>
-                <th className="border-r-2 bg-slate-800 text-white">00h00</th>
-                <th className="border-r-2 bg-slate-800 text-white">0 DH</th>
+                <th className="border-r-2 bg-slate-800 text-white">
+                  {formatDuration(totalDuration) || "00h00"}
+                </th>
+                <th className="border-r-2 bg-slate-800 text-white">
+                  {totalPrice} DH
+                </th>
                 <th className="border-r-2 bg-slate-800"></th>
               </tr>
             </tfoot>
@@ -438,6 +380,7 @@ export default function CreateEventSection({
         <PrestationSlider
           prestations={prestations}
           addPrestation={addPrestation}
+          setAgendaPrestationArr={setAgendaPrestationArr}
         />
         <div>
           <label className="font-semibold">Notes:</label>

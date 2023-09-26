@@ -36,8 +36,15 @@ export default function CreateEventSection({
   const [selectedClient, setSelectedClient] = useState(null);
   const [selectedAgenda, setSelectedAgenda] = useState();
   const [agenda_prestationArr, setAgendaPrestationArr] = useState<any[]>([]);
-  const [totalDuration, setTotalDuration] = useState(0);
-  const [totalPrice, setTotalPrice] = useState(0);
+  // const [date, setDate] = useState("");
+  // const [hour, setHour] = useState();
+  // const [minutes, setMinutes] = useState();
+  // const [formData, setFormData] = useState({
+  //   client: "",
+  //   date: "",
+  //   time: "",
+  //   agenda_prestation: {},
+  // });
 
   // Cancel creation event
   const cancelCreationEvent = () => {
@@ -115,7 +122,6 @@ export default function CreateEventSection({
   const addPrestation = (data: any) => {
     setAgendaPrestationArr((previousState) => {
       return [...previousState, { ...data }];
-      // , duration: 0, price: 0
     });
   };
 
@@ -191,36 +197,8 @@ export default function CreateEventSection({
   // const handleInputChange = (e: any) => {
   //   setFormData({ ...formData, [e.target.name]: e.target.value });
   // };
-  const handleOptionChangeHour = (selectedOption: any) => {
-    // Update the total duration
-    setTotalDuration(
-      (prevDuration) => prevDuration + parseInt(selectedOption.value) * 60
-    ); // convert hours to minutes
-  };
 
-  const handleOptionChangeMinute = (selectedOption: any) => {
-    // Update the total duration
-    setTotalDuration(
-      (prevDuration) => prevDuration + parseInt(selectedOption.value)
-    ); // add minutes to duration
-  };
-
-  const formatDuration = (totalMinutes: number) => {
-    const hour = Math.floor(totalMinutes / 60);
-    const minutes = Math.floor(totalMinutes % 60);
-    return `${hour.toString().padStart(2, "0")}h${minutes
-      .toString()
-      .padStart(2, "0")}`;
-  };
   useEffect(() => {
-    let totalDuration = 0;
-    let totalPrice = 0;
-    agenda_prestationArr.forEach((item) => {
-      totalDuration += item.duree;
-      totalPrice += item.prixTTC;
-    });
-    setTotalDuration(totalDuration);
-    setTotalPrice(totalPrice);
     setSelectedAgenda(eventAgenda);
     // register form inputs
     console.log(agenda_prestationArr);
@@ -325,10 +303,6 @@ export default function CreateEventSection({
                       label: i.toString().padStart(2, "0"),
                     }))} // Convert to readonly array
                     styles={{ ...selectHourStyles }}
-                    onChange={(selectedOption) => {
-                      field.onChange(selectedOption);
-                      handleOptionChangeHour(selectedOption);
-                    }}
                   />
                 )}
               />
@@ -347,10 +321,6 @@ export default function CreateEventSection({
                       label: i.toString().padStart(2, "0"),
                     }))}
                     styles={{ ...selectHourStyles }}
-                    onChange={(selectedOption) => {
-                      field.onChange(selectedOption);
-                      handleOptionChangeMinute(selectedOption);
-                    }}
                   />
                 )}
               />
@@ -359,7 +329,8 @@ export default function CreateEventSection({
           <div>
             <label className="font-semibold">Fin:</label>
             <div className="flex items-center mt-2 ">
-              <p className="hour_fn"></p>
+              {" "}
+              <p>09 h 20</p>
             </div>
           </div>
         </div>
@@ -457,12 +428,8 @@ export default function CreateEventSection({
             <tfoot>
               <tr>
                 <th colSpan={2} className="border-r-2 bg-slate-800"></th>
-                <th className="border-r-2 bg-slate-800 text-white">
-                  {formatDuration(totalDuration) || "00h00"}
-                </th>
-                <th className="border-r-2 bg-slate-800 text-white">
-                  {totalPrice} DH
-                </th>
+                <th className="border-r-2 bg-slate-800 text-white">00h00</th>
+                <th className="border-r-2 bg-slate-800 text-white">0 DH</th>
                 <th className="border-r-2 bg-slate-800"></th>
               </tr>
             </tfoot>
