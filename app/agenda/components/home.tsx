@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import MyCalendar from "./mycalendar";
 import CreateEventSection from "./createeventsection";
-import { Props, ScriptProps } from "next/script";
 
 export default function Home({
   clients,
@@ -12,28 +11,29 @@ export default function Home({
   prestations,
   agenda_prestation,
   agendas,
+  periods,
 }) {
-  useEffect(() => {
-    // console.log(props.clients);
-    //   console.log(props);
-  }, []);
   const [activeEventSection, setActiveEventSection] = useState(false);
   const [events, setEvents] = useState([{}]);
   const [eventAgenda, setEventAgenda] = useState({});
   const [addedEventId, setAddedEventId] = useState(null);
   // const [highlightedEventId, setHighlightedEventId] = useState(null);
 
-  const handleDateClick = (arg: any) => {
-    const resourceId = arg.resource.title;
+  const handleAddClick = (arg: any) => {
+    console.log(arg);
     // update active state for showing  the create event section
     setActiveEventSection(() => true);
     const newEvent = {
-      title: arg.resource.title,
+      // title: arg.resource.title,
       start: arg.dateStr,
       resourceId: arg.resource.id,
+      editable: true,
+      classNames: ["added-event"],
+      backgroundColor: "blue",
+      borderColor: "darkblue",
     };
     setEventAgenda({
-      label: newEvent.title,
+      label: arg.resource.title,
       value: parseInt(newEvent.resourceId),
     });
     const updatedEvents = [...events, newEvent];
@@ -43,32 +43,25 @@ export default function Home({
     setAddedEventId(newEvent.resourceId);
     // arg.dayEl.style.backgroundColor = "red";
   };
-  const handleEventResize = (arg: any) => {
-    // Update the event's end time based on the resized value
-    const updatedEvent = {
-      ...arg.event,
-      end: arg.end,
-    };
+  // const handleDeleteEvent=()=>{
+  //   setEvents(
+  //      events.filter((event)=> event.)
+  //   )
+  // }
 
-    // Update the event in your data source or state
-    // For example, if you have an events array in your state:
-    const updatedEvents = events.map((event: any) =>
-      event.id === updatedEvent.id ? updatedEvent : event
-    );
-    setEvents(updatedEvents);
-  };
-  const handleEventRender = (info: any) => {
-    // console.log("s" + addedEventId);
-    // console.log(info.event._def.resourceIds[0]);
-    // Check if the event ID matches the addedEventId state
-
-    if (info.event._def.resourceIds[0] === addedEventId) {
-      // Apply a custom CSS class to the event element
-      // info.el.classList.add("added-event");
-      // info.backgroundColor = "red";
-      // console.log(info.borderColor);
-    }
-  };
+  useEffect(() => {
+    // console.log(props.clients);
+    //   console.log(props);
+    // setEvents(() =>
+    //   periods.map((period: any) => ({
+    //     title: period.prestation,
+    //     start: period.heurDB,
+    //     end: period.heurFin,
+    //     resourceId: period.idAgenda,
+    //   }))
+    // );
+    // console.log(events);
+  }, []);
 
   return (
     <div className="flex  gap-10  h-full   ">
@@ -83,13 +76,11 @@ export default function Home({
         eventAgenda={eventAgenda}
       />
       <MyCalendar
-        handleDateClick={handleDateClick}
-        handleEventResize={handleEventResize}
+        handleAddClick={handleAddClick}
         active={activeEventSection}
         events={events}
         agendas={agendas}
-        addedEventId={addedEventId}
-        handleEventRender={handleEventRender}
+        periods={periods}
       />
     </div>
   );

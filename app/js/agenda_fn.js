@@ -1,4 +1,4 @@
-export const cancelCreationEvent = () => {
+export const cancelCreationEvent = (setActive) => {
   setActive(false);
 };
 
@@ -64,33 +64,30 @@ export const removePrestation = (index, setAgendaPrestationArr) => {
   });
 };
 
-export const handleOptionChangeHour = (
-  selectedOption,
-  setTotalDuration,
-  prevSelectedOption
-) => {
-  console.log(prevSelectedOption);
-  // Reduce the previous selected option value from the total duration
-  prevSelectedOption
-    ? setTotalDuration(
-        (prevDuration) => prevDuration - parseInt(prevSelectedOption.value) * 60
-      )
-    : "";
-
-  // Add the new selected option value to the total duration
-  setTotalDuration(
-    (prevDuration) => prevDuration + parseInt(selectedOption.value) * 60
-  );
+export const calculateTotalPrices = (agenda_prestationArr, setTotalPrice) => {
+  let total = 0;
+  agenda_prestationArr.forEach((item) => {
+    total += item.prixTTC;
+  });
+  setTotalPrice(total);
 };
-
-export const handleOptionChangeMinute = (
-  selectedOption,
-  setTotalDuration,
-  prevSelectedOption
+export const calculateTotalDuration = (
+  hourDB,
+  minutesDB,
+  duration_hours,
+  duration_minutes,
+  setTotalDuration
 ) => {
-  setTotalDuration(
-    (prevDuration) => prevDuration + parseInt(selectedOption.value)
-  ); // add minutes to duration
+  let total = 0;
+  const totalHours = duration_hours.reduce((a, b) => a + b, 0);
+  const totalMinutes = duration_minutes.reduce((a, b) => a + b, 0);
+
+  // Convert hours to minutes
+  const hourDBInMinutes = hourDB * 60;
+  const totalHoursInMinutes = totalHours * 60;
+
+  total = hourDBInMinutes + minutesDB + totalHoursInMinutes + totalMinutes;
+  setTotalDuration(total);
 };
 
 export const formatDuration = (totalMinutes) => {
@@ -101,8 +98,8 @@ export const formatDuration = (totalMinutes) => {
     .padStart(2, "0")}`;
 };
 export const saveReservat = async (formData) => {
-  const { heurDB, minuteDB, ...rest } = formData;
-  const time = `${heurDB.value}:${minuteDB.value}`;
+  const { hourDB, minuteDB, ...rest } = formData;
+  const time = `${hourDB.value}:${minuteDB.value}`;
   const updatedFormData = { ...rest, time };
   // console.log(updatedFormData);
   // return;

@@ -52,6 +52,15 @@ prestationsIds.forEach((prestationId :any) => {
   ];
   console.log(values2)
     connection.query(sql2, values2,()=>1);
+  const sql3 =
+    "INSERT INTO periode(idRes,idPrest) VALUES (?,?)";
+  const values3 = [
+    insertedId_res,
+    prestationId,
+   
+  ];
+  console.log(values3)
+    connection.query(sql2, values3,()=>1);
 });
  
   // Release the connection back to the pool

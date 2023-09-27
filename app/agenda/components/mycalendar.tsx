@@ -11,13 +11,11 @@ import frLocale from "@fullcalendar/core/locales/fr";
 import { useState } from "react";
 
 export default function MyCalendar({
-  handleDateClick,
-  handleEventResize,
+  handleAddClick,
   active,
   events,
   agendas,
-  addedEventId,
-  handleEventRender,
+  periods,
 }) {
   // const resources = [
   //   { id: "a", title: "Room A", building: "Building 1" },
@@ -52,14 +50,14 @@ export default function MyCalendar({
           },
         }}
         datesAboveResources={true}
-        dateClick={handleDateClick}
-        // eventClick={handleDateClick}
+        dateClick={handleAddClick}
+        // eventClick={handleAddClick}
         // Add the eventResize callback
-        eventResize={handleEventResize} // Add the eventResize callback
         editable={true} // Enable event editing
         eventResizableFromStart={true} // Enable resizing from the start point
         eventStartEditable={true} // Disable dragging from the start point
         eventOverlap={true}
+        eventClick={handleAddClick}
         // eventContent={handleEventRender}
         // eventClassNames={"added-event"}
       />

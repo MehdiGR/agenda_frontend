@@ -17,12 +17,12 @@ import {
   formatDuration,
   handleOptionChangeAg,
   handleOptionChangeClt,
-  handleOptionChangeHour,
-  handleOptionChangeMinute,
   handleOptionChangeTypeClt,
   saveReservat,
   saveClient,
   cancelCreationEvent,
+  calculateTotalDuration,
+  calculateTotalPrices,
 } from "../../js/agenda_fn";
 
 export default function CreateEventSection({
@@ -53,6 +53,11 @@ export default function CreateEventSection({
   const [agenda_prestationArr, setAgendaPrestationArr] = useState<any[]>([]);
   const [totalDuration, setTotalDuration] = useState(0);
   const [totalPrice, setTotalPrice] = useState(0);
+  const [duration_hours, setdurationHour] = useState<number[]>([0]);
+  const [duration_minutes, setdurationMinutes] = useState<number[]>([0]);
+
+  const [hourDB, setdurationHourDB] = useState(0);
+  const [minutesDB, setdurationMinutesDB] = useState(0);
   // Default style select
   const selectDefaultStyle = {
     control: (provided: any) => ({
@@ -97,7 +102,7 @@ export default function CreateEventSection({
       })
       .required(),
     dateRes: yup.string(),
-    heurDB: yup.object().shape({
+    hourDB: yup.object().shape({
       label: yup.string(),
       value: yup.string(),
     }),
@@ -118,19 +123,23 @@ export default function CreateEventSection({
   } = useForm({ resolver: yupResolver(schema) });
 
   useEffect(() => {
-    let totalDuration = 0;
-    let totalPrice = 0;
-    agenda_prestationArr.forEach((item) => {
-      totalDuration += item.duree;
-      totalPrice += item.prixTTC;
-    });
-    setTotalDuration(totalDuration);
-    setTotalPrice(totalPrice);
     setSelectedAgenda(eventAgenda);
-    console.log(totalDuration);
-    // register form inputs
-    console.log(agenda_prestationArr);
-  }, [agenda_prestationArr, selectedAgenda]);
+    calculateTotalDuration(
+      hourDB,
+      minutesDB,
+      duration_hours,
+      duration_minutes,
+      setTotalDuration
+    );
+    calculateTotalPrices(agenda_prestationArr, setTotalPrice);
+  }, [
+    agenda_prestationArr,
+    selectedAgenda,
+    hourDB,
+    minutesDB,
+    duration_hours,
+    duration_minutes,
+  ]);
 
   return (
     <div className={`relative   h-fit w-full ${!active ? "hidden" : ""}`}>
@@ -219,7 +228,7 @@ export default function CreateEventSection({
             <label className="font-semibold">Début:</label>
             <div className="flex gap-0 ">
               <Controller
-                name="heurDB"
+                name="hourDB"
                 control={control}
                 render={({ field }) => (
                   <Select
@@ -232,17 +241,12 @@ export default function CreateEventSection({
                     }))} // Convert to readonly array
                     styles={{ ...selectHourStyles }}
                     onChange={(selectedOption) => {
-                      field.onChange(selectedOption);
-                      handleOptionChangeHour(
-                        selectedOption,
-                        setTotalDuration,
-                        field.value
-                      );
+                      setdurationHourDB(Number(selectedOption?.value));
                     }}
                   />
                 )}
               />
-              {errors.heurDB?.message}
+              {errors.hourDB?.message}
               <span className="font-medium m-2">h</span>
               <Controller
                 name="minuteDB"
@@ -258,12 +262,7 @@ export default function CreateEventSection({
                     }))}
                     styles={{ ...selectHourStyles }}
                     onChange={(selectedOption) => {
-                      field.onChange(selectedOption);
-                      handleOptionChangeMinute(
-                        selectedOption,
-                        setTotalDuration,
-                        field.value
-                      );
+                      setdurationMinutesDB(Number(selectedOption?.value));
                     }}
                   />
                 )}
@@ -298,6 +297,8 @@ export default function CreateEventSection({
                 </tr>
               ) : (
                 agenda_prestationArr.map((ag_pr: any, index) => {
+                  let hours = Math.floor(ag_pr.duree / 60);
+                  let minutes = ag_pr.duree % 60;
                   return (
                     <tr key={index}>
                       <td className="text-center py-4">{ag_pr.intitule}</td>
@@ -320,9 +321,10 @@ export default function CreateEventSection({
                       </td>
                       <td className="text-center py-4 flex justify-center ">
                         <Select
-                          name="duree_hour"
+                          name="duration_hour"
                           instanceId="select_hour_tb"
                           placeholder=""
+                          // inputValue={hours.toLocaleString()}
                           options={Array.from({ length: 24 }, (_, i) => ({
                             value: i.toString().padStart(2, "0"),
                             label: i.toString().padStart(2, "0"),
@@ -334,21 +336,22 @@ export default function CreateEventSection({
                               width: "fit-content",
                             }),
                           }}
+                          defaultValue={{
+                            value: hours.toString().padStart(2, "0"),
+                            label: hours.toString().padStart(2, "0"),
+                          }}
                           onChange={(selectedOption) => {
-                            handleOptionChangeHour(
-                              selectedOption,
-                              setTotalDuration,
-                              (prevValue: any) => {
-                                return prevValue.value;
-                              }
-                            );
+                            const updatedHour = [...duration_hours];
+                            updatedHour[index] = Number(selectedOption?.value);
+                            setdurationHour(updatedHour);
                           }}
                         />
                         <span className="font-medium m-2">h</span>
                         <Select
-                          name="duree_minutes"
+                          name="duration_minutes"
                           instanceId="select_minutes_tb"
                           placeholder=""
+                          // inputValue={minutes.toString()}
                           options={Array.from({ length: 60 }, (_, i) => ({
                             value: i.toString().padStart(2, "0"),
                             label: i.toString().padStart(2, "0"),
@@ -360,12 +363,16 @@ export default function CreateEventSection({
                               width: "fit-content",
                             }),
                           }}
+                          defaultValue={{
+                            value: minutes.toString().padStart(2, "0"),
+                            label: minutes.toString().padStart(2, "0"),
+                          }}
                           onChange={(selectedOption) => {
-                            handleOptionChangeMinute(
-                              selectedOption,
-                              setTotalDuration,
+                            const updatedMinutes = [...duration_minutes];
+                            updatedMinutes[index] = Number(
                               selectedOption?.value
                             );
+                            setdurationMinutes(updatedMinutes);
                           }}
                         />
                       </td>
@@ -422,7 +429,7 @@ export default function CreateEventSection({
         <div className="absolute bottom-3 w-full flex gap-2 justify-center">
           <button
             className="py-1 px-4 bg-gray-800 text-white rounded-md "
-            onClick={cancelCreationEvent}
+            onClick={() => cancelCreationEvent(setActive)}
             type="button"
           >
             Annuler
