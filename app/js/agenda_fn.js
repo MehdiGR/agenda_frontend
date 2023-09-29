@@ -51,16 +51,41 @@ export const closeModal = (setIsOpen) => {
   setIsOpen(false);
 };
 
-export const addPrestation = (data, setAgendaPrestationArr) => {
+export const addPrestation = (
+  data,
+  setAgendaPrestationArr,
+  setDurationHour,
+  setDurationMinutes
+) => {
   setAgendaPrestationArr((previousState) => {
-    console.log("data");
     return [...previousState, { ...data }];
+  });
+  setDurationHour((previousState) => {
+    let hours = Math.floor(data.duree / 60);
+    return [...previousState, hours];
+  });
+  setDurationMinutes((previousState) => {
+    let minutes = data.duree % 60;
+    return [...previousState, minutes];
   });
 };
 
-export const removePrestation = (index, setAgendaPrestationArr) => {
+export const removePrestation = (
+  index,
+  setAgendaPrestationArr,
+  setDurationHour,
+  setDurationMinutes
+) => {
   setAgendaPrestationArr((previousState) => {
     return previousState.filter((_, i) => i !== index);
+  });
+  setDurationHour((previousState) => {
+    const updatedHours = previousState.filter((_, i) => i !== index);
+    return updatedHours;
+  });
+  setDurationMinutes((previousState) => {
+    const updatedMinutes = previousState.filter((_, i) => i !== index);
+    return updatedMinutes;
   });
 };
 
@@ -72,21 +97,18 @@ export const calculateTotalPrices = (agenda_prestationArr, setTotalPrice) => {
   setTotalPrice(total);
 };
 export const calculateTotalDuration = (
-  hourDB,
-  minutesDB,
   duration_hours,
   duration_minutes,
   setTotalDuration
 ) => {
   let total = 0;
+
   const totalHours = duration_hours.reduce((a, b) => a + b, 0);
   const totalMinutes = duration_minutes.reduce((a, b) => a + b, 0);
 
-  // Convert hours to minutes
-  const hourDBInMinutes = hourDB * 60;
   const totalHoursInMinutes = totalHours * 60;
+  total = totalHoursInMinutes + totalMinutes;
 
-  total = hourDBInMinutes + minutesDB + totalHoursInMinutes + totalMinutes;
   setTotalDuration(total);
 };
 
@@ -101,8 +123,7 @@ export const saveReservat = async (formData) => {
   const { hourDB, minuteDB, ...rest } = formData;
   const time = `${hourDB.value}:${minuteDB.value}`;
   const updatedFormData = { ...rest, time };
-  // console.log(updatedFormData);
-  // return;
+
   const response = await fetch("http://localhost:3000/api/reservat", {
     method: "POST",
     headers: {

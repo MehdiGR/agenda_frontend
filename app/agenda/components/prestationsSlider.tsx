@@ -8,6 +8,8 @@ const PrestationSlider = ({
   prestations,
   addPrestation,
   setAgendaPrestationArr,
+  setDurationHour,
+  setDurationMinutes,
 }) => {
   // Slider settings
   // const settings = {
@@ -22,6 +24,7 @@ const PrestationSlider = ({
   //   // slidesPerRow: 2,
   //   // centerMode: true,
   // };
+
   return (
     <div className="flex flex-wrap pb-16">
       {/* <Slider {...settings}> */}
@@ -32,6 +35,8 @@ const PrestationSlider = ({
               prestation={prestation}
               addPrestation={addPrestation}
               setAgendaPrestationArr={setAgendaPrestationArr}
+              setDurationHour={setDurationHour}
+              setDurationMinutes={setDurationMinutes}
             />
           </div>
         );

@@ -53,11 +53,11 @@ export default function CreateEventSection({
   const [agenda_prestationArr, setAgendaPrestationArr] = useState<any[]>([]);
   const [totalDuration, setTotalDuration] = useState(0);
   const [totalPrice, setTotalPrice] = useState(0);
-  const [duration_hours, setdurationHour] = useState<number[]>([0]);
-  const [duration_minutes, setdurationMinutes] = useState<number[]>([0]);
+  const [duration_hours, setDurationHour] = useState<number[]>([]);
+  const [duration_minutes, setDurationMinutes] = useState<number[]>([]);
 
-  const [hourDB, setdurationHourDB] = useState(0);
-  const [minutesDB, setdurationMinutesDB] = useState(0);
+  const [hourDB, setHourDB] = useState(0);
+  const [minutesDB, setMinutesDB] = useState(0);
   // Default style select
   const selectDefaultStyle = {
     control: (provided: any) => ({
@@ -123,24 +123,20 @@ export default function CreateEventSection({
   } = useForm({ resolver: yupResolver(schema) });
 
   useEffect(() => {
-    setSelectedAgenda(eventAgenda);
-    calculateTotalDuration(
-      hourDB,
-      minutesDB,
-      duration_hours,
-      duration_minutes,
-      setTotalDuration
-    );
-    calculateTotalPrices(agenda_prestationArr, setTotalPrice);
-  }, [
-    agenda_prestationArr,
-    selectedAgenda,
-    hourDB,
-    minutesDB,
-    duration_hours,
-    duration_minutes,
-  ]);
+    // console.log(duration_minutes);
 
+    setSelectedAgenda(eventAgenda);
+    calculateTotalDuration(duration_hours, duration_minutes, setTotalDuration);
+    calculateTotalPrices(agenda_prestationArr, setTotalPrice);
+    console.log(duration_minutes);
+  }, [agenda_prestationArr, selectedAgenda, duration_hours, duration_minutes]);
+  // useEffect(() => {
+  //   let total = 0;
+  //   agenda_prestationArr.forEach((ag_pr) => {
+  //     total += ag_pr.duree;
+  //   });
+  //   setTotalDuration(total);
+  // }, [agenda_prestationArr]);
   return (
     <div className={`relative   h-fit w-full ${!active ? "hidden" : ""}`}>
       <form onSubmit={handleSubmit(saveReservat)} className=" space-y-4 h-full">
@@ -241,7 +237,7 @@ export default function CreateEventSection({
                     }))} // Convert to readonly array
                     styles={{ ...selectHourStyles }}
                     onChange={(selectedOption) => {
-                      setdurationHourDB(Number(selectedOption?.value));
+                      setHourDB(Number(selectedOption?.value));
                     }}
                   />
                 )}
@@ -262,7 +258,7 @@ export default function CreateEventSection({
                     }))}
                     styles={{ ...selectHourStyles }}
                     onChange={(selectedOption) => {
-                      setdurationMinutesDB(Number(selectedOption?.value));
+                      setMinutesDB(Number(selectedOption?.value));
                     }}
                   />
                 )}
@@ -272,7 +268,11 @@ export default function CreateEventSection({
           <div>
             <label className="font-semibold">Fin:</label>
             <div className="flex items-center mt-2 ">
-              <p className="hour_fn"></p>
+              <p className="hour_fn">
+                {totalDuration != 0
+                  ? formatDuration(totalDuration + (hourDB * 60 + minutesDB))
+                  : ""}
+              </p>
             </div>
           </div>
         </div>
@@ -343,7 +343,7 @@ export default function CreateEventSection({
                           onChange={(selectedOption) => {
                             const updatedHour = [...duration_hours];
                             updatedHour[index] = Number(selectedOption?.value);
-                            setdurationHour(updatedHour);
+                            setDurationHour(updatedHour);
                           }}
                         />
                         <span className="font-medium m-2">h</span>
@@ -369,10 +369,12 @@ export default function CreateEventSection({
                           }}
                           onChange={(selectedOption) => {
                             const updatedMinutes = [...duration_minutes];
+                            console.log("before " + updatedMinutes[index]);
                             updatedMinutes[index] = Number(
                               selectedOption?.value
                             );
-                            setdurationMinutes(updatedMinutes);
+                            setDurationMinutes(updatedMinutes);
+                            console.log("after " + updatedMinutes[index]);
                           }}
                         />
                       </td>
@@ -384,7 +386,12 @@ export default function CreateEventSection({
                           alt="supprimer"
                           src={removeIcon}
                           onClick={() =>
-                            removePrestation(index, setAgendaPrestationArr)
+                            removePrestation(
+                              index,
+                              setAgendaPrestationArr,
+                              setDurationHour,
+                              setDurationMinutes
+                            )
                           }
                         />
                       </td>
@@ -411,6 +418,8 @@ export default function CreateEventSection({
           prestations={prestations}
           addPrestation={addPrestation}
           setAgendaPrestationArr={setAgendaPrestationArr}
+          setDurationHour={setDurationHour}
+          setDurationMinutes={setDurationMinutes}
         />
         <div>
           <label className="font-semibold">Notes:</label>

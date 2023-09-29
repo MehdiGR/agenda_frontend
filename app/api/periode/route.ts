@@ -23,7 +23,7 @@ export async function GET() {
         error ? reject(error) : resolve(results)
       )
     );
-  console.log(periods)
+  // console.log(periods)
     return new NextResponse(JSON.stringify(periods));
   } catch (error) {
     console.error('Could not execute query:', error);

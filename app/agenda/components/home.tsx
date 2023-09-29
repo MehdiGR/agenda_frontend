@@ -20,7 +20,6 @@ export default function Home({
   // const [highlightedEventId, setHighlightedEventId] = useState(null);
 
   const handleAddClick = (arg: any) => {
-    console.log(arg);
     // update active state for showing  the create event section
     setActiveEventSection(() => true);
     const newEvent = {
@@ -43,25 +42,6 @@ export default function Home({
     setAddedEventId(newEvent.resourceId);
     // arg.dayEl.style.backgroundColor = "red";
   };
-  // const handleDeleteEvent=()=>{
-  //   setEvents(
-  //      events.filter((event)=> event.)
-  //   )
-  // }
-
-  useEffect(() => {
-    // console.log(props.clients);
-    //   console.log(props);
-    // setEvents(() =>
-    //   periods.map((period: any) => ({
-    //     title: period.prestation,
-    //     start: period.heurDB,
-    //     end: period.heurFin,
-    //     resourceId: period.idAgenda,
-    //   }))
-    // );
-    // console.log(events);
-  }, []);
 
   return (
     <div className="flex  gap-10  h-full   ">
