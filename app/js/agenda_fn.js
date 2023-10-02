@@ -138,3 +138,7 @@ export const saveReservat = async (formData) => {
     console.error("POST request failed");
   }
 };
+export const UpdateAgendaInfo = (event, setAgendaInfo) => {
+  const data = { [event.target.name]: event.target.value };
+  setAgendaInfo((previousState) => ({ ...previousState, ...data }));
+};

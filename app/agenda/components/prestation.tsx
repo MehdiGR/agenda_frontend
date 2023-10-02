@@ -20,12 +20,12 @@ export default function Prestation({
         )
       }
     >
-      {/* <Image
+      <Image
         src={`http://localhost/agenda/backend/upload/images_articles/${image}`}
         alt={""}
         width={200}
         height={200}
-      /> */}
+      />
 
       <div className="absolute bottom-0 p-3 w-full  bg-[rgba(0,0,0,.39)] text-white">
         <p>{prestation.intitule}</p>

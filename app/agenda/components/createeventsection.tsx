@@ -23,6 +23,7 @@ import {
   cancelCreationEvent,
   calculateTotalDuration,
   calculateTotalPrices,
+  UpdateAgendaInfo,
 } from "../../js/agenda_fn";
 
 export default function CreateEventSection({
@@ -34,6 +35,8 @@ export default function CreateEventSection({
   prestations,
   agendas,
   eventAgenda,
+  setAgendaInfo,
+  agendaInfo,
 }) {
   const [modalIsOpen, setIsOpen] = useState(false);
   const [clientIsRef, setIsRef] = useState(true);
@@ -137,6 +140,9 @@ export default function CreateEventSection({
   //   });
   //   setTotalDuration(total);
   // }, [agenda_prestationArr]);
+  useEffect(() => {
+    console.log(agendaInfo);
+  }, [agendaInfo]);
   return (
     <div className={`relative   h-fit w-full ${!active ? "hidden" : ""}`}>
       <form onSubmit={handleSubmit(saveReservat)} className=" space-y-4 h-full">
@@ -147,7 +153,9 @@ export default function CreateEventSection({
             id="client_ref"
             value="client_ref"
             checked={selectedClientType === "client_ref"}
-            onChange={handleOptionChangeTypeClt}
+            onChange={(event) =>
+              handleOptionChangeTypeClt(event, setIsRef, setSelectedClientType)
+            }
           />
           <label htmlFor="client_ref">client référencer</label>
           <input
@@ -156,7 +164,9 @@ export default function CreateEventSection({
             id="client_psg"
             value="client_psg"
             checked={selectedClientType === "client_psg"}
-            onChange={handleOptionChangeTypeClt}
+            onChange={(event) =>
+              handleOptionChangeTypeClt(event, setIsRef, setSelectedClientType)
+            }
           />
           <label htmlFor="client_psg">client de passage</label>
         </div>
@@ -216,8 +226,9 @@ export default function CreateEventSection({
             <input
               type="date"
               className="flex-grow border border-gray-300 rounded-md px-4 h-full"
-              // onChange={(e) => setDate(e.target.value)}
               {...register("dateRes")}
+              onChange={(e) => UpdateAgendaInfo(e, setAgendaInfo)}
+              value={agendaInfo.dateRes}
             />
           </div>
           <div className="flex flex-col gap-1">
@@ -235,9 +246,25 @@ export default function CreateEventSection({
                       value: i.toString().padStart(2, "0"),
                       label: i.toString().padStart(2, "0"),
                     }))} // Convert to readonly array
+                    defaultValue={{
+                      value: (agendaInfo.hourDB || "03")
+                        .toString()
+                        .padStart(2, "0"),
+                      label: (agendaInfo.hourDB || "03")
+                        .toString()
+                        .padStart(2, "0"),
+                    }}
                     styles={{ ...selectHourStyles }}
                     onChange={(selectedOption) => {
                       setHourDB(Number(selectedOption?.value));
+                      // e=>event
+                      const e = {
+                        target: {
+                          name: "hourDB",
+                          value: selectedOption?.value,
+                        },
+                      };
+                      UpdateAgendaInfo(e, setAgendaInfo);
                     }}
                   />
                 )}
@@ -256,15 +283,27 @@ export default function CreateEventSection({
                       value: i.toString().padStart(2, "0"),
                       label: i.toString().padStart(2, "0"),
                     }))}
+                    defaultValue={{
+                      value: "01".toString().padStart(2, "0"),
+                      label: "01".toString().padStart(2, "0"),
+                    }}
                     styles={{ ...selectHourStyles }}
                     onChange={(selectedOption) => {
                       setMinutesDB(Number(selectedOption?.value));
+                      // e=>event
+                      const e = {
+                        target: {
+                          name: "minuteDB",
+                          value: selectedOption?.value,
+                        },
+                      };
+                      UpdateAgendaInfo(e, setAgendaInfo);
                     }}
                   />
                 )}
               />
             </div>
-          </div>{" "}
+          </div>
           <div>
             <label className="font-semibold">Fin:</label>
             <div className="flex items-center mt-2 ">
@@ -340,7 +379,7 @@ export default function CreateEventSection({
                             value: hours.toString().padStart(2, "0"),
                             label: hours.toString().padStart(2, "0"),
                           }}
-                          onChange={(selectedOption) => {
+                          onChange={(selectedOption, event) => {
                             const updatedHour = [...duration_hours];
                             updatedHour[index] = Number(selectedOption?.value);
                             setDurationHour(updatedHour);
