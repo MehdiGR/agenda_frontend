@@ -16,7 +16,7 @@ export default function MyCalendar({
   events,
   agendas,
   periods,
-  agendaInfo,
+  eventInfo,
 }) {
   // const resources = [
   //   { id: "a", title: "Room A", building: "Building 1" },

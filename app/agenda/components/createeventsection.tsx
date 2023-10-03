@@ -23,7 +23,7 @@ import {
   cancelCreationEvent,
   calculateTotalDuration,
   calculateTotalPrices,
-  UpdateAgendaInfo,
+  UpdateEventInfo,
 } from "../../js/agenda_fn";
 
 export default function CreateEventSection({
@@ -35,8 +35,9 @@ export default function CreateEventSection({
   prestations,
   agendas,
   eventAgenda,
-  setAgendaInfo,
-  agendaInfo,
+  setEvents,
+  eventInfo,
+  events,
 }) {
   const [modalIsOpen, setIsOpen] = useState(false);
   const [clientIsRef, setIsRef] = useState(true);
@@ -59,6 +60,7 @@ export default function CreateEventSection({
   const [duration_hours, setDurationHour] = useState<number[]>([]);
   const [duration_minutes, setDurationMinutes] = useState<number[]>([]);
 
+  const [dateDB, setDateDB] = useState("");
   const [hourDB, setHourDB] = useState(0);
   const [minutesDB, setMinutesDB] = useState(0);
   // Default style select
@@ -141,8 +143,38 @@ export default function CreateEventSection({
   //   setTotalDuration(total);
   // }, [agenda_prestationArr]);
   useEffect(() => {
-    console.log(agendaInfo);
-  }, [agendaInfo]);
+    // console.log(events[0].start.split("T")[0]);
+    UpdateEventInfo({
+      dateDB,
+      hourDB,
+      minutesDB,
+      setEvents,
+    });
+  }, [dateDB, hourDB, minutesDB]);
+  useEffect(() => {
+    // console.log(events[0].start.split("T")[0]);
+    setDateDB(events.length && events[0].start.split("T")[0]);
+    setHourDB(
+      events.length && {
+        value: (events[0].start.split("T")[1].split(":")[0] || "")
+          .toString()
+          .padStart(2, "0"),
+        label: (events[0].start.split("T")[1].split(":")[0] || "")
+          .toString()
+          .padStart(2, "0"),
+      }
+    );
+    setMinutesDB(
+      events.length && {
+        value: (events[0].start.split("T")[1].split(":")[1] || "")
+          .toString()
+          .padStart(2, "0"),
+        label: (events[0].start.split("T")[1].split(":")[1] || "")
+          .toString()
+          .padStart(2, "0"),
+      }
+    );
+  }, [events]);
   return (
     <div className={`relative   h-fit w-full ${!active ? "hidden" : ""}`}>
       <form onSubmit={handleSubmit(saveReservat)} className=" space-y-4 h-full">
@@ -227,8 +259,18 @@ export default function CreateEventSection({
               type="date"
               className="flex-grow border border-gray-300 rounded-md px-4 h-full"
               {...register("dateRes")}
-              onChange={(e) => UpdateAgendaInfo(e, setAgendaInfo)}
-              value={agendaInfo.dateRes}
+              onChange={(e) => {
+                setDateDB(e.target.value);
+                // UpdateEventInfo({
+                //   dateDB: e.target.value,
+                //   hourDB,
+                //   minutesDB,
+                //   setEvents,
+                // });
+              }}
+              // defaultValue={events.length && events[0].start.split("T")[0]}
+              defaultValue={dateDB}
+              // value={"2023-03-11"}
             />
           </div>
           <div className="flex flex-col gap-1">
@@ -246,14 +288,7 @@ export default function CreateEventSection({
                       value: i.toString().padStart(2, "0"),
                       label: i.toString().padStart(2, "0"),
                     }))} // Convert to readonly array
-                    defaultValue={{
-                      value: (agendaInfo.hourDB || "03")
-                        .toString()
-                        .padStart(2, "0"),
-                      label: (agendaInfo.hourDB || "03")
-                        .toString()
-                        .padStart(2, "0"),
-                    }}
+                    value={hourDB}
                     styles={{ ...selectHourStyles }}
                     onChange={(selectedOption) => {
                       setHourDB(Number(selectedOption?.value));
@@ -264,7 +299,12 @@ export default function CreateEventSection({
                           value: selectedOption?.value,
                         },
                       };
-                      UpdateAgendaInfo(e, setAgendaInfo);
+                      // UpdateEventInfo({
+                      //   dateDB,
+                      //   hourDB: selectedOption?.value,
+                      //   minutesDB,
+                      //   setEvents,
+                      // });
                     }}
                   />
                 )}
@@ -283,10 +323,7 @@ export default function CreateEventSection({
                       value: i.toString().padStart(2, "0"),
                       label: i.toString().padStart(2, "0"),
                     }))}
-                    defaultValue={{
-                      value: "01".toString().padStart(2, "0"),
-                      label: "01".toString().padStart(2, "0"),
-                    }}
+                    value={minutesDB}
                     styles={{ ...selectHourStyles }}
                     onChange={(selectedOption) => {
                       setMinutesDB(Number(selectedOption?.value));
@@ -297,7 +334,7 @@ export default function CreateEventSection({
                           value: selectedOption?.value,
                         },
                       };
-                      UpdateAgendaInfo(e, setAgendaInfo);
+                      // UpdateEventInfo({ dateDB, hourDB, minutesDB, setEvents });
                     }}
                   />
                 )}

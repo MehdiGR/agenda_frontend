@@ -16,7 +16,7 @@ export default function Home({
   const [activeEventSection, setActiveEventSection] = useState(false);
   const [events, setEvents] = useState<any>([]);
   const [eventAgenda, setEventAgenda] = useState({});
-  const [agendaInfo, setAgendaInfo] = useState<any>({
+  const [eventInfo, setEventInfo] = useState<any>({
     dateRes: "",
     hourDB: "",
     minuteDB: "",
@@ -40,47 +40,52 @@ export default function Home({
       label: arg.resource.title,
       value: parseInt(newEvent.resourceId),
     });
-    const updatedEvents = [...events, newEvent];
+    // const updatedEvents = [...events, newEvent];
+    const updatedEvents = [newEvent];
 
     // Update the events array with the new event
     setEvents(updatedEvents);
     setAddedEventId(newEvent.resourceId);
     const [datePart, timePart] = newEvent.start.split("T");
     const [hour, minutes] = timePart.split(":");
-    setAgendaInfo({ dateRes: datePart, hourDB: hour, minuteDB: minutes });
+    setEventInfo({ dateRes: datePart, hourDB: hour, minuteDB: minutes });
+
     // arg.dayEl.style.backgroundColor = "red";
   };
   const handleUpdateEvent = () => {
-    const newEvents = [...events]; // Clone the existing events array
+    const updatedEvents = [...events]; // Clone the existing events array
     // const updatedEventIndex = 0; // Index of the event to update
-    const updatedEventIndex = newEvents.findIndex(
+    const updatedEventIndex = updatedEvents.findIndex(
       (item) => item.resourceId == addedEventId
     );
-    newEvents[updatedEventIndex] = {
-      ...newEvents[updatedEventIndex],
+    updatedEvents[updatedEventIndex] = {
+      ...updatedEvents[updatedEventIndex],
       start:
-        agendaInfo?.dateRes +
+        eventInfo?.dateRes +
         "T" +
-        parseInt(agendaInfo.hourDB + 1) +
+        parseInt(eventInfo.hourDB + 1) +
         ":" +
-        agendaInfo.minutesDB, // New start date and time
+        eventInfo.minutesDB, // New start date and time
       end:
-        agendaInfo?.dateRes +
+        eventInfo?.dateRes +
         "T" +
-        parseInt(agendaInfo.hourDB + 1) +
+        parseInt(eventInfo.hourDB + 1) +
         ":" +
-        agendaInfo.minutesDB, // New end date and time
+        eventInfo.minutesDB, // New end date and time
       // end: "2023-10-03T16:00:00", // New end date and time
     };
-    setEvents(newEvents); // Update the state with the new event data
+    setEvents(updatedEvents); // Update the state with the new event data
+    const [datePart, timePart] =
+      updatedEvents[updatedEventIndex].start.split("T");
+    const [hour, minutes] = timePart.split(":");
   };
-  useEffect(() => {
-    if (agendaInfo != "") handleUpdateEvent();
-    console.log(addedEventId);
-  }, [agendaInfo]);
-  useEffect(() => {
-    // console.log(events);
-  }, [events]);
+  // useEffect(() => {
+  //   handleUpdateEvent();
+  // }, [eventInfo]);
+
+  // useEffect(() => {
+  //   console.log(events);
+  // }, [events]);
 
   return (
     <div className="flex  gap-10  h-full   ">
@@ -93,8 +98,9 @@ export default function Home({
         prestations={prestations}
         agendas={agendas}
         eventAgenda={eventAgenda}
-        setAgendaInfo={setAgendaInfo}
-        agendaInfo={agendaInfo}
+        setEventInfo={setEventInfo}
+        eventInfo={eventInfo}
+        events={events}
       />
       <MyCalendar
         handleAddEvent={handleAddEvent}
@@ -102,7 +108,7 @@ export default function Home({
         events={events}
         agendas={agendas}
         periods={periods}
-        agendaInfo={agendaInfo}
+        eventInfo={eventInfo}
       />
     </div>
   );
