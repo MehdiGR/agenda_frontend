@@ -6,6 +6,9 @@ export default function Prestation({
   setAgendaPrestationArr,
   setDurationHour,
   setDurationMinutes,
+  setSavedEvents,
+  tempEvent,
+  setTempEvent,
 }) {
   const image = prestation.img != null ? prestation.img : "no-image-icon.png";
   return (
@@ -16,7 +19,10 @@ export default function Prestation({
           prestation,
           setAgendaPrestationArr,
           setDurationHour,
-          setDurationMinutes
+          setDurationMinutes,
+          setSavedEvents,
+          tempEvent,
+          setTempEvent
         )
       }
     >

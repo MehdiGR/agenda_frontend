@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import ModalClient from "./modalclient";
 import Select from "react-select";
 // import { OptionsType, OptionTypeBase } from "react-select";
@@ -35,9 +35,10 @@ export default function CreateEventSection({
   prestations,
   agendas,
   eventAgenda,
-  setEvents,
-  eventInfo,
+  tempEvent,
   events,
+  setSavedEvents,
+  setTempEvent,
 }) {
   const [modalIsOpen, setIsOpen] = useState(false);
   const [clientIsRef, setIsRef] = useState(true);
@@ -61,8 +62,8 @@ export default function CreateEventSection({
   const [duration_minutes, setDurationMinutes] = useState<number[]>([]);
 
   const [dateDB, setDateDB] = useState("");
-  const [hourDB, setHourDB] = useState(0);
-  const [minutesDB, setMinutesDB] = useState(0);
+  const [hourDB, setHourDB] = useState({ label: "", value: "" });
+  const [minutesDB, setMinutesDB] = useState({ label: "", value: "" });
   // Default style select
   const selectDefaultStyle = {
     control: (provided: any) => ({
@@ -142,38 +143,44 @@ export default function CreateEventSection({
   //   });
   //   setTotalDuration(total);
   // }, [agenda_prestationArr]);
+  const initialRender = useRef(true);
+  // useEffect(() => {
+  //   // console.log(events[0].start.split("T")[0]);
+  //   if (initialRender.current) {
+  //     initialRender.current = false;
+  //   } else
+  //     UpdateEventInfo({
+  //       dateDB,
+  //       hourDB,
+  //       minutesDB,
+  //       totalDuration,
+  //       setSavedEvents,
+  //     });
+  // }, [dateDB, hourDB, minutesDB]);
   useEffect(() => {
+    if (initialRender.current) {
+      initialRender.current = false;
+    } else if (events && events.length > 0) {
+      console.log(events);
+      // setDateDB(events[0].start.split("T")[0]);
+      // setHourDB({
+      //   value: (events[0].start.split("T")[1].split(":")[0] || "")
+      //     .toString()
+      //     .padStart(2, "0"),
+      //   label: (events[0].start.split("T")[1].split(":")[0] || "")
+      //     .toString()
+      //     .padStart(2, "0"),
+      // });
+      // setMinutesDB({
+      //   value: (events[0].start.split("T")[1].split(":")[1] || "")
+      //     .toString()
+      //     .padStart(2, "0"),
+      //   label: (events[0].start.split("T")[1].split(":")[1] || "")
+      //     .toString()
+      //     .padStart(2, "0"),
+      // });
+    }
     // console.log(events[0].start.split("T")[0]);
-    UpdateEventInfo({
-      dateDB,
-      hourDB,
-      minutesDB,
-      setEvents,
-    });
-  }, [dateDB, hourDB, minutesDB]);
-  useEffect(() => {
-    // console.log(events[0].start.split("T")[0]);
-    setDateDB(events.length && events[0].start.split("T")[0]);
-    setHourDB(
-      events.length && {
-        value: (events[0].start.split("T")[1].split(":")[0] || "")
-          .toString()
-          .padStart(2, "0"),
-        label: (events[0].start.split("T")[1].split(":")[0] || "")
-          .toString()
-          .padStart(2, "0"),
-      }
-    );
-    setMinutesDB(
-      events.length && {
-        value: (events[0].start.split("T")[1].split(":")[1] || "")
-          .toString()
-          .padStart(2, "0"),
-        label: (events[0].start.split("T")[1].split(":")[1] || "")
-          .toString()
-          .padStart(2, "0"),
-      }
-    );
   }, [events]);
   return (
     <div className={`relative   h-fit w-full ${!active ? "hidden" : ""}`}>
@@ -261,15 +268,16 @@ export default function CreateEventSection({
               {...register("dateRes")}
               onChange={(e) => {
                 setDateDB(e.target.value);
-                // UpdateEventInfo({
-                //   dateDB: e.target.value,
-                //   hourDB,
-                //   minutesDB,
-                //   setEvents,
-                // });
+                UpdateEventInfo({
+                  dateDB: e.target.value,
+                  hourDB,
+                  minutesDB,
+                  totalDuration,
+                  setSavedEvents,
+                });
               }}
               // defaultValue={events.length && events[0].start.split("T")[0]}
-              defaultValue={dateDB}
+              value={dateDB}
               // value={"2023-03-11"}
             />
           </div>
@@ -291,20 +299,22 @@ export default function CreateEventSection({
                     value={hourDB}
                     styles={{ ...selectHourStyles }}
                     onChange={(selectedOption) => {
-                      setHourDB(Number(selectedOption?.value));
-                      // e=>event
-                      const e = {
-                        target: {
-                          name: "hourDB",
-                          value: selectedOption?.value,
-                        },
-                      };
-                      // UpdateEventInfo({
-                      //   dateDB,
-                      //   hourDB: selectedOption?.value,
-                      //   minutesDB,
-                      //   setEvents,
-                      // });
+                      setHourDB({
+                        label: selectedOption?.value
+                          .toString()
+                          .padStart(2, "0") as string,
+                        value: selectedOption?.value
+                          .toString()
+                          .padStart(2, "0") as string,
+                      });
+
+                      UpdateEventInfo({
+                        dateDB,
+                        hourDB: selectedOption,
+                        minutesDB,
+                        totalDuration,
+                        setSavedEvents,
+                      });
                     }}
                   />
                 )}
@@ -326,15 +336,22 @@ export default function CreateEventSection({
                     value={minutesDB}
                     styles={{ ...selectHourStyles }}
                     onChange={(selectedOption) => {
-                      setMinutesDB(Number(selectedOption?.value));
-                      // e=>event
-                      const e = {
-                        target: {
-                          name: "minuteDB",
-                          value: selectedOption?.value,
-                        },
-                      };
-                      // UpdateEventInfo({ dateDB, hourDB, minutesDB, setEvents });
+                      setMinutesDB({
+                        label: selectedOption?.value
+                          .toString()
+                          .padStart(2, "0") as string,
+                        value: selectedOption?.value
+                          .toString()
+                          .padStart(2, "0") as string,
+                      });
+
+                      UpdateEventInfo({
+                        dateDB,
+                        hourDB,
+                        minutesDB: selectedOption,
+                        totalDuration,
+                        setSavedEvents,
+                      });
                     }}
                   />
                 )}
@@ -346,7 +363,11 @@ export default function CreateEventSection({
             <div className="flex items-center mt-2 ">
               <p className="hour_fn">
                 {totalDuration != 0
-                  ? formatDuration(totalDuration + (hourDB * 60 + minutesDB))
+                  ? formatDuration(
+                      totalDuration +
+                        (parseInt(hourDB.value) * 60 +
+                          parseInt(minutesDB.value))
+                    )
                   : ""}
               </p>
             </div>
@@ -496,6 +517,9 @@ export default function CreateEventSection({
           setAgendaPrestationArr={setAgendaPrestationArr}
           setDurationHour={setDurationHour}
           setDurationMinutes={setDurationMinutes}
+          setSavedEvents={setSavedEvents}
+          tempEvent={tempEvent}
+          setTempEvent={setTempEvent}
         />
         <div>
           <label className="font-semibold">Notes:</label>

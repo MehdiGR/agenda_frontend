@@ -55,7 +55,10 @@ export const addPrestation = (
   data,
   setAgendaPrestationArr,
   setDurationHour,
-  setDurationMinutes
+  setDurationMinutes,
+  setSavedEvents,
+  tempEvent,
+  setTempEvent
 ) => {
   setAgendaPrestationArr((previousState) => {
     return [...previousState, { ...data }];
@@ -67,6 +70,19 @@ export const addPrestation = (
   setDurationMinutes((previousState) => {
     let minutes = data.duree % 60;
     return [...previousState, minutes];
+  });
+  const updatedEvent = {
+    ...tempEvent,
+    backgroundColor: "red",
+  };
+  if (tempEvent != "") {
+    setTempEvent({});
+  }
+  // console.log(tempEvent);
+  setSavedEvents((previousState) => {
+    // const index = prevEvents.findIndex((e) => e === tempEvent);
+    // prevEvents[index] = updatedEvent;
+    return [...previousState, updatedEvent];
   });
 };
 
@@ -138,10 +154,31 @@ export const saveReservat = async (formData) => {
     console.error("POST request failed");
   }
 };
-export const UpdateEventInfo = ({ dateDB, hourDB, minutesDB, setEvents }) => {
-  // const data = { [event.target.name]: event.target.value };
-  console.log(dateDB);
-  console.log(hourDB);
-  console.log(minutesDB);
-  // setEvents((previousState) => ({ ...previousState, ...data }));
+export const UpdateEventInfo = ({
+  dateDB,
+  hourDB,
+  minutesDB,
+  totalDuration,
+  setSavedEvents,
+}) => {
+  // calculate time end
+  let timeEnd = formatDuration(
+    totalDuration + (parseInt(hourDB.value) * 60 + parseInt(minutesDB.value))
+  );
+  timeEnd = timeEnd.replace("h", ":");
+  const data = {
+    start: dateDB + "T" + hourDB.value + ":" + minutesDB.value, // New start date and time
+    end: dateDB + "T" + timeEnd.toString(),
+  };
+  console.log(data);
+  // console.log(hourDB);
+  // console.log(minutesDB);
+  // setSavedEvents((previousState) => {
+  //   console.log(previousState);
+  //   return [{ ...previousState[0], ...data }];
+  // });
+  setSavedEvents((previousState) => {
+    console.log(previousState);
+    return previousState.map((event) => ({ ...event, ...data }));
+  });
 };

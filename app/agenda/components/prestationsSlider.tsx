@@ -10,6 +10,9 @@ const PrestationSlider = ({
   setAgendaPrestationArr,
   setDurationHour,
   setDurationMinutes,
+  setSavedEvents,
+  tempEvent,
+  setTempEvent,
 }) => {
   // Slider settings
   // const settings = {
@@ -37,6 +40,9 @@ const PrestationSlider = ({
               setAgendaPrestationArr={setAgendaPrestationArr}
               setDurationHour={setDurationHour}
               setDurationMinutes={setDurationMinutes}
+              setSavedEvents={setSavedEvents}
+              tempEvent={tempEvent}
+              setTempEvent={setTempEvent}
             />
           </div>
         );
