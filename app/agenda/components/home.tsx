@@ -45,6 +45,10 @@ export default function Home({
     setTempEvent(newEvent);
     setAddedEventId(newEvent.resourceId);
   };
+  useEffect(() => {
+    console.log(savedEvents);
+  }, [savedEvents]);
+
   return (
     <div className="flex  gap-10  h-full   ">
       <CreateEventSection

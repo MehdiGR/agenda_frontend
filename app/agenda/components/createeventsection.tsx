@@ -163,17 +163,17 @@ export default function CreateEventSection({
             .padStart(2, "0"),
         };
         setDateTime({ dateDB, hourDB, minutesDB });
-        shouldUpdate.current = false;
       }
     }
+    shouldUpdate.current = true;
     // console.log(events[0].start.split("T")[0]);
   }, [events]);
-  useEffect(() => {
-    if (shouldUpdate.current) {
-      UpdateEventInfo({ dateTime, totalDuration, setSavedEvents });
-      shouldUpdate.current = false;
-    }
-  }, [dateTime]);
+  // useEffect(() => {
+  //   if (shouldUpdate.current) {
+  //     UpdateEventInfo({ dateTime, totalDuration, setSavedEvents });
+  //     shouldUpdate.current = false;
+  //   }
+  // }, [dateTime]);
   return (
     <div className={`relative   h-fit w-full ${!active ? "hidden" : ""}`}>
       <form onSubmit={handleSubmit(saveReservat)} className=" space-y-4 h-full">
@@ -263,11 +263,11 @@ export default function CreateEventSection({
                   ...dateTime,
                   dateDB: e.target.value,
                 });
-                // UpdateEventInfo({
-                //   dateTime,
-                //   totalDuration,
-                //   setSavedEvents,
-                // });
+                UpdateEventInfo({
+                  dateTime: { ...dateTime, dateDB: e.target.value },
+                  totalDuration,
+                  setSavedEvents,
+                });
               }}
               // defaultValue={events.length && events[0].start.split("T")[0]}
               value={dateTime.dateDB}
