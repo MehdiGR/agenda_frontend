@@ -23,9 +23,6 @@ export default function Home({
     minuteDB: "",
   });
   const [addedEventId, setAddedEventId] = useState(null);
-  const allEvents = [tempEvent, ...savedEvents];
-
-  // const [highlightedEventId, setHighlightedEventId] = useState(null);
 
   const handleAddEvent = (arg: any) => {
     // update active state for showing  the create event section
@@ -38,67 +35,16 @@ export default function Home({
       classNames: ["added-event"],
       backgroundColor: "blue",
       borderColor: "darkblue",
-      isSelected: false,
+      isTemp: true,
     };
     setEventAgenda({
       label: arg.resource.title,
       value: parseInt(newEvent.resourceId),
     });
-    // const foundEvent = events.every((event: any) => event.isSelected === true);
-    let updatedEvents;
-    // console.log(foundEvent);
-    // if (foundEvent) {
-    //   // add event to existed events
-    //   updatedEvents = [...events, newEvent];
-    // } else {
-    // set one event
-    // updatedEvents = [newEvent];
-    // }
-
     // Update the events array with the new event
     setTempEvent(newEvent);
     setAddedEventId(newEvent.resourceId);
-    // const [datePart, timePart] = newEvent.start.split("T");
-    // const [hour, minutes] = timePart.split(":");
-    // setEventInfo({ dateRes: datePart, hourDB: hour, minuteDB: minutes });
-
-    // arg.dayEl.style.backgroundColor = "red";
   };
-  // const handleUpdateEvent = () => {
-  //   const updatedEvents = [...events]; // Clone the existing events array
-  //   // const updatedEventIndex = 0; // Index of the event to update
-  //   const updatedEventIndex = updatedEvents.findIndex(
-  //     (item) => item.resourceId == addedEventId
-  //   );
-  //   updatedEvents[updatedEventIndex] = {
-  //     ...updatedEvents[updatedEventIndex],
-  //     start:
-  //       eventInfo?.dateRes +
-  //       "T" +
-  //       parseInt(eventInfo.hourDB + 1) +
-  //       ":" +
-  //       eventInfo.minutesDB, // New start date and time
-  //     end:
-  //       eventInfo?.dateRes +
-  //       "T" +
-  //       parseInt(eventInfo.hourDB + 1) +
-  //       ":" +
-  //       eventInfo.minutesDB, // New end date and time
-  //     // end: "2023-10-03T16:00:00", // New end date and time
-  //   };
-  //   setTempEvent(updatedEvents); // Update the state with the new event data
-  //   const [datePart, timePart] =
-  //     updatedEvents[updatedEventIndex].start.split("T");
-  //   const [hour, minutes] = timePart.split(":");
-  // };
-  // useEffect(() => {
-  //   handleUpdateEvent();
-  // }, [eventInfo]);
-
-  // useEffect(() => {
-  //   console.log(events);
-  // }, [events]);
-
   return (
     <div className="flex  gap-10  h-full   ">
       <CreateEventSection
@@ -110,7 +56,7 @@ export default function Home({
         prestations={prestations}
         agendas={agendas}
         eventAgenda={eventAgenda}
-        events={savedEvents}
+        events={[tempEvent, ...savedEvents]}
         tempEvent={tempEvent}
         setTempEvent={setTempEvent}
         setSavedEvents={setSavedEvents}
@@ -118,7 +64,7 @@ export default function Home({
       <MyCalendar
         handleAddEvent={handleAddEvent}
         active={activeEventSection}
-        events={allEvents}
+        events={[tempEvent, ...savedEvents]}
         agendas={agendas}
         periods={periods}
         eventInfo={eventInfo}

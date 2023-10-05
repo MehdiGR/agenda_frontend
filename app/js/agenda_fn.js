@@ -73,12 +73,13 @@ export const addPrestation = (
   });
   const updatedEvent = {
     ...tempEvent,
+    title: data.intitule,
     backgroundColor: "red",
+    isTemp: false,
   };
   if (tempEvent != "") {
     setTempEvent({});
   }
-  // console.log(tempEvent);
   setSavedEvents((previousState) => {
     // const index = prevEvents.findIndex((e) => e === tempEvent);
     // prevEvents[index] = updatedEvent;
@@ -155,30 +156,32 @@ export const saveReservat = async (formData) => {
   }
 };
 export const UpdateEventInfo = ({
-  dateDB,
-  hourDB,
-  minutesDB,
+  dateTime,
   totalDuration,
   setSavedEvents,
 }) => {
   // calculate time end
   let timeEnd = formatDuration(
-    totalDuration + (parseInt(hourDB.value) * 60 + parseInt(minutesDB.value))
+    totalDuration +
+      (parseInt(dateTime.hourDB.value) * 60 +
+        parseInt(dateTime.minutesDB.value))
   );
   timeEnd = timeEnd.replace("h", ":");
   const data = {
-    start: dateDB + "T" + hourDB.value + ":" + minutesDB.value, // New start date and time
-    end: dateDB + "T" + timeEnd.toString(),
+    start:
+      dateTime.dateDB +
+      "T" +
+      dateTime.hourDB.value +
+      ":" +
+      dateTime.minutesDB.value, // New start date and time
+    end: dateTime.dateDB + "T" + timeEnd.toString(),
   };
   console.log(data);
-  // console.log(hourDB);
-  // console.log(minutesDB);
   // setSavedEvents((previousState) => {
-  //   console.log(previousState);
   //   return [{ ...previousState[0], ...data }];
   // });
   setSavedEvents((previousState) => {
-    console.log(previousState);
+    // console.log(previousState);
     return previousState.map((event) => ({ ...event, ...data }));
   });
 };
