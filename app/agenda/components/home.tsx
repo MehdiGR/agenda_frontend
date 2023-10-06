@@ -59,11 +59,6 @@ export default function Home({
         collaborateurs={collaborateurs}
         prestations={prestations}
         agendas={agendas}
-        eventAgenda={eventAgenda}
-        events={[tempEvent, ...savedEvents]}
-        tempEvent={tempEvent}
-        setTempEvent={setTempEvent}
-        setSavedEvents={setSavedEvents}
       />
       <MyCalendar
         handleAddEvent={handleAddEvent}

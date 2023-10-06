@@ -7,24 +7,22 @@ import PrestationSlider from "./prestationsSlider";
 import { Controller, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import removeIcon from "../../../public/square_remove.svg";
+import removeIcon from "@/public/square_remove.svg";
 import Image from "next/image";
 import {
   openModal,
-  closeModal,
-  addPrestation,
   removePrestation,
   formatDuration,
   handleOptionChangeAg,
   handleOptionChangeClt,
   handleOptionChangeTypeClt,
   saveReservat,
-  saveClient,
   cancelCreationEvent,
   calculateTotalDuration,
   calculateTotalPrices,
   UpdateEventInfo,
-} from "../../js/agenda_fn";
+} from "@/app/js/agenda_fn";
+import { useStore } from "@/app/store/store";
 
 export default function CreateEventSection({
   active,
@@ -34,13 +32,7 @@ export default function CreateEventSection({
   collaborateurs,
   prestations,
   agendas,
-  eventAgenda,
-  tempEvent,
-  events,
-  setSavedEvents,
-  setTempEvent,
 }) {
-  const [modalIsOpen, setIsOpen] = useState(false);
   const [clientIsRef, setIsRef] = useState(true);
   const [selectedClientType, setSelectedClientType] = useState("client_ref");
   const [clientOptions, setClientOptions] = useState(
@@ -55,17 +47,31 @@ export default function CreateEventSection({
   );
   const [selectedClient, setSelectedClient] = useState(null);
   const [selectedAgenda, setSelectedAgenda] = useState();
-  const [agenda_prestationArr, setAgendaPrestationArr] = useState<any[]>([]);
+  // const [agenda_prestationArr, setAgendaPrestationArr] = useState<any[]>([]);
   const [totalDuration, setTotalDuration] = useState(0);
   const [totalPrice, setTotalPrice] = useState(0);
-  const [duration_hours, setDurationHour] = useState<number[]>([]);
-  const [duration_minutes, setDurationMinutes] = useState<number[]>([]);
+  // const [duration_hours, setDurationHour] = useState<number[]>([]);
+  // const [duration_minutes, setDurationMinutes] = useState<number[]>([]);
+  const {
+    duration_hours,
+    setDurationHour,
+    duration_minutes,
+    setDurationMinutes,
+    agenda_prestationArr,
+    eventAgenda,
+    tempEvent,
+    events,
+    setSavedEvents,
+    setTempEvent,
+    dateTime,
+    setDateTime,
+  } = useStore();
 
-  const [dateTime, setDateTime] = useState({
-    dateDB: "",
-    hourDB: { label: "", value: "" },
-    minutesDB: { label: "", value: "" },
-  });
+  // const [dateTime, setDateTime] = useState({
+  //   dateDB: "",
+  //   hourDB: { label: "", value: "" },
+  //   minutesDB: { label: "", value: "" },
+  // });
 
   // Default style select
   const selectDefaultStyle = {
@@ -133,8 +139,8 @@ export default function CreateEventSection({
 
   useEffect(() => {
     setSelectedAgenda(eventAgenda);
-    calculateTotalDuration(duration_hours, duration_minutes, setTotalDuration);
-    calculateTotalPrices(agenda_prestationArr, setTotalPrice);
+    calculateTotalDuration();
+    calculateTotalPrices();
   }, [agenda_prestationArr, selectedAgenda, duration_hours, duration_minutes]);
 
   const initialRender = useRef(true);
@@ -202,14 +208,7 @@ export default function CreateEventSection({
           <label htmlFor="client_psg">client de passage</label>
         </div>
         <div>
-          <ModalClient
-            modalIsOpen={modalIsOpen}
-            openModal={openModal}
-            closeModal={closeModal}
-            villes={villes}
-            collaborateurs={collaborateurs}
-            saveClient={saveClient}
-          />
+          <ModalClient villes={villes} collaborateurs={collaborateurs} />
         </div>
         <div className="flex flex-col gap-1">
           <label className="font-semibold">Client:</label>
@@ -386,7 +385,7 @@ export default function CreateEventSection({
                   </td>
                 </tr>
               ) : (
-                agenda_prestationArr.map((ag_pr: any, index) => {
+                agenda_prestationArr.map((ag_pr: any, index: any) => {
                   let hours = Math.floor(ag_pr.duree / 60);
                   let minutes = ag_pr.duree % 60;
                   return (
@@ -473,14 +472,7 @@ export default function CreateEventSection({
                           priority
                           alt="supprimer"
                           src={removeIcon}
-                          onClick={() =>
-                            removePrestation(
-                              index,
-                              setAgendaPrestationArr,
-                              setDurationHour,
-                              setDurationMinutes
-                            )
-                          }
+                          onClick={() => removePrestation(index)}
                         />
                       </td>
                     </tr>
@@ -502,16 +494,7 @@ export default function CreateEventSection({
             </tfoot>
           </table>
         </div>
-        <PrestationSlider
-          prestations={prestations}
-          addPrestation={addPrestation}
-          setAgendaPrestationArr={setAgendaPrestationArr}
-          setDurationHour={setDurationHour}
-          setDurationMinutes={setDurationMinutes}
-          setSavedEvents={setSavedEvents}
-          tempEvent={tempEvent}
-          setTempEvent={setTempEvent}
-        />
+        <PrestationSlider prestations={prestations} />
         <div>
           <label className="font-semibold">Notes:</label>
           <textarea

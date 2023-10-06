@@ -3,21 +3,16 @@ import Select from "react-select";
 import { Controller, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-
-export default function ModalClient({
-  modalIsOpen,
-  openModal,
-  closeModal,
-  villes,
-  collaborateurs,
-  saveClient,
-}) {
+import { useStore } from "@/app/store/store";
+import { closeModal, saveClient } from "@/app/js/agenda_fn";
+export default function ModalClient({ villes, collaborateurs }) {
+  const { modalIsOpen } = useStore();
   // ville Options
-  const villeOptions = villes.map((ville) => {
+  const villeOptions = villes.map((ville: any) => {
     return { value: ville.idville, label: ville.nom };
   });
   // collaborateur Options
-  const collaborateurOptions = collaborateurs.map((collaborateur) => {
+  const collaborateurOptions = collaborateurs.map((collaborateur: any) => {
     return { value: collaborateur.id_collaborateur, label: collaborateur.nom };
   });
   const selectCustomStyles = {

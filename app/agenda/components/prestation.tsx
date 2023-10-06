@@ -1,30 +1,11 @@
 import Image from "next/image";
-
-export default function Prestation({
-  prestation,
-  addPrestation,
-  setAgendaPrestationArr,
-  setDurationHour,
-  setDurationMinutes,
-  setSavedEvents,
-  tempEvent,
-  setTempEvent,
-}) {
+import { addPrestation } from "@/app/js/agenda_fn";
+export default function Prestation({ prestation }) {
   const image = prestation.img != null ? prestation.img : "no-image-icon.png";
   return (
     <div
       className="relative w-[200px] h-[200px]"
-      onClick={() =>
-        addPrestation(
-          prestation,
-          setAgendaPrestationArr,
-          setDurationHour,
-          setDurationMinutes,
-          setSavedEvents,
-          tempEvent,
-          setTempEvent
-        )
-      }
+      onClick={() => addPrestation(prestation)}
     >
       <Image
         src={`http://localhost/agenda/backend/upload/images_articles/${image}`}

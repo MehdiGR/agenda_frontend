@@ -24,7 +24,7 @@ import {
   calculateTotalDuration,
   calculateTotalPrices,
   UpdateEventInfo,
-} from "../../js/agenda_fn";
+} from "../../js/agenda_fn_old";
 
 export default function CreateEventSection({
   active,
@@ -308,19 +308,19 @@ export default function CreateEventSection({
                     value={dateTime.hourDB}
                     styles={{ ...selectHourStyles }}
                     onChange={(selectedOption) => {
-                      setDateTime({
-                        ...dateTime,
-                        hourDB: {
-                          label: selectedOption?.value
-                            .toString()
-                            .padStart(2, "0") as string,
-                          value: selectedOption?.value
-                            .toString()
-                            .padStart(2, "0") as string,
-                        },
+                      setHourDB({
+                        label: selectedOption?.value
+                          .toString()
+                          .padStart(2, "0") as string,
+                        value: selectedOption?.value
+                          .toString()
+                          .padStart(2, "0") as string,
                       });
+
                       UpdateEventInfo({
-                        dateTime,
+                        dateDB,
+                        hourDB: selectedOption,
+                        minutesDB,
                         totalDuration,
                         setSavedEvents,
                       });
@@ -345,19 +345,19 @@ export default function CreateEventSection({
                     value={dateTime.minutesDB}
                     styles={{ ...selectHourStyles }}
                     onChange={(selectedOption) => {
-                      setDateTime({
-                        ...dateTime,
-                        minutesDB: {
-                          label: selectedOption?.value
-                            .toString()
-                            .padStart(2, "0") as string,
-                          value: selectedOption?.value
-                            .toString()
-                            .padStart(2, "0") as string,
-                        },
+                      setMinutesDB({
+                        label: selectedOption?.value
+                          .toString()
+                          .padStart(2, "0") as string,
+                        value: selectedOption?.value
+                          .toString()
+                          .padStart(2, "0") as string,
                       });
+
                       UpdateEventInfo({
-                        dateTime,
+                        dateDB,
+                        hourDB,
+                        minutesDB: selectedOption,
                         totalDuration,
                         setSavedEvents,
                       });
@@ -374,8 +374,8 @@ export default function CreateEventSection({
                 {totalDuration != 0
                   ? formatDuration(
                       totalDuration +
-                        (parseInt(dateTime.hourDB.value) * 60 +
-                          parseInt(dateTime.minutesDB.value))
+                        (parseInt(hourDB.value) * 60 +
+                          parseInt(minutesDB.value))
                     )
                   : ""}
               </p>

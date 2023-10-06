@@ -1,7 +1,5 @@
-// helper functions
-import { useStore } from "../store/store";
-export const cancelCreationEvent = () => {
-  useStore.getState().setActiveEventSection(false);
+export const cancelCreationEvent = (setActive) => {
+  setActive(false);
 };
 
 export const handleOptionChangeTypeClt = (
@@ -16,20 +14,6 @@ export const handleOptionChangeTypeClt = (
 
 export const handleOptionChangeClt = (selectedOption, setSelectedClient) => {
   setSelectedClient(selectedOption);
-};
-
-export const handleOptionChangeAg = (selectedOption, setSelectedAgenda) => {
-  setSelectedAgenda(selectedOption);
-};
-
-export const openModal = () => {
-  const setIsOpen = useStore.getState().setIsOpen;
-  setIsOpen(true);
-};
-
-export const closeModal = () => {
-  const setIsOpen = useStore.getState().setIsOpen;
-  setIsOpen(false);
 };
 export const saveClient = async (formData) => {
   const response = await fetch("http://localhost:3000/api/client", {
@@ -55,14 +39,27 @@ export const saveClient = async (formData) => {
     console.error("POST request failed");
   }
 };
-export const addPrestation = (data) => {
-  const setAgendaPrestationArr = useStore.getState().setAgendaPrestationArr;
-  const setDurationHour = useStore.getState().setDurationHour;
-  const setDurationMinutes = useStore.getState().setDurationMinutes;
-  const setSavedEvents = useStore.getState().setSavedEvents;
-  const tempEvent = useStore.getState().tempEvent;
-  const setTempEvent = useStore.getState().setTempEvent;
+export const handleOptionChangeAg = (selectedOption, setSelectedAgenda) => {
+  setSelectedAgenda(selectedOption);
+};
 
+export const openModal = (setIsOpen) => {
+  setIsOpen(true);
+};
+
+export const closeModal = (setIsOpen) => {
+  setIsOpen(false);
+};
+
+export const addPrestation = (
+  data,
+  setAgendaPrestationArr,
+  setDurationHour,
+  setDurationMinutes,
+  setSavedEvents,
+  tempEvent,
+  setTempEvent
+) => {
   setAgendaPrestationArr((previousState) => {
     return [...previousState, { ...data }];
   });
@@ -84,14 +81,18 @@ export const addPrestation = (data) => {
     setTempEvent({});
   }
   setSavedEvents((previousState) => {
+    // const index = prevEvents.findIndex((e) => e === tempEvent);
+    // prevEvents[index] = updatedEvent;
     return [...previousState, updatedEvent];
   });
 };
 
-export const removePrestation = (index) => {
-  const setAgendaPrestationArr = useStore.getState().setAgendaPrestationArr;
-  const setDurationHour = useStore.getState().setDurationHour;
-  const setDurationMinutes = useStore.getState().setDurationMinutes;
+export const removePrestation = (
+  index,
+  setAgendaPrestationArr,
+  setDurationHour,
+  setDurationMinutes
+) => {
   setAgendaPrestationArr((previousState) => {
     return previousState.filter((_, i) => i !== index);
   });
@@ -104,20 +105,20 @@ export const removePrestation = (index) => {
     return updatedMinutes;
   });
 };
-export const calculateTotalPrices = () => {
-  const agenda_prestationArr = useStore.getState().agenda_prestationArr;
-  const setTotalPrice = useStore.getState().setTotalPrice;
+
+export const calculateTotalPrices = (agenda_prestationArr, setTotalPrice) => {
   let total = 0;
   agenda_prestationArr.forEach((item) => {
     total += item.prixTTC;
   });
   setTotalPrice(total);
 };
-export const calculateTotalDuration = () => {
+export const calculateTotalDuration = (
+  duration_hours,
+  duration_minutes,
+  setTotalDuration
+) => {
   let total = 0;
-  const setTotalDuration = useStore.getState().setTotalDuration;
-  const duration_hours = useStore.getState().duration_hours;
-  const duration_minutes = useStore.getState().duration_minutes;
 
   const totalHours = duration_hours.reduce((a, b) => a + b, 0);
   const totalMinutes = duration_minutes.reduce((a, b) => a + b, 0);
@@ -127,6 +128,7 @@ export const calculateTotalDuration = () => {
 
   setTotalDuration(total);
 };
+
 export const formatDuration = (totalMinutes) => {
   const hour = Math.floor(totalMinutes / 60);
   const minutes = Math.floor(totalMinutes % 60);
@@ -183,4 +185,3 @@ export const UpdateEventInfo = ({
     return previousState.map((event) => ({ ...event, ...data }));
   });
 };
-// ... rest of your functions

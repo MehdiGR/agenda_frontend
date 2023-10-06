@@ -4,16 +4,7 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import Prestation from "./prestation";
 
-const PrestationSlider = ({
-  prestations,
-  addPrestation,
-  setAgendaPrestationArr,
-  setDurationHour,
-  setDurationMinutes,
-  setSavedEvents,
-  tempEvent,
-  setTempEvent,
-}) => {
+const PrestationSlider = ({ prestations }) => {
   // Slider settings
   // const settings = {
   //   dots: true,
@@ -34,16 +25,7 @@ const PrestationSlider = ({
       {prestations?.map((prestation: any, index: number) => {
         return (
           <div key={index} className="w-[200px] h-[200px] mx-2 cursor-pointer">
-            <Prestation
-              prestation={prestation}
-              addPrestation={addPrestation}
-              setAgendaPrestationArr={setAgendaPrestationArr}
-              setDurationHour={setDurationHour}
-              setDurationMinutes={setDurationMinutes}
-              setSavedEvents={setSavedEvents}
-              tempEvent={tempEvent}
-              setTempEvent={setTempEvent}
-            />
+            <Prestation prestation={prestation} />
           </div>
         );
       })}
