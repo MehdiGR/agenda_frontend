@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import MyCalendar from "./mycalendar";
 import CreateEventSection from "./createeventsection";
+import { useStore } from "@/app/store/store";
 
 export default function Home({
   clients,
@@ -13,9 +14,9 @@ export default function Home({
   agendas,
   periods,
 }) {
+  const { addEvent, updateEvent, events } = useStore();
   const [activeEventSection, setActiveEventSection] = useState(false);
   const [tempEvent, setTempEvent] = useState<any>({});
-  const [savedEvents, setSavedEvents] = useState<any>([]);
   const [eventAgenda, setEventAgenda] = useState({});
   const [eventInfo, setEventInfo] = useState<any>({
     dateRes: "",
@@ -42,12 +43,17 @@ export default function Home({
       value: parseInt(newEvent.resourceId),
     });
     // Update the events array with the new event
-    setTempEvent(newEvent);
+    // setEvents([...events, newEvent]);
+    const existTemp = events.find((event: any) => event.isTemp == true);
+    if (!existTemp) {
+      addEvent(newEvent);
+    } else {
+      updateEvent(newEvent);
+    }
     setAddedEventId(newEvent.resourceId);
+
+    // console.log("dds")
   };
-  useEffect(() => {
-    console.log(savedEvents);
-  }, [savedEvents]);
 
   return (
     <div className="flex  gap-10  h-full   ">
@@ -63,7 +69,6 @@ export default function Home({
       <MyCalendar
         handleAddEvent={handleAddEvent}
         active={activeEventSection}
-        events={[tempEvent, ...savedEvents]}
         agendas={agendas}
         periods={periods}
         eventInfo={eventInfo}

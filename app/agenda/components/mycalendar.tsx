@@ -9,11 +9,11 @@ import resourceTimelinePlugin from "@fullcalendar/resource-timeline";
 import resourceTimeGridPlugin from "@fullcalendar/resource-timegrid";
 import frLocale from "@fullcalendar/core/locales/fr";
 import { useState } from "react";
+import { useStore } from "@/app/store/store";
 
 export default function MyCalendar({
   handleAddEvent,
   active,
-  events,
   agendas,
   periods,
   eventInfo,
@@ -23,6 +23,7 @@ export default function MyCalendar({
   //   { id: "b", title: "Room B", building: "Building 2" },
   //   { id: "c", title: "Room C", building: "Building 1" },
   // ];
+  const { events } = useStore();
   const resources = agendas.map((agenda: any) => ({
     id: agenda.id,
     title: agenda.nom,
@@ -32,7 +33,15 @@ export default function MyCalendar({
     <div className="w-full" style={{ zIndex: 0 }}>
       <FullCalendar
         // height="100%"
+        allDaySlot={false}
+        // initialView="timeGridWeek"
+        // businessHours={{
+        //   daysOfWeek: [1, 2, 3, 4, 5], // Specify which days to apply business hours
+        //   startTime: "08:00", // Begin hour (e.g., 8:00 AM)
+        //   endTime: "17:00", // End hour (e.g., 5:00 PM)
+        // }}
         locale={frLocale}
+        slotMinTime="09:00:00"
         schedulerLicenseKey="CC-Attribution-NonCommercial-NoDerivatives"
         plugins={[resourceTimeGridPlugin, interactionPlugin]}
         initialView="resourceTimeGridFourDay"

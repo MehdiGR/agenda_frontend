@@ -33,6 +33,19 @@ export default function CreateEventSection({
   prestations,
   agendas,
 }) {
+  const {
+    duration_hours,
+    setDurationHour,
+    duration_minutes,
+    setDurationMinutes,
+    agenda_prestationArr,
+    eventAgenda,
+    events,
+    dateTime,
+    setDateTime,
+    totalPrice,
+    totalDuration,
+  } = useStore();
   const [clientIsRef, setIsRef] = useState(true);
   const [selectedClientType, setSelectedClientType] = useState("client_ref");
   const [clientOptions, setClientOptions] = useState(
@@ -47,31 +60,6 @@ export default function CreateEventSection({
   );
   const [selectedClient, setSelectedClient] = useState(null);
   const [selectedAgenda, setSelectedAgenda] = useState();
-  // const [agenda_prestationArr, setAgendaPrestationArr] = useState<any[]>([]);
-  const [totalDuration, setTotalDuration] = useState(0);
-  const [totalPrice, setTotalPrice] = useState(0);
-  // const [duration_hours, setDurationHour] = useState<number[]>([]);
-  // const [duration_minutes, setDurationMinutes] = useState<number[]>([]);
-  const {
-    duration_hours,
-    setDurationHour,
-    duration_minutes,
-    setDurationMinutes,
-    agenda_prestationArr,
-    eventAgenda,
-    tempEvent,
-    events,
-    setSavedEvents,
-    setTempEvent,
-    dateTime,
-    setDateTime,
-  } = useStore();
-
-  // const [dateTime, setDateTime] = useState({
-  //   dateDB: "",
-  //   hourDB: { label: "", value: "" },
-  //   minutesDB: { label: "", value: "" },
-  // });
 
   // Default style select
   const selectDefaultStyle = {
@@ -126,7 +114,6 @@ export default function CreateEventSection({
       value: yup.string(),
     }),
     note: yup.string(),
-    // prestaionsIds: yup.array().of(yup.number()),
     prestationsIds: yup.string(),
   });
 
@@ -143,43 +130,32 @@ export default function CreateEventSection({
     calculateTotalPrices();
   }, [agenda_prestationArr, selectedAgenda, duration_hours, duration_minutes]);
 
-  const initialRender = useRef(true);
-  const shouldUpdate = useRef(false);
-
   useEffect(() => {
     if (events && events.length > 0) {
-      const event = events.find((e: any) => e.isTemp === true);
       console.log(events);
-      if (event && events.length == 1) {
-        const dateDB = event.start.split("T")[0];
+      if (events.length == 1) {
+        const dateDB = events[0].start.split("T")[0];
         const hourDB = {
-          value: (event.start.split("T")[1].split(":")[0] || "")
+          value: (events[0].start.split("T")[1].split(":")[0] || "")
             .toString()
             .padStart(2, "0"),
-          label: (event.start.split("T")[1].split(":")[0] || "")
+          label: (events[0].start.split("T")[1].split(":")[0] || "")
             .toString()
             .padStart(2, "0"),
         };
         const minutesDB = {
-          value: (event.start.split("T")[1].split(":")[1] || "")
+          value: (events[0].start.split("T")[1].split(":")[1] || "")
             .toString()
             .padStart(2, "0"),
-          label: (event.start.split("T")[1].split(":")[1] || "")
+          label: (events[0].start.split("T")[1].split(":")[1] || "")
             .toString()
             .padStart(2, "0"),
         };
         setDateTime({ dateDB, hourDB, minutesDB });
       }
     }
-    shouldUpdate.current = true;
-    // console.log(events[0].start.split("T")[0]);
   }, [events]);
-  // useEffect(() => {
-  //   if (shouldUpdate.current) {
-  //     UpdateEventInfo({ dateTime, totalDuration, setSavedEvents });
-  //     shouldUpdate.current = false;
-  //   }
-  // }, [dateTime]);
+
   return (
     <div className={`relative   h-fit w-full ${!active ? "hidden" : ""}`}>
       <form onSubmit={handleSubmit(saveReservat)} className=" space-y-4 h-full">
@@ -262,11 +238,7 @@ export default function CreateEventSection({
                   ...dateTime,
                   dateDB: e.target.value,
                 });
-                UpdateEventInfo({
-                  dateTime: { ...dateTime, dateDB: e.target.value },
-                  totalDuration,
-                  setSavedEvents,
-                });
+                UpdateEventInfo();
               }}
               // defaultValue={events.length && events[0].start.split("T")[0]}
               value={dateTime.dateDB}
@@ -302,11 +274,7 @@ export default function CreateEventSection({
                             .padStart(2, "0") as string,
                         },
                       });
-                      // UpdateEventInfo({
-                      //   dateTime,
-                      //   totalDuration,
-                      //   setSavedEvents,
-                      // });
+                      // UpdateEventInfo();
                     }}
                   />
                 )}
@@ -339,11 +307,7 @@ export default function CreateEventSection({
                             .padStart(2, "0") as string,
                         },
                       });
-                      // UpdateEventInfo({
-                      //   dateTime,
-                      //   totalDuration,
-                      //   setSavedEvents,
-                      // });
+                      // UpdateEventInfo();
                     }}
                   />
                 )}
