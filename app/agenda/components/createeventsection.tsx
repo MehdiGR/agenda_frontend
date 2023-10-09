@@ -274,7 +274,7 @@ export default function CreateEventSection({
                             .padStart(2, "0") as string,
                         },
                       });
-                      // UpdateEventInfo();
+                      UpdateEventInfo();
                     }}
                   />
                 )}
@@ -307,7 +307,7 @@ export default function CreateEventSection({
                             .padStart(2, "0") as string,
                         },
                       });
-                      // UpdateEventInfo();
+                      UpdateEventInfo();
                     }}
                   />
                 )}

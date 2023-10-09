@@ -13,6 +13,7 @@ import { useStore } from "@/app/store/store";
 
 export default function MyCalendar({
   handleAddEvent,
+  handleEventDrop,
   active,
   agendas,
   periods,
@@ -61,6 +62,7 @@ export default function MyCalendar({
         }}
         datesAboveResources={true}
         dateClick={handleAddEvent}
+        eventDrop={handleEventDrop}
         // eventClick={handleAddEvent}
         // Add the eventResize callback
         editable={true} // Enable event editing

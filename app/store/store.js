@@ -22,16 +22,30 @@ export const useStore = create((set) => ({
     hourDB: { label: "", value: "" },
     minutesDB: { label: "", value: "" },
   },
+  addedEventId: "",
   setActiveEventSection: (value) => set(() => ({ activeEventSection: value })),
   // setEvents: (value) => set(() => value),
   addEvent: (newEvent) =>
     set((state) => ({ events: [...state.events, newEvent] })),
-  updateEvent: (updatedEvent) =>
-    set((state) => ({
-      events: state.events.map((event) =>
-        event.id === updatedEvent.id ? updatedEvent : event
-      ),
-    })),
+  updateEvent: (updatedEvent, index = null) =>
+    set((state) => {
+      console.log(updatedEvent);
+      if (index != null) {
+        return {
+          events: state.events.map((event, i) =>
+            i === index ? updatedEvent : event
+          ),
+        };
+      } else {
+        return {
+          events: state.events.map((event) => ({
+            ...event,
+            start: updatedEvent.start,
+            end: updatedEvent.end,
+          })),
+        };
+      }
+    }),
 
   setEventAgenda: (value) => set(() => ({ eventAgenda: value })),
   setEventInfo: (value) => set(() => ({ eventInfo: value })),
@@ -44,7 +58,7 @@ export const useStore = create((set) => ({
   setDurationHour: (value) =>
     set((state) => ({ duration_hours: [...state.duration_hours, value] })),
   setDurationMinutes: (value) =>
-    set((state) => ({ duration_minutes: [...state.duration_hours, value] })),
+    set((state) => ({ duration_minutes: [...state.duration_minutes, value] })),
   setDateTime: (value) => set(() => ({ dateTime: value })),
   setTotalDuration: (value) => set(() => ({ totalDuration: value })),
   setTotalPrice: (value) => set(() => ({ totalPrice: value })),

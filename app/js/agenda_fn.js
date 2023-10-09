@@ -1,4 +1,5 @@
 // helper functions
+import { date } from "yup";
 import { useStore } from "../store/store";
 export const cancelCreationEvent = (setActive) => {
   useStore.getState().setActiveEventSection(false);
@@ -64,6 +65,7 @@ export const addPrestation = (data) => {
   const events = useStore.getState().events;
   const dateTime = useStore.getState().dateTime;
   const totalDuration = useStore.getState().totalDuration;
+  const addedEventId = useStore.getState().addedEventId;
 
   setAgendaPrestationArr(data);
   let hours = Math.floor(data.duree / 60);
@@ -74,11 +76,16 @@ export const addPrestation = (data) => {
 
   let timeEnd = formatDuration(
     totalDuration +
-      (parseInt(dateTime.hourDB.value) * 60 +
-        parseInt(dateTime.minutesDB.value))
+      ((parseInt(dateTime.hourDB.value) + parseInt(hours)) * 60 +
+        parseInt(dateTime.minutesDB.value) +
+        parseInt(minutes))
   );
+  console.log(hours);
+  console.log(timeEnd);
   timeEnd = timeEnd.replace("h", ":");
-  const time = {
+  const existSaved = events.filter((event) => event.isTemp === false).pop();
+
+  let time = {
     start:
       dateTime.dateDB +
       "T" +
@@ -87,18 +94,36 @@ export const addPrestation = (data) => {
       dateTime.minutesDB.value, // New start date and time
     end: dateTime.dateDB + "T" + timeEnd.toString(),
   };
+  if (existSaved) {
+    let hourDB = parseInt(timeEnd.split(":")[0]) - Math.floor(data.duree / 60);
+    let minutesDB =
+      parseInt(parseInt(timeEnd.split(":")[1])) + Math.floor(data.duree / 60);
+    // console.log(hourDB);
+    // console.log(minutesDB);
+    // console.log(timeEnd);
+    time = {
+      start:
+        dateTime.dateDB + "T" + hourDB.toString() + ":" + minutesDB.toString(), // New start date and time
+      end: dateTime.dateDB + "T" + timeEnd.toString(),
+    };
+  }
 
+  console.log(time);
   const newEvent = {
     ...time,
     title: data.intitule,
     backgroundColor: "red",
     isTemp: false,
+    resourceId: addedEventId,
+    editable: true,
+    classNames: ["added-event"],
   };
-  const existTemp = events.find((event) => event.isTemp == true);
-  if (!existTemp) {
+  const existTemp = events.findIndex((event) => event.isTemp == true);
+  if (existTemp == -1) {
     addEvent(newEvent);
   } else {
-    updateEvent(newEvent);
+    const index = existTemp;
+    updateEvent(newEvent, index);
   }
 
   // setEvents((previousState) => {
@@ -136,13 +161,11 @@ export const calculateTotalDuration = () => {
   const setTotalDuration = useStore.getState().setTotalDuration;
   const duration_hours = useStore.getState().duration_hours;
   const duration_minutes = useStore.getState().duration_minutes;
-  console.log(duration_hours);
   const totalHours = duration_hours.reduce((a, b) => a + b, 0);
   const totalMinutes = duration_minutes.reduce((a, b) => a + b, 0);
 
   const totalHoursInMinutes = totalHours * 60;
   total = totalHoursInMinutes + totalMinutes;
-
   setTotalDuration(total);
 };
 export const formatDuration = (totalMinutes) => {
@@ -174,6 +197,7 @@ export const saveReservat = async (formData) => {
 export const UpdateEventInfo = () => {
   const totalDuration = useStore.getState().totalDuration;
   const dateTime = useStore.getState().dateTime;
+  const updateEvent = useStore.getState().updateEvent;
 
   // calculate time end
   let timeEnd = formatDuration(
@@ -195,9 +219,6 @@ export const UpdateEventInfo = () => {
   // setEvents((previousState) => {
   //   return [{ ...previousState[0], ...data }];
   // });
-  setEvents((previousState) => {
-    // console.log(previousState);
-    return previousState.map((event) => ({ ...event, ...data }));
-  });
+  updateEvent({ ...data });
 };
 // ... rest of your functions
