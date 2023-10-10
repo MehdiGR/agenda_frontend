@@ -24,12 +24,10 @@ export const useStore = create((set) => ({
   },
   addedEventId: "",
   setActiveEventSection: (value) => set(() => ({ activeEventSection: value })),
-  // setEvents: (value) => set(() => value),
   addEvent: (newEvent) =>
     set((state) => ({ events: [...state.events, newEvent] })),
   updateEvent: (updatedEvent, index = null) =>
     set((state) => {
-      console.log(updatedEvent);
       if (index != null) {
         return {
           events: state.events.map((event, i) =>
@@ -46,7 +44,27 @@ export const useStore = create((set) => ({
         };
       }
     }),
+  updateAllEvents: (events) =>
+    set((state) => ({
+      events: state.events.map((event) => {
+        const updatedEvent = events.find(
+          (updatedEvent) => updatedEvent.prestationId === event.prestation.id
+        );
+        if (updatedEvent) {
+          return {
+            ...event,
+            start: updatedEvent.start,
+            end: updatedEvent.end,
+          };
+        }
+        return event;
+      }),
+    })),
 
+  removeEvent: (index) =>
+    set((state) => ({
+      events: state.events.filter((_, i) => i !== index),
+    })),
   setEventAgenda: (value) => set(() => ({ eventAgenda: value })),
   setEventInfo: (value) => set(() => ({ eventInfo: value })),
   setAddedEventId: (value) => set(() => ({ addedEventId: value })),
@@ -55,10 +73,28 @@ export const useStore = create((set) => ({
     set((state) => ({
       agenda_prestationArr: [...state.agenda_prestationArr, agenda_prestation],
     })),
-  setDurationHour: (value) =>
+  addAgendaPres: (newAgenda) =>
+    set((state) => ({
+      agenda_prestationArr: [...state.agenda_prestationArr, newAgenda],
+    })),
+  removeAgendaPres: (index) =>
+    set((state) => ({
+      agenda_prestationArr: state.agenda_prestationArr.filter(
+        (_, i) => i !== index
+      ),
+    })),
+  addDurationHour: (value) =>
     set((state) => ({ duration_hours: [...state.duration_hours, value] })),
-  setDurationMinutes: (value) =>
+  updateDurationHour: (index) =>
+    set((state) => ({
+      duration_hours: state.duration_hours.filter((_, i) => i !== index),
+    })),
+  addDurationMinutes: (value) =>
     set((state) => ({ duration_minutes: [...state.duration_minutes, value] })),
+  updateDurationMinutes: (index) =>
+    set((state) => ({
+      duration_minutes: state.duration_minutes.filter((_, i) => i !== index),
+    })),
   setDateTime: (value) => set(() => ({ dateTime: value })),
   setTotalDuration: (value) => set(() => ({ totalDuration: value })),
   setTotalPrice: (value) => set(() => ({ totalPrice: value })),
