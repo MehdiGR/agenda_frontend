@@ -8,7 +8,6 @@ export async function GET() {
         error ? reject(error) : resolve(results)
       )
     );
-  
     return new NextResponse(JSON.stringify(collaborateurs));
   } catch (error) {
     console.error('Could not execute query:', error);

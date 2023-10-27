@@ -14,11 +14,15 @@ export default function Home({
   agendas,
   periods,
 }) {
-  const { addEvent, updateEvent, events, setAddedEventId, setDateTime } =
-    useStore();
+  const {
+    addEvent,
+    updateEvent,
+    events,
+    setAddedEventId,
+    setDateTime,
+    setEventAgenda,
+  } = useStore();
   const [activeEventSection, setActiveEventSection] = useState(false);
-  const [tempEvent, setTempEvent] = useState<any>({});
-  const [eventAgenda, setEventAgenda] = useState({});
   const [eventInfo, setEventInfo] = useState<any>({
     dateRes: "",
     hourDB: "",

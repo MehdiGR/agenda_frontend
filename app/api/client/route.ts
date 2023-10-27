@@ -1,21 +1,24 @@
-import connection from '../db';
-import { NextResponse } from 'next/server'
+import connection from "../db";
+import { NextResponse } from "next/server";
 
 export async function GET() {
   try {
-    const clients = await new Promise((resolve, reject) => 
-      connection.query('SELECT * FROM client', (error, results) => 
+    const clients = await new Promise((resolve, reject) =>
+      connection.query("SELECT * FROM client", (error, results) =>
         error ? reject(error) : resolve(results)
       )
     );
-  
+
     return new NextResponse(JSON.stringify(clients));
   } catch (error) {
-    console.error('Could not execute query:', error);
-    return new NextResponse({ error: 'Could not execute query' }, { status: 500 });
+    console.error("Could not execute query:", error);
+    return new NextResponse(
+      { error: "Could not execute query" },
+      { status: 500 }
+    );
   }
 }
- 
+
 export async function POST(req: Request) {
   const body = await req.json();
 
@@ -41,13 +44,17 @@ export async function POST(req: Request) {
 
   // Execute the query with parameters
   const insertedIdPromise = new Promise((resolve, reject) => {
-    connection.query(sql, values, function (err: any, result: any, fields: any) {
-      if (err) reject(err);
-      resolve(result.insertId);
-    });
+    connection.query(
+      sql,
+      values,
+      function (err: any, result: any, fields: any) {
+        if (err) reject(err);
+        resolve(result.insertId);
+      }
+    );
   });
 
- const insertedId = await insertedIdPromise;
+  const insertedId = await insertedIdPromise;
 
   console.log(insertedId);
 
@@ -55,7 +62,9 @@ export async function POST(req: Request) {
   // connection.disconnect();
 
   return new NextResponse(
-    JSON.stringify({ message: "Data inserted successfully", clientId: insertedId })
+    JSON.stringify({
+      message: "Data inserted successfully",
+      clientId: insertedId,
+    })
   );
 }
-

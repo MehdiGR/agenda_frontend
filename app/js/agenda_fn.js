@@ -3,6 +3,7 @@ import { date } from "yup";
 import { useStore } from "../store/store";
 export const cancelCreationEvent = (setActive) => {
   useStore.getState().setActiveEventSection(false);
+  useStore.getState().setActiveEventSection(false);
 };
 
 export const handleOptionChangeTypeClt = (
@@ -97,9 +98,7 @@ export const addPrestation = (data) => {
     let hourDB = parseInt(timeEnd.split(":")[0]) - Math.floor(data.duree / 60);
     let minutesDB =
       parseInt(parseInt(timeEnd.split(":")[1])) - Math.floor(data.duree % 60);
-    console.log(hourDB);
-    console.log(minutesDB);
-    // console.log(timeEnd);
+
     time = {
       start:
         dateTime.dateDB +
@@ -111,7 +110,6 @@ export const addPrestation = (data) => {
     };
   }
 
-  console.log(time);
   const newEvent = {
     ...time,
     title: data.intitule,
@@ -137,13 +135,13 @@ export const addPrestation = (data) => {
 
 export const removePrestation = (index) => {
   const removeAgendaPres = useStore.getState().removeAgendaPres;
-  const updateDurationHour = useStore.getState().updateDurationHour;
-  const updateDurationMinutes = useStore.getState().updateDurationMinutes;
+  const removeDurationHour = useStore.getState().removeDurationHour;
+  const removeDurationMinutes = useStore.getState().removeDurationMinutes;
   const removeEvent = useStore.getState().removeEvent;
   removeAgendaPres(index);
   removeEvent(index);
-  updateDurationHour(index);
-  updateDurationMinutes(index);
+  removeDurationHour(index);
+  removeDurationMinutes(index);
 };
 export const calculateTotalPrices = () => {
   const agenda_prestationArr = useStore.getState().agenda_prestationArr;
@@ -174,10 +172,11 @@ export const formatDuration = (totalMinutes) => {
     .padStart(2, "0")}`;
 };
 export const saveReservat = async (formData) => {
+  console.log(formData);
+  return;
   const { hourDB, minuteDB, ...rest } = formData;
   const time = `${hourDB.value}:${minuteDB.value}`;
   const updatedFormData = { ...rest, time };
-
   const response = await fetch("http://localhost:3000/api/reservat", {
     method: "POST",
     headers: {
@@ -193,32 +192,33 @@ export const saveReservat = async (formData) => {
   }
 };
 export const UpdateEventInfo = () => {
-  const totalDuration = useStore.getState().totalDuration;
+  // const totalDuration = useStore.getState().totalDuration;
+  const events = useStore.getState().events;
+  const updateEvent = useStore.getState().updateEvent;
+  const firstEvent = events.find((event, index) => index === 0);
+
   const dateTime = useStore.getState().dateTime;
-  const updateAllEvents = useStore.getState().updateAllEvents;
-  const agenda_prestationArr = useStore.getState().agenda_prestationArr;
+  const totalDuration = useStore.getState().totalDuration;
 
-  const eventsToUpdate = agenda_prestationArr.map((prestation, index) => {
-    // Calculate the prestation duration in minutes
-    const prestationDurationInMinutes = prestation.duree * 60;
-
-    // Calculate the start time for each event
-    const startDateTime =
-      index === 0 ? dateTime : eventsToUpdate[index - 1].end;
-
-    // Calculate the new end time for each event
-    const newEndDateTime = new Date(startDateTime);
-    newEndDateTime.setMinutes(
-      newEndDateTime.getMinutes() + prestationDurationInMinutes
-    );
-
-    return {
-      prestationId: prestation.id,
-      start: startDateTime,
-      end: newEndDateTime.toISOString(),
-    };
-  });
-
-  // console.log(eventsToUpdate);
-  updateAllEvents(eventsToUpdate);
+  // calculate time end
+  let timeEnd = formatDuration(
+    totalDuration +
+      (parseInt(dateTime.hourDB.value) * 60 +
+        parseInt(dateTime.minutesDB.value))
+  );
+  timeEnd = timeEnd.replace("h", ":");
+  const data = {
+    start:
+      dateTime.dateDB +
+      "T" +
+      dateTime.hourDB.value +
+      ":" +
+      dateTime.minutesDB.value, // New start date and time
+    end: dateTime.dateDB + "T" + timeEnd.toString(),
+  };
+  // setSavedEvents((previousState) => {
+  //   return [{ ...previousState[0], ...data }];
+  // });
+  const upEvent = { ...firstEvent, ...data };
+  updateEvent(upEvent, 0);
 };

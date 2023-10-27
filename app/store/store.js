@@ -85,17 +85,30 @@ export const useStore = create((set) => ({
     })),
   addDurationHour: (value) =>
     set((state) => ({ duration_hours: [...state.duration_hours, value] })),
-  updateDurationHour: (index) =>
+  updateDurationHour: (value, index) =>
+    set((state) => ({
+      duration_hours: state.duration_hours.map((hour, i) =>
+        i === index ? value : hour
+      ),
+    })),
+  removeDurationHour: (index) =>
     set((state) => ({
       duration_hours: state.duration_hours.filter((_, i) => i !== index),
     })),
   addDurationMinutes: (value) =>
     set((state) => ({ duration_minutes: [...state.duration_minutes, value] })),
-  updateDurationMinutes: (index) =>
+  updateDurationMinutes: (value, index) =>
+    set((state) => ({
+      duration_minutes: state.duration_minutes.map((minutes, i) =>
+        i === index ? value : minutes
+      ),
+    })),
+  removeDurationMinutes: (index) =>
     set((state) => ({
       duration_minutes: state.duration_minutes.filter((_, i) => i !== index),
     })),
   setDateTime: (value) => set(() => ({ dateTime: value })),
+
   setTotalDuration: (value) => set(() => ({ totalDuration: value })),
   setTotalPrice: (value) => set(() => ({ totalPrice: value })),
   setClientOptions: (value) => set(() => ({ clientOptions: value })),
