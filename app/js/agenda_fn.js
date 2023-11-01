@@ -67,17 +67,23 @@ export const addPrestation = (data) => {
   const dateTime = useStore.getState().dateTime;
   const totalDuration = useStore.getState().totalDuration;
   const addedEventId = useStore.getState().addedEventId;
+  const eventAgenda = useStore.getState().eventAgenda;
 
-  addAgendaPres(data);
-  let hours = Math.floor(data.duree / 60);
+  let hour = Math.floor(data.duree / 60);
 
-  addDurationHour(hours);
+  addDurationHour(hour);
   let minutes = data.duree % 60;
   addDurationMinutes(minutes);
 
+  addAgendaPres({
+    ...data,
+    duration_minutes: minutes,
+    duration_hour: hour * 60,
+    agenda: eventAgenda,
+  });
   let timeEnd = formatDuration(
     totalDuration +
-      ((parseInt(dateTime.hourDB.value) + parseInt(hours)) * 60 +
+      ((parseInt(dateTime.hourDB.value) + parseInt(hour)) * 60 +
         parseInt(dateTime.minutesDB.value) +
         parseInt(minutes))
   );
@@ -114,11 +120,13 @@ export const addPrestation = (data) => {
     ...time,
     title: data.intitule,
     prestationId: data.id,
-    backgroundColor: "red",
     isTemp: false,
     resourceId: addedEventId,
     editable: true,
-    classNames: ["added-event"],
+    classNames: ["animated-event"],
+    backgroundColor: "rgb(251, 233, 131)",
+    borderColor: "rgb(251, 233, 131)",
+    textColor: "#FFF5E0",
   };
   const existTemp = events.findIndex((event) => event.isTemp == true);
   if (existTemp == -1) {
@@ -172,11 +180,12 @@ export const formatDuration = (totalMinutes) => {
     .padStart(2, "0")}`;
 };
 export const saveReservat = async (formData) => {
-  console.log(formData);
-  return;
-  const { hourDB, minuteDB, ...rest } = formData;
-  const time = `${hourDB.value}:${minuteDB.value}`;
-  const updatedFormData = { ...rest, time };
+  const totalDuration = useStore.getState().totalDuration;
+  const { hourDB, minutesDB, ...rest } = formData;
+  const time = `${hourDB.value}:${minutesDB.value}`;
+  const updatedFormData = { ...rest, time, duree: totalDuration };
+  // console.log(updatedFormData);
+  // return;
   const response = await fetch("http://localhost:3000/api/reservat", {
     method: "POST",
     headers: {
@@ -221,4 +230,44 @@ export const UpdateEventInfo = () => {
   // });
   const upEvent = { ...firstEvent, ...data };
   updateEvent(upEvent, 0);
+};
+export const processReservations = (reservations) => {
+  const addSavedEvents = useStore.getState().addSavedEvents;
+
+  const Events = [];
+  reservations.map((res) => {
+    const startDate = res.dateRes.split("T")[0];
+    const startTime = res.prest_heurDB;
+
+    const startHour = startTime.split(":")[0];
+    const startMinutes = parseInt(startTime.split(":")[1]);
+
+    const durationHours = Math.floor(res.prest_duree / 60);
+    const durationMinutes = parseInt(res.prest_duree) % 60;
+
+    const endHour =
+      (parseInt(durationHours) + parseInt(startHour))
+        .toString()
+        .padStart(2, "0") +
+      ":" +
+      (parseInt(durationMinutes) + startMinutes).toString().padStart(2, "0");
+
+    const endDate = res.dateRes.split("T")[0];
+    const endTime = endHour;
+
+    Events.push({
+      resourceId: 1,
+      title: res.prest_title,
+      saved: true,
+      start: `${startDate}T${startTime}`,
+      end: `${endDate}T${endTime}`,
+      textColor: "black",
+      backgroundColor: "rgb(251, 233, 131)",
+      borderColor: "rgb(251, 233, 131)",
+      // classNames: ["added-event", "animated-event"],
+      isTemp: false,
+    });
+  });
+
+  addSavedEvents(Events);
 };

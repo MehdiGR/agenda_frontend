@@ -4,6 +4,7 @@ import { create } from "zustand";
 export const useStore = create((set) => ({
   activeEventSection: false,
   events: [],
+  savedEvents: [],
   eventAgenda: {},
   eventInfo: {
     dateRes: "",
@@ -26,6 +27,12 @@ export const useStore = create((set) => ({
   setActiveEventSection: (value) => set(() => ({ activeEventSection: value })),
   addEvent: (newEvent) =>
     set((state) => ({ events: [...state.events, newEvent] })),
+  // create function to add array of events
+  addSavedEvents: (eventsArr) =>
+    set(() => {
+      console.log(eventsArr);
+      return { savedEvents: eventsArr };
+    }),
   updateEvent: (updatedEvent, index = null) =>
     set((state) => {
       if (index != null) {

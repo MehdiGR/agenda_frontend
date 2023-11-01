@@ -1,20 +1,36 @@
-import connection from '../db';
-import { NextResponse } from 'next/server'
+import connection from "../db";
+import { NextResponse } from "next/server";
 
 export async function GET() {
- try {
-    const reservat = await new Promise((resolve, reject) => 
-      connection.query('SELECT * FROM reservat', (error, results) => 
-        error ? reject(error) : resolve(results)
+  try {
+    const reservat = await new Promise((resolve, reject) =>
+      connection.query(
+        `SELECT
+              rsv.*,
+              art.intitule AS prest_title,
+              lr.idPrest AS prest_id,
+              lr.duree AS prest_duree,
+              lr.heurDB AS prest_heurDB
+          FROM
+              reservat AS rsv
+          JOIN ligne_res AS lr
+          ON
+              lr.idRes = rsv.id
+          JOIN article AS art
+          ON
+              art.id = lr.idPrest`,
+        (error, results) => (error ? reject(error) : resolve(results))
       )
     );
-  
+
     return new NextResponse(JSON.stringify(reservat));
   } catch (error) {
-    console.error('Could not execute query:', error);
-    return new NextResponse({ error: 'Could not execute query' }, { status: 500 });
+    console.error("Could not execute query:", error);
+    return new NextResponse(
+      { error: "Could not execute query" },
+      { status: 500 }
+    );
   }
-  
 }
 export async function POST(req: Request) {
   const body = await req.json();
@@ -32,42 +48,45 @@ export async function POST(req: Request) {
 
   // Execute the query with parameters
   const insertedId_resPromise = new Promise((resolve, reject) => {
-    connection.query(sql, values, function (err: any, result: any, fields: any) {
-      if (err) reject(err);
-      resolve(result.insertId);
-    });
+    connection.query(
+      sql,
+      values,
+      function (err: any, result: any, fields: any) {
+        if (err) reject(err);
+        resolve(result.insertId);
+      }
+    );
   });
 
- const insertedId_res = await insertedId_resPromise;
-   
-const prestationsIds=body.prestationsIds.split(",").map(Number)
-prestationsIds.forEach((prestationId :any) => {
+  const insertedId_res = await insertedId_resPromise;
+
+  // const prestationsIds = body.prestationsIds.split(",").map(Number);
+
+  body.agenda_prestationArr.map((agenda_prest: any) => {
     // Your SQL query with parameters
-  const sql2 =
-    "INSERT INTO ligne_res(idRes,idPrest) VALUES (?,?)";
-  const values2 = [
-    insertedId_res,
-    prestationId,
-   
-  ];
-  console.log(values2)
-    connection.query(sql2, values2,()=>1);
-  const sql3 =
-    "INSERT INTO periode(idRes,idPrest) VALUES (?,?)";
-  const values3 = [
-    insertedId_res,
-    prestationId,
-   
-  ];
-  console.log(values3)
-    connection.query(sql2, values3,()=>1);
-});
- 
+    const duree = agenda_prest.duration_hour + agenda_prest.duration_minutes;
+    const hourDB =
+      Math.floor(parseInt(duree) / 60) + ":" + (parseInt(duree) % 60);
+    const sql2 =
+      "INSERT INTO ligne_res(idRes,idPrest,duree,idAgenda,heurDB) VALUES (?,?,?,?,?)";
+    const values2 = [
+      insertedId_res,
+      agenda_prest.id_art,
+      duree,
+      agenda_prest.agenda.value,
+      hourDB,
+    ];
+    console.log(values2);
+    connection.query(sql2, values2, () => 1);
+  });
+
   // Release the connection back to the pool
   // connection.disconnect();
 
   return new NextResponse(
-    JSON.stringify({ message: "Data inserted successfully", reservatId: insertedId_res })
+    JSON.stringify({
+      message: "Data inserted successfully",
+      reservatId: insertedId_res,
+    })
   );
 }
-

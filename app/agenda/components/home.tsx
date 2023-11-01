@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import MyCalendar from "./mycalendar";
 import CreateEventSection from "./createeventsection";
 import { useStore } from "@/app/store/store";
-
+import { processReservations } from "@/app/js/agenda_fn";
 export default function Home({
   clients,
   villes,
@@ -13,6 +13,7 @@ export default function Home({
   agenda_prestation,
   agendas,
   periods,
+  reservations,
 }) {
   const {
     addEvent,
@@ -28,6 +29,10 @@ export default function Home({
     hourDB: "",
     minuteDB: "",
   });
+  useEffect(() => {
+    processReservations(reservations);
+    console.log(reservations);
+  }, []);
 
   const handleAddEvent = (arg: any) => {
     // console.log(arg);
@@ -39,9 +44,10 @@ export default function Home({
         start: arg.dateStr,
         resourceId: arg.resource.id,
         editable: true,
-        classNames: ["added-event"],
-        backgroundColor: "blue",
-        borderColor: "darkblue",
+        backgroundColor: "#F0DE36",
+        borderColor: "#F0DE36",
+        textColor: "#FFF5E0",
+        border: "none",
         isTemp: true,
       };
       setEventAgenda({

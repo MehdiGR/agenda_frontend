@@ -24,12 +24,15 @@ export default function MyCalendar({
   //   { id: "b", title: "Room B", building: "Building 2" },
   //   { id: "c", title: "Room C", building: "Building 1" },
   // ];
-  const { events } = useStore();
+
+  const { events, savedEvents } = useStore();
+
   const resources = agendas.map((agenda: any) => ({
     id: agenda.id,
     title: agenda.nom,
     building: agenda.nom,
   }));
+
   return (
     <div className="w-full" style={{ zIndex: 0 }}>
       <FullCalendar
@@ -46,7 +49,7 @@ export default function MyCalendar({
         schedulerLicenseKey="CC-Attribution-NonCommercial-NoDerivatives"
         plugins={[resourceTimeGridPlugin, interactionPlugin]}
         initialView="resourceTimeGridFourDay"
-        events={events}
+        events={[...events, ...savedEvents]}
         headerToolbar={{
           left: "prev,next",
           center: "title",

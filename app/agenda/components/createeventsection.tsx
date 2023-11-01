@@ -109,7 +109,7 @@ export default function CreateEventSection({
       label: yup.string(),
       value: yup.string(),
     }),
-    minuteDB: yup.object().shape({
+    minutesDB: yup.object().shape({
       label: yup.string(),
       value: yup.string(),
     }),
@@ -141,12 +141,15 @@ export default function CreateEventSection({
   }, [dateTime.dateDB]);
   useEffect(() => {
     setValue("hourDB", dateTime.hourDB);
+    console.log(dateTime.hourDB);
   }, [dateTime.hourDB]);
   useEffect(() => {
-    setValue("minuteDB", dateTime.minuteDB);
-  }, [dateTime.minuteDB]);
+    setValue("minutesDB", dateTime.minutesDB);
+    console.log(dateTime.minutesDB);
+  }, [dateTime.minutesDB]);
   useEffect(() => {
     setValue("agenda_prestationArr", agenda_prestationArr);
+    console.log(agenda_prestationArr);
   }, [agenda_prestationArr]);
   useEffect(() => {
     if (events && events.length > 0) {
@@ -171,6 +174,7 @@ export default function CreateEventSection({
         setDateTime({ dateDB, hourDB, minutesDB });
       }
     }
+    console.log(events);
   }, [events]);
 
   return (
@@ -299,7 +303,7 @@ export default function CreateEventSection({
               {errors.hourDB?.message}
               <span className="font-medium m-2">h</span>
               <Controller
-                name="minuteDB"
+                name="minutesDB"
                 control={control}
                 render={({ field }) => (
                   <Select
@@ -374,53 +378,55 @@ export default function CreateEventSection({
                     <tr key={index}>
                       <td className="text-center py-4">{item.intitule}</td>
                       <td className="py-4">
-                        <Controller
-                          name={`agenda_prestationArr[${index}].agenda`}
-                          control={control}
-                          defaultValue={item.agenda}
-                          render={({ field }) => (
-                            <Select
-                              {...field}
-                              className="m-auto"
-                              instanceId="select_Agenda"
-                              placeholder="Sélectionnez un Agendas"
-                              options={agendaOptions}
-                              defaultValue={{
-                                value: eventAgenda.value,
-                                label: eventAgenda.label,
-                              }}
-                              styles={{
-                                ...selectDefaultStyle,
-                                container: (provided) => ({
-                                  ...provided,
-                                  width: "300px",
-                                }),
-                              }}
-                              // onChange={() =>
-                              //   handleOptionChangeAg(
-                              //     selectedAgenda,
-                              //     setSelectedAgenda
-                              //   )
-                              // }
-                            />
-                          )}
+                        <Select
+                          // defaultValue={item.agenda}
+                          className="m-auto"
+                          instanceId="select_Agenda"
+                          placeholder="Sélectionnez un Agendas"
+                          options={agendaOptions}
+                          defaultValue={{
+                            value: eventAgenda.value,
+                            label: eventAgenda.label,
+                          }}
+                          styles={{
+                            ...selectDefaultStyle,
+                            container: (provided) => ({
+                              ...provided,
+                              width: "300px",
+                            }),
+                          }}
+                          onChange={(selectedOption) => {
+                            // handleOptionChangeAg(
+                            //   selectedAgenda,
+                            //   setSelectedAgenda
+                            // )
+                            setValue(
+                              `agenda_prestationArr[${index}].agenda` as any,
+                              selectedOption!.value
+                            );
+                          }}
                         />
                       </td>
                       <td className="text-center py-4 flex justify-center ">
                         <Controller
-                          name={`agenda_prestationArr[${index}].duration_hour`}
+                          name={`agenda_prestationArr[${index}].hourDB`}
                           control={control}
-                          defaultValue={item.duration_hour}
-                          render={({ field }) => (
+                          render={({ field: { onChange, value } }) => (
                             <Select
-                              {...field}
-                              name="duration_hour"
                               instanceId="select_hour_tb"
                               placeholder=""
                               options={Array.from({ length: 24 }, (_, i) => ({
                                 value: i.toString().padStart(2, "0"),
                                 label: i.toString().padStart(2, "0"),
                               }))}
+                              defaultValue={{
+                                value: Math.floor(item.duree / 60)
+                                  .toString()
+                                  .padStart(2, "0"),
+                                label: Math.floor(item.duree / 60)
+                                  .toString()
+                                  .padStart(2, "0"),
+                              }}
                               styles={{
                                 ...selectHourStyles,
                                 container: (provided) => ({
@@ -429,23 +435,39 @@ export default function CreateEventSection({
                                 }),
                               }}
                               onChange={(selectedOption) => {
-                                updateDurationHour(selectedOption.value, index);
+                                updateDurationHour(
+                                  parseInt(selectedOption!.value),
+                                  index
+                                );
+                                const duration_hours =
+                                  parseInt(selectedOption!.value) * 60;
+                                console.log("duration_hours" + duration_hours);
+                                setValue(
+                                  `agenda_prestationArr[${index}].duration_hour` as any,
+                                  duration_hours
+                                );
                               }}
                             />
                           )}
                         />
                         <span className="font-medium m-2">h</span>
                         <Controller
-                          name={`agenda_prestationArr[${index}].duration_minutes`}
+                          name={`agenda_prestationArr[${index}].minutesDB`}
                           control={control}
-                          defaultValue={item.duration_minutes}
-                          render={({ field }) => (
+                          render={({ field: { onChange, value } }) => (
                             <Select
-                              {...field}
                               options={Array.from({ length: 60 }, (_, i) => ({
                                 value: i.toString().padStart(2, "0"),
                                 label: i.toString().padStart(2, "0"),
                               }))}
+                              defaultValue={{
+                                value: (item.duree % 60)
+                                  .toString()
+                                  .padStart(2, "0"),
+                                label: (item.duree % 60)
+                                  .toString()
+                                  .padStart(2, "0"),
+                              }}
                               styles={{
                                 ...selectHourStyles,
                                 container: (provided) => ({
@@ -455,9 +477,16 @@ export default function CreateEventSection({
                               }}
                               onChange={(selectedOption) => {
                                 updateDurationMinutes(
-                                  selectedOption.value,
+                                  parseInt(selectedOption!.value),
                                   index
                                 );
+                                const duration_minutes = parseInt(
+                                  selectedOption!.value
+                                );
+                                console.log(
+                                  "duration_minutes: " + duration_minutes
+                                );
+                                onChange(duration_minutes);
                               }}
                             />
                           )}
