@@ -47,6 +47,7 @@ export const useStore = create((set) => ({
       console.log(eventsArr);
       return { savedEvents: eventsArr };
     }),
+  // i want the start property for index> i to be begin from the and of each end property for previous index
   // update function add condition if index is an array
   updateEvent: (updatedEvent, index = null) =>
     set((state) => {
