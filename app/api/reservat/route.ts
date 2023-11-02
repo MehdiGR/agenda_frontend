@@ -64,9 +64,11 @@ export async function POST(req: Request) {
 
   body.agenda_prestationArr.map((agenda_prest: any) => {
     // Your SQL query with parameters
-    const duree = agenda_prest.duration_hour + agenda_prest.duration_minutes;
-    const hourDB =
-      Math.floor(parseInt(duree) / 60) + ":" + (parseInt(duree) % 60);
+    const duration_hour = parseInt(agenda_prest.hourDB.split(":")[0]) * 60;
+
+    const duration_minutes = parseInt(agenda_prest.hourDB.split(":")[1]);
+
+    const duree = duration_hour + duration_minutes;
     const sql2 =
       "INSERT INTO ligne_res(idRes,idPrest,duree,idAgenda,heurDB) VALUES (?,?,?,?,?)";
     const values2 = [
@@ -74,7 +76,7 @@ export async function POST(req: Request) {
       agenda_prest.id_art,
       duree,
       agenda_prest.agenda.value,
-      hourDB,
+      agenda_prest.hourDB,
     ];
     console.log(values2);
     connection.query(sql2, values2, () => 1);

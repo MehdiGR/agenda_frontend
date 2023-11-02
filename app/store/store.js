@@ -1,6 +1,20 @@
 // store.js
 import { create } from "zustand";
-
+const updateTime = (type, duration, hour, minutes) => {
+  if (type === "select_hour") {
+    const newHour = (parseInt(hour) + Math.floor(duration / 60))
+      .toString()
+      .padStart(2, "0");
+    return `${newHour}:${minutes}`;
+  } else if (type === "select_minutes") {
+    const newMinutes = (parseInt(minutes) + Math.floor(duration % 60))
+      .toString()
+      .padStart(2, "0");
+    console.log(hour, newMinutes);
+    return `${hour}:${newMinutes}`;
+  }
+  return null;
+};
 export const useStore = create((set) => ({
   activeEventSection: false,
   events: [],
@@ -33,6 +47,7 @@ export const useStore = create((set) => ({
       console.log(eventsArr);
       return { savedEvents: eventsArr };
     }),
+  // update function add condition if index is an array
   updateEvent: (updatedEvent, index = null) =>
     set((state) => {
       if (index != null) {
@@ -51,22 +66,31 @@ export const useStore = create((set) => ({
         };
       }
     }),
-  updateAllEvents: (events) =>
-    set((state) => ({
-      events: state.events.map((event) => {
-        const updatedEvent = events.find(
-          (updatedEvent) => updatedEvent.prestationId === event.prestation.id
-        );
-        if (updatedEvent) {
-          return {
-            ...event,
-            start: updatedEvent.start,
-            end: updatedEvent.end,
-          };
+
+  updateEventsTime: (index, duration, type) =>
+    set((state) => {
+      const updatedEvents = state.events.map((event, i) => {
+        const [startDate, startTime] = event.start.split("T");
+        const [hour, minutes] = startTime.split(":");
+        const newTime = updateTime(type, duration, hour, minutes);
+        if (newTime) {
+          if (i === index) {
+            return {
+              ...event,
+              end: `${startDate}T${newTime}`,
+            };
+          } else if (i > index) {
+            return {
+              ...event,
+              start: `${startDate}T${newTime}`,
+              end: `${startDate}T${updateTime(type, duration, hour, minutes)}`,
+            };
+          }
         }
         return event;
-      }),
-    })),
+      });
+      return { ...state, events: updatedEvents };
+    }),
 
   removeEvent: (index) =>
     set((state) => ({

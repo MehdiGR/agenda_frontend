@@ -45,6 +45,7 @@ export default function CreateEventSection({
     setDateTime,
     totalPrice,
     totalDuration,
+    updateEventsTime,
   } = useStore();
   const [clientIsRef, setIsRef] = useState(true);
   const [selectedClientType, setSelectedClientType] = useState("client_ref");
@@ -439,13 +440,38 @@ export default function CreateEventSection({
                                   parseInt(selectedOption!.value),
                                   index
                                 );
-                                const duration_hours =
-                                  parseInt(selectedOption!.value) * 60;
-                                console.log("duration_hours" + duration_hours);
+
+                                // const old_hourDB = item.hourDB; //example:12(Hour)
+                                // const old_duration_hours = item.duration_hours; //example:60(duration) = 1h
+                                const new_duration_hours =
+                                  parseInt(selectedOption!.value) * 60; //example:2 * 60 = 120(new duration) = 2h
+                                // let new_hourDB = 0;
+                                // if (new_duration_hours > old_duration_hours) {
+                                //   new_hourDB =
+                                //     parseInt(old_hourDB) +
+                                //     parseInt(selectedOption!.value);
+                                // } else {
+                                //   new_hourDB =
+                                //     parseInt(old_hourDB) -
+                                //     parseInt(selectedOption!.value);
+                                //   // -
+                                //   // parseInt(old_duration_hours) / 60;
+                                // }
+
                                 setValue(
                                   `agenda_prestationArr[${index}].duration_hour` as any,
-                                  duration_hours
+
+                                  new_duration_hours
                                 );
+                                updateEventsTime(
+                                  index,
+                                  new_duration_hours,
+                                  "select_hour"
+                                );
+                                // setValue(
+                                //   `agenda_prestation[${index}].hourDB` as any,
+                                //   item.hourDB
+                                // );
                               }}
                             />
                           )}

@@ -58,60 +58,51 @@ export const saveClient = async (formData) => {
   }
 };
 export const addPrestation = (data) => {
-  const addAgendaPres = useStore.getState().addAgendaPres;
-  const addDurationHour = useStore.getState().addDurationHour;
-  const addDurationMinutes = useStore.getState().addDurationMinutes;
-  const addEvent = useStore.getState().addEvent;
-  const updateEvent = useStore.getState().updateEvent;
-  const events = useStore.getState().events;
-  const dateTime = useStore.getState().dateTime;
-  const totalDuration = useStore.getState().totalDuration;
-  const addedEventId = useStore.getState().addedEventId;
-  const eventAgenda = useStore.getState().eventAgenda;
+  const {
+    addAgendaPres,
+    addDurationHour,
+    addDurationMinutes,
+    addEvent,
+    updateEvent,
+    events,
+    dateTime,
+    totalDuration,
+    addedEventId,
+    eventAgenda,
+  } = useStore.getState();
 
-  let hour = Math.floor(data.duree / 60);
-
+  const hour = Math.floor(data.duree / 60);
   addDurationHour(hour);
-  let minutes = data.duree % 60;
+  const minutes = data.duree % 60;
   addDurationMinutes(minutes);
 
-  addAgendaPres({
-    ...data,
-    duration_minutes: minutes,
-    duration_hour: hour * 60,
-    agenda: eventAgenda,
-  });
   let timeEnd = formatDuration(
     totalDuration +
       ((parseInt(dateTime.hourDB.value) + parseInt(hour)) * 60 +
         parseInt(dateTime.minutesDB.value) +
         parseInt(minutes))
   );
-
   timeEnd = timeEnd.replace("h", ":");
-  const existSaved = events.filter((event) => event.isTemp === false).pop();
+  let hourDB = dateTime.hourDB.value;
+  let minutesDB = dateTime.minutesDB.value;
+  const existSaved = events.find((event) => !event.isTemp);
+  const timeStart = dateTime.dateDB + "T" + hourDB + ":" + minutesDB;
 
   let time = {
-    start:
-      dateTime.dateDB +
-      "T" +
-      dateTime.hourDB.value +
-      ":" +
-      dateTime.minutesDB.value, // New start date and time
+    start: timeStart,
     end: dateTime.dateDB + "T" + timeEnd.toString(),
   };
-  if (existSaved) {
-    let hourDB = parseInt(timeEnd.split(":")[0]) - Math.floor(data.duree / 60);
-    let minutesDB =
-      parseInt(parseInt(timeEnd.split(":")[1])) - Math.floor(data.duree % 60);
 
+  if (existSaved) {
+    hourDB = parseInt(timeEnd.split(":")[0]) - Math.floor(data.duree / 60);
+    minutesDB = parseInt(timeEnd.split(":")[1]) - Math.floor(data.duree % 60);
     time = {
       start:
         dateTime.dateDB +
         "T" +
         hourDB.toString().padStart(2, "0") +
         ":" +
-        minutesDB.toString().padStart(2, "0"), // New start date and time
+        minutesDB.toString().padStart(2, "0"),
       end: dateTime.dateDB + "T" + timeEnd.toString(),
     };
   }
@@ -128,17 +119,21 @@ export const addPrestation = (data) => {
     borderColor: "rgb(251, 233, 131)",
     textColor: "#FFF5E0",
   };
-  const existTemp = events.findIndex((event) => event.isTemp == true);
-  if (existTemp == -1) {
+
+  const indexExistTemp = events.findIndex((event) => event.isTemp);
+  if (indexExistTemp === -1) {
     addEvent(newEvent);
   } else {
-    const index = existTemp;
-    updateEvent(newEvent, index);
+    updateEvent(newEvent, indexExistTemp);
   }
-
-  // setEvents((previousState) => {
-  //   return [...previousState, updatedEvent];
-  // });
+  const agendaData = {
+    ...data,
+    hourDB: hourDB + ":" + minutesDB,
+    duration_hours: Math.floor(parseInt(data.duree) / 60) * 60,
+    duration_minutes: parseInt(data.duree) % 60,
+    agenda: eventAgenda,
+  };
+  addAgendaPres(agendaData);
 };
 
 export const removePrestation = (index) => {
@@ -184,8 +179,8 @@ export const saveReservat = async (formData) => {
   const { hourDB, minutesDB, ...rest } = formData;
   const time = `${hourDB.value}:${minutesDB.value}`;
   const updatedFormData = { ...rest, time, duree: totalDuration };
-  // console.log(updatedFormData);
-  // return;
+  console.log(updatedFormData);
+  return;
   const response = await fetch("http://localhost:3000/api/reservat", {
     method: "POST",
     headers: {
@@ -270,4 +265,9 @@ export const processReservations = (reservations) => {
   });
 
   addSavedEvents(Events);
+};
+// create function that update agenda_prestation hourDB and duration_hour or duration_minutes by index with params (index,property,value)
+// transform agenda  to rdv and send it to prest_heurDB
+export const updateAgendaHour = (index, property, value) => {
+  const agenda_prestationArr = useStore.getState().agenda_prestationArr;
 };
