@@ -46,7 +46,7 @@ export default function Home({
         editable: true,
         backgroundColor: "#F0DE36",
         borderColor: "#F0DE36",
-        textColor: "#FFF5E0",
+        textColor: "#383838",
         border: "none",
         isTemp: true,
       };

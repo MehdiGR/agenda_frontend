@@ -1,20 +1,55 @@
 // store.js
 import { create } from "zustand";
-const updateTime = (type, duration, hour, minutes) => {
+const updateTime = ({
+  type,
+  duration,
+  hour,
+  minutes,
+  updateHour = false,
+  updateMinutes = false,
+}) => {
   if (type === "select_hour") {
-    const newHour = (parseInt(hour) + Math.floor(duration / 60))
+    console.log(
+      "duration",
+      duration,
+      "hour",
+      hour,
+      "minutes",
+      minutes,
+      "hour",
+      hour
+    );
+    const newHour = (
+      parseInt(hour) + (updateHour ? Math.floor(duration / 60) : hour)
+    )
       .toString()
       .padStart(2, "0");
-    return `${newHour}:${minutes}`;
+
+    const newMinutes = (
+      parseInt(minutes) + (updateMinutes ? Math.floor(duration % 60) : minutes)
+    )
+      .toString()
+      .padStart(2, "0");
+
+    return `${newHour}:${newMinutes}`;
   } else if (type === "select_minutes") {
-    const newMinutes = (parseInt(minutes) + Math.floor(duration % 60))
+    const newHour = (
+      parseInt(hour) + (updateHour ? Math.floor(duration / 60) : hour)
+    )
       .toString()
       .padStart(2, "0");
-    console.log(hour, newMinutes);
-    return `${hour}:${newMinutes}`;
+
+    const newMinutes = (
+      parseInt(minutes) + (updateMinutes ? Math.floor(duration % 60) : minutes)
+    )
+      .toString()
+      .padStart(2, "0");
+
+    return `${newHour}:${newMinutes}`;
   }
   return null;
 };
+
 export const useStore = create((set) => ({
   activeEventSection: false,
   events: [],
@@ -47,7 +82,7 @@ export const useStore = create((set) => ({
       console.log(eventsArr);
       return { savedEvents: eventsArr };
     }),
-  // i want the start property for index> i to be begin from the and of each end property for previous index
+
   // update function add condition if index is an array
   updateEvent: (updatedEvent, index = null) =>
     set((state) => {
@@ -70,23 +105,72 @@ export const useStore = create((set) => ({
 
   updateEventsTime: (index, duration, type) =>
     set((state) => {
+      const modifiedEndTimes = []; // Initialize an array to store modified end times
+
       const updatedEvents = state.events.map((event, i) => {
         const [startDate, startTime] = event.start.split("T");
         const [hour, minutes] = startTime.split(":");
-        const newTime = updateTime(type, duration, hour, minutes);
+        const newTime = updateTime({
+          type,
+          duration,
+          hour,
+          minutes,
+          updateHour: true,
+          updateMinutes: true,
+        });
         if (newTime) {
+          let newEvent = { ...event };
           if (i === index) {
-            return {
-              ...event,
-              end: `${startDate}T${newTime}`,
-            };
+            newEvent.end = `${startDate}T${newTime}`;
+            modifiedEndTimes[i] = newEvent.end; // Store the modified end time for this index
           } else if (i > index) {
-            return {
-              ...event,
-              start: `${startDate}T${newTime}`,
-              end: `${startDate}T${updateTime(type, duration, hour, minutes)}`,
-            };
+            // const [previousStartDate, previousStartTime] =
+            //   state.events[i - 1].start.split("T");
+            // const [previousHour, previousMinutes] =
+            //   previousStartTime.split(":");
+            // const previousTime = updateTime(
+            //   type,
+            //   duration,
+            //   previousHour,
+            //   previousMinutes
+            // );
+
+            const [currentStartDate, currentStartTime] =
+              state.events[i].start.split("T");
+            const [currentStartHour, currentStartMinutes] =
+              currentStartTime.split(":");
+            const [currentEndDate, currentEndTime] =
+              state.events[i].end.split("T");
+            const [currentEndHour, currentEndMinutes] =
+              currentEndTime.split(":");
+
+            // Calculate the time difference between current start and end times in minutes
+            const timeDifference =
+              (currentEndHour - currentStartHour) * 60 +
+              (currentEndMinutes - currentStartMinutes);
+
+            const [nextEndHour, nextEndMinutes] = modifiedEndTimes[i - 1]
+              .split("T")[1]
+              .split(":");
+            // Calculate the next end time by adding timeDifference to previousTime
+            console.log(nextEndHour);
+            const nextEndTime = updateTime({
+              type,
+              duration: timeDifference,
+              hour: nextEndHour,
+              minutes: nextEndMinutes,
+              updateHour: true,
+              updateMinutes: true,
+            });
+            console.log("timeDifference " + i, timeDifference);
+
+            // newEvent.start = `${previousStartDate}T${previousTime}`;
+            newEvent.start = modifiedEndTimes[i - 1];
+            newEvent.end = `${startDate}T${nextEndTime}`;
+            modifiedEndTimes[i] = newEvent.end;
           }
+
+          return newEvent;
         }
         return event;
       });

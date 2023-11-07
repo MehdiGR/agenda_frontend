@@ -117,7 +117,7 @@ export const addPrestation = (data) => {
     classNames: ["animated-event"],
     backgroundColor: "rgb(251, 233, 131)",
     borderColor: "rgb(251, 233, 131)",
-    textColor: "#FFF5E0",
+    textColor: "#383838",
   };
 
   const indexExistTemp = events.findIndex((event) => event.isTemp);

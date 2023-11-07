@@ -441,28 +441,15 @@ export default function CreateEventSection({
                                   index
                                 );
 
-                                // const old_hourDB = item.hourDB; //example:12(Hour)
-                                // const old_duration_hours = item.duration_hours; //example:60(duration) = 1h
                                 const new_duration_hours =
                                   parseInt(selectedOption!.value) * 60; //example:2 * 60 = 120(new duration) = 2h
-                                // let new_hourDB = 0;
-                                // if (new_duration_hours > old_duration_hours) {
-                                //   new_hourDB =
-                                //     parseInt(old_hourDB) +
-                                //     parseInt(selectedOption!.value);
-                                // } else {
-                                //   new_hourDB =
-                                //     parseInt(old_hourDB) -
-                                //     parseInt(selectedOption!.value);
-                                //   // -
-                                //   // parseInt(old_duration_hours) / 60;
-                                // }
 
                                 setValue(
                                   `agenda_prestationArr[${index}].duration_hour` as any,
-
                                   new_duration_hours
                                 );
+                                //
+
                                 updateEventsTime(
                                   index,
                                   new_duration_hours,
@@ -540,7 +527,7 @@ export default function CreateEventSection({
                   {formatDuration(totalDuration) || "00h00"}
                 </th>
                 <th className="border-r-2 bg-slate-800 text-white">
-                  {totalPrice} DH
+                  {totalPrice.toFixed(2)} DH
                 </th>
                 <th className="border-r-2 bg-slate-800"></th>
               </tr>
