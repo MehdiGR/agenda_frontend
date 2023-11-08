@@ -131,7 +131,6 @@ export default function CreateEventSection({
     control,
     name: "agenda_prestationArr",
   });
-  // console.log("the date is", dateTime);
   useEffect(() => {
     // setSelectedAgenda(eventAgenda);
     calculateTotalDuration();
@@ -142,15 +141,12 @@ export default function CreateEventSection({
   }, [dateTime.dateDB]);
   useEffect(() => {
     setValue("hourDB", dateTime.hourDB);
-    console.log(dateTime.hourDB);
   }, [dateTime.hourDB]);
   useEffect(() => {
     setValue("minutesDB", dateTime.minutesDB);
-    console.log(dateTime.minutesDB);
   }, [dateTime.minutesDB]);
   useEffect(() => {
     setValue("agenda_prestationArr", agenda_prestationArr);
-    console.log(agenda_prestationArr);
   }, [agenda_prestationArr]);
   useEffect(() => {
     if (events && events.length > 0) {
@@ -175,7 +171,6 @@ export default function CreateEventSection({
         setDateTime({ dateDB, hourDB, minutesDB });
       }
     }
-    console.log(events);
   }, [events]);
 
   return (
@@ -261,7 +256,7 @@ export default function CreateEventSection({
                   dateDB: e.target.value,
                 });
                 setValue("dateRes", dateTime.dateDB);
-                UpdateEventInfo();
+                // UpdateEventInfo();
               }}
               value={dateTime.dateDB}
               // value={"2023-03-11"}
@@ -296,7 +291,35 @@ export default function CreateEventSection({
                             .padStart(2, "0") as string,
                         },
                       });
-                      UpdateEventInfo();
+                      // UpdateEventInfo();
+                      const new_duration_hours =
+                        parseInt(selectedOption!.value) * 60; //example:2 * 60 = 120(new duration) = 2h
+                      // console.log("hourdb", fields[0].duration_hours);
+                      const duration_hours =
+                        fields[0]?.duration_hours !== undefined
+                          ? fields[0].duration_hours
+                          : "";
+                      // get `agenda_prestationArr[${index}].duration_hour` value
+                      let operator = "+";
+                      console.log("hourDB", dateTime);
+                      console.log("newhourDB", selectedOption!.value);
+                      if (
+                        parseInt(selectedOption!.value) <
+                        parseInt(dateTime.hourDB.value)
+                      ) {
+                        operator = "-";
+                      }
+
+                      // update Events and Create Event with new duration `agenda_prestationArr[${index}].duration_hour`
+                      //
+
+                      duration_hours &&
+                        updateEventsTime(
+                          0,
+                          parseInt(operator + duration_hours),
+                          "select_hour",
+                          true
+                        );
                     }}
                   />
                 )}
@@ -493,13 +516,22 @@ export default function CreateEventSection({
                                   parseInt(selectedOption!.value),
                                   index
                                 );
-                                const duration_minutes = parseInt(
+                                const new_duration_minutes = parseInt(
                                   selectedOption!.value
                                 );
-                                console.log(
-                                  "duration_minutes: " + duration_minutes
+
+                                setValue(
+                                  `agenda_prestationArr[${index}].duration_minutes` as any,
+                                  new_duration_minutes
                                 );
-                                onChange(duration_minutes);
+                                //
+
+                                updateEventsTime(
+                                  index,
+                                  new_duration_minutes,
+                                  "select_minutes"
+                                );
+                                // onChange(duration_minutes);
                               }}
                             />
                           )}

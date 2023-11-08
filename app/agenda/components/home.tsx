@@ -31,11 +31,9 @@ export default function Home({
   });
   useEffect(() => {
     processReservations(reservations);
-    console.log(reservations);
   }, []);
 
   const handleAddEvent = (arg: any) => {
-    // console.log(arg);
     if (arg.hasOwnProperty("resource")) {
       // update active state for showing  the create event section
       setActiveEventSection(() => true);
@@ -61,15 +59,12 @@ export default function Home({
         addEvent(newEvent);
       } else {
         const index = existTemp;
-        console.log(index);
         updateEvent(newEvent, index);
       }
       setAddedEventId(newEvent.resourceId);
     }
-    // console.log("dds")
   };
   const handleEventDrop = (arg: any) => {
-    // console.log(arg.event.start.toISOString());
     const dateTimeString = arg.event.start;
     let date = new Date(dateTimeString);
 
@@ -83,7 +78,6 @@ export default function Home({
       minutesDB: { label: minutes, value: minutes },
     };
     setDateTime(newDate);
-    console.log(formattedDate); // Outputs: 2022-01-01 (for example)
   };
   return (
     <div className="flex  gap-10  h-full   ">
