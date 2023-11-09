@@ -42,9 +42,9 @@ export default function Home({
         start: arg.dateStr,
         resourceId: arg.resource.id,
         editable: true,
-        backgroundColor: "#F0DE36",
-        borderColor: "#F0DE36",
-        textColor: "#383838",
+        backgroundColor: "#6FA5C0",
+        borderColor: "#6FA5C0",
+        textColor: "#FFFFFF",
         border: "none",
         isTemp: true,
       };

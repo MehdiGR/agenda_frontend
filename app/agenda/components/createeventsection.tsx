@@ -46,6 +46,7 @@ export default function CreateEventSection({
     totalPrice,
     totalDuration,
     updateEventsTime,
+    dateEventDates,
   } = useStore();
   const [clientIsRef, setIsRef] = useState(true);
   const [selectedClientType, setSelectedClientType] = useState("client_ref");
@@ -255,10 +256,12 @@ export default function CreateEventSection({
                   ...dateTime,
                   dateDB: e.target.value,
                 });
-                setValue("dateRes", dateTime.dateDB);
+                // setValue("dateRes", dateTime.dateDB);
                 // UpdateEventInfo();
+                dateEventDates(e.target.value);
               }}
               value={dateTime.dateDB}
+
               // value={"2023-03-11"}
             />
           </div>
@@ -292,34 +295,18 @@ export default function CreateEventSection({
                         },
                       });
                       // UpdateEventInfo();
-                      const new_duration_hours =
-                        parseInt(selectedOption!.value) * 60; //example:2 * 60 = 120(new duration) = 2h
-                      // console.log("hourdb", fields[0].duration_hours);
+                      const new_hours = parseInt(selectedOption!.value); //example:2 * 60 = 120(new duration) = 2h
                       const duration_hours =
-                        fields[0]?.duration_hours !== undefined
-                          ? fields[0].duration_hours
-                          : "";
-                      // get `agenda_prestationArr[${index}].duration_hour` value
-                      let operator = "+";
-                      console.log("hourDB", dateTime);
-                      console.log("newhourDB", selectedOption!.value);
-                      if (
-                        parseInt(selectedOption!.value) <
-                        parseInt(dateTime.hourDB.value)
-                      ) {
-                        operator = "-";
-                      }
-
-                      // update Events and Create Event with new duration `agenda_prestationArr[${index}].duration_hour`
-                      //
+                        (new_hours - parseInt(dateTime.hourDB.value)) * 60;
+                      console.log(duration_hours);
 
                       duration_hours &&
-                        updateEventsTime(
-                          0,
-                          parseInt(operator + duration_hours),
-                          "select_hour",
-                          true
-                        );
+                        updateEventsTime({
+                          index: 0,
+                          duration: duration_hours,
+                          select_type: "select_hour",
+                          globalChange: true,
+                        });
                     }}
                   />
                 )}
@@ -352,7 +339,20 @@ export default function CreateEventSection({
                             .padStart(2, "0") as string,
                         },
                       });
-                      UpdateEventInfo();
+                      const new_minutes = parseInt(selectedOption!.value); //example:2 * 60 = 120(new duration) = 2h
+                      const duration_minutes =
+                        new_minutes - parseInt(dateTime.minutesDB.value);
+
+                      // duration_minutes always > 0
+                      console.log("duration_minutes", duration_minutes);
+
+                      duration_minutes &&
+                        updateEventsTime({
+                          index: 0,
+                          duration: duration_minutes,
+                          select_type: "select_minutes",
+                          globalChange: true,
+                        });
                     }}
                   />
                 )}
@@ -473,11 +473,11 @@ export default function CreateEventSection({
                                 );
                                 //
 
-                                updateEventsTime(
+                                updateEventsTime({
                                   index,
-                                  new_duration_hours,
-                                  "select_hour"
-                                );
+                                  duration: new_duration_hours,
+                                  select_type: "select_hour",
+                                });
                                 // setValue(
                                 //   `agenda_prestation[${index}].hourDB` as any,
                                 //   item.hourDB
@@ -526,11 +526,11 @@ export default function CreateEventSection({
                                 );
                                 //
 
-                                updateEventsTime(
+                                updateEventsTime({
                                   index,
-                                  new_duration_minutes,
-                                  "select_minutes"
-                                );
+                                  duration: new_duration_minutes,
+                                  select_type: "select_minutes",
+                                });
                                 // onChange(duration_minutes);
                               }}
                             />

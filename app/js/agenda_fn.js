@@ -179,8 +179,8 @@ export const saveReservat = async (formData) => {
   const { hourDB, minutesDB, ...rest } = formData;
   const time = `${hourDB.value}:${minutesDB.value}`;
   const updatedFormData = { ...rest, time, duree: totalDuration };
-  console.log(updatedFormData);
-  return;
+  // console.log(updatedFormData);
+  // return;
   const response = await fetch("http://localhost:3000/api/reservat", {
     method: "POST",
     headers: {
@@ -195,37 +195,7 @@ export const saveReservat = async (formData) => {
     console.error("POST request failed");
   }
 };
-export const UpdateEventInfo = () => {
-  // const totalDuration = useStore.getState().totalDuration;
-  const events = useStore.getState().events;
-  const updateEvent = useStore.getState().updateEvent;
-  const firstEvent = events.find((event, index) => index === 0);
 
-  const dateTime = useStore.getState().dateTime;
-  const totalDuration = useStore.getState().totalDuration;
-
-  // calculate time end
-  let timeEnd = formatDuration(
-    totalDuration +
-      (parseInt(dateTime.hourDB.value) * 60 +
-        parseInt(dateTime.minutesDB.value))
-  );
-  timeEnd = timeEnd.replace("h", ":");
-  const data = {
-    start:
-      dateTime.dateDB +
-      "T" +
-      dateTime.hourDB.value +
-      ":" +
-      dateTime.minutesDB.value, // New start date and time
-    end: dateTime.dateDB + "T" + timeEnd.toString(),
-  };
-  // setSavedEvents((previousState) => {
-  //   return [{ ...previousState[0], ...data }];
-  // });
-  const upEvent = { ...firstEvent, ...data };
-  updateEvent(upEvent, 0);
-};
 export const processReservations = (reservations) => {
   const addSavedEvents = useStore.getState().addSavedEvents;
 
@@ -268,6 +238,3 @@ export const processReservations = (reservations) => {
 };
 // create function that update agenda_prestation hourDB and duration_hour or duration_minutes by index with params (index,property,value)
 // transform agenda  to rdv and send it to prest_heurDB
-export const updateAgendaHour = (index, property, value) => {
-  const agenda_prestationArr = useStore.getState().agenda_prestationArr;
-};
