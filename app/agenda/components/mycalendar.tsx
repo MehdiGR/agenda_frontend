@@ -14,6 +14,7 @@ import { useStore } from "@/app/store/store";
 export default function MyCalendar({
   handleAddEvent,
   handleEventDrop,
+  handleUpdateEvent,
   active,
   agendas,
   periods,
@@ -72,7 +73,7 @@ export default function MyCalendar({
         eventResizableFromStart={true} // Enable resizing from the start point
         eventStartEditable={true} // Disable dragging from the start point
         eventOverlap={true}
-        eventClick={handleAddEvent}
+        eventClick={handleUpdateEvent}
         // eventContent={handleEventRender}
         // eventClassNames={"added-event"}
       />

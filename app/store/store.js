@@ -49,7 +49,7 @@ export const useStore = create((set) => ({
     hourDB: { label: "", value: "" },
     minutesDB: { label: "", value: "" },
   },
-  addedEventId: "",
+
   setActiveEventSection: (value) => set(() => ({ activeEventSection: value })),
   addEvent: (newEvent) =>
     set((state) => ({ events: [...state.events, newEvent] })),
@@ -173,10 +173,12 @@ export const useStore = create((set) => ({
   setEventInfo: (value) => set(() => ({ eventInfo: value })),
   setAddedEventId: (value) => set(() => ({ addedEventId: value })),
   setIsOpen: (value) => set(() => ({ modalIsOpen: value })),
-  setAgendaPrestationArr: (agenda_prestation) =>
-    set((state) => ({
-      agenda_prestationArr: [...state.agenda_prestationArr, agenda_prestation],
-    })),
+  addAllAgendaPres: (agenda_prestation) =>
+    set((state) => ({ agenda_prestationArr: [...agenda_prestation] })),
+  // setAgendaPrestationArr: (agenda_prestation) =>
+  //   set((state) => ({
+  //     agenda_prestationArr: [...state.agenda_prestationArr, agenda_prestation],
+  //   })),
   addAgendaPres: (newAgenda) =>
     set((state) => ({
       agenda_prestationArr: [...state.agenda_prestationArr, newAgenda],

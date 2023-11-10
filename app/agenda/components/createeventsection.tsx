@@ -20,7 +20,6 @@ import {
   cancelCreationEvent,
   calculateTotalDuration,
   calculateTotalPrices,
-  UpdateEventInfo,
 } from "@/app/js/agenda_fn";
 import { useStore } from "@/app/store/store";
 
@@ -215,6 +214,10 @@ export default function CreateEventSection({
                   {...field}
                   instanceId="select_client"
                   placeholder="Sélectionnez un Clients"
+                  defaultValue={{
+                    label: agenda_prestationArr[0]?.client.label || "0",
+                    value: agenda_prestationArr[0]?.client.value || "0",
+                  }}
                   options={clientOptions}
                   // value={selectedClient}
                   {...(clientIsRef == true
@@ -256,9 +259,8 @@ export default function CreateEventSection({
                   ...dateTime,
                   dateDB: e.target.value,
                 });
-                // setValue("dateRes", dateTime.dateDB);
-                // UpdateEventInfo();
                 dateEventDates(e.target.value);
+                // setValue("dateRes", dateTime.dateDB);
               }}
               value={dateTime.dateDB}
 
@@ -294,7 +296,6 @@ export default function CreateEventSection({
                             .padStart(2, "0") as string,
                         },
                       });
-                      // UpdateEventInfo();
                       const new_hours = parseInt(selectedOption!.value); //example:2 * 60 = 120(new duration) = 2h
                       const duration_hours =
                         (new_hours - parseInt(dateTime.hourDB.value)) * 60;
@@ -398,6 +399,7 @@ export default function CreateEventSection({
                 //   let hours = Math.floor(ag_pr.duree / 60);
                 //   let minutes = ag_pr.duree % 60;
                 fields.map((item, index) => {
+                  // console.log(item);
                   return (
                     <tr key={index}>
                       <td className="text-center py-4">{item.intitule}</td>
@@ -409,8 +411,8 @@ export default function CreateEventSection({
                           placeholder="Sélectionnez un Agendas"
                           options={agendaOptions}
                           defaultValue={{
-                            value: eventAgenda.value,
-                            label: eventAgenda.label,
+                            label: item.agenda?.label || eventAgenda.label,
+                            value: item.agenda?.value || eventAgenda.value,
                           }}
                           styles={{
                             ...selectDefaultStyle,
@@ -468,7 +470,7 @@ export default function CreateEventSection({
                                   parseInt(selectedOption!.value) * 60; //example:2 * 60 = 120(new duration) = 2h
 
                                 setValue(
-                                  `agenda_prestationArr[${index}].duration_hour` as any,
+                                  `agenda_prestationArr[${index}].duration_hours` as any,
                                   new_duration_hours
                                 );
                                 //
@@ -585,6 +587,7 @@ export default function CreateEventSection({
           >
             Annuler
           </button>
+
           <button
             className="py-1 px-4 bg-[#fc8f3e] text-white rounded-md "
             type="submit"

@@ -22,6 +22,7 @@ export default function Home({
     setAddedEventId,
     setDateTime,
     setEventAgenda,
+    addAllAgendaPres,
   } = useStore();
   const [activeEventSection, setActiveEventSection] = useState(false);
   const [eventInfo, setEventInfo] = useState<any>({
@@ -79,6 +80,37 @@ export default function Home({
     };
     setDateTime(newDate);
   };
+  const handleUpdateEvent = (info: any) => {
+    setActiveEventSection(() => true);
+    const data = reservations
+      .filter((res: any) => res.id == info.event.id)
+      .map((res: any) => ({
+        id_res: res.id,
+        id_pres: res.prest_id,
+        intitule: res.prest_title,
+        dateDB: res.dateRes, // Uncomment this line if needed
+        prixTTC: res.prest_prix,
+        hourDB: res.prest_heurDB.value, // Uncomment this line if needed
+        duree: res.prest_duree,
+        agenda: { label: res.prest_agenda, value: res.prest_idAgenda },
+        client: { label: res.idClient, value: res.client },
+        id_agenda: res.prest_idAgenda,
+      }));
+    console.log(data);
+    addAllAgendaPres(data);
+    const dateTimeString = info.event.start;
+    let date = new Date(dateTimeString);
+    const formatted_date = date.toISOString();
+    const dateDB = formatted_date.split("T")[0];
+    const hourDB = formatted_date.split("T")[1].split(":")[0];
+    const minutesDB = formatted_date.split("T")[1].split(":")[1];
+    // setDateTime({date.toISOString().split("T")[0]);
+    setDateTime({
+      dateDB,
+      hourDB: { label: hourDB, value: hourDB },
+      minutesDB: { label: minutesDB, value: minutesDB },
+    });
+  };
   return (
     <div className="flex  gap-10  h-full   ">
       <CreateEventSection
@@ -93,6 +125,7 @@ export default function Home({
       <MyCalendar
         handleAddEvent={handleAddEvent}
         handleEventDrop={handleEventDrop}
+        handleUpdateEvent={handleUpdateEvent}
         active={activeEventSection}
         agendas={agendas}
         periods={periods}

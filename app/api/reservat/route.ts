@@ -8,9 +8,13 @@ export async function GET() {
         `SELECT
               rsv.*,
               art.intitule AS prest_title,
+              art.prixTTC AS prest_prix,
               lr.idPrest AS prest_id,
               lr.duree AS prest_duree,
-              lr.heurDB AS prest_heurDB
+              lr.heurDB AS prest_heurDB,
+              lr.idAgenda AS prest_idAgenda,
+              ag.nom AS prest_agenda,
+              clt.nom as client
           FROM
               reservat AS rsv
           JOIN ligne_res AS lr
@@ -18,7 +22,11 @@ export async function GET() {
               lr.idRes = rsv.id
           JOIN article AS art
           ON
-              art.id = lr.idPrest`,
+              art.id = lr.idPrest
+               JOIN agenda AS ag
+          ON
+              ag.id = lr.idAgenda
+              JOIN client as clt on clt.id=rsv.idClient;`,
         (error, results) => (error ? reject(error) : resolve(results))
       )
     );
@@ -64,11 +72,11 @@ export async function POST(req: Request) {
 
   body.agenda_prestationArr.map((agenda_prest: any) => {
     // Your SQL query with parameters
-    const duration_hour = parseInt(agenda_prest.hourDB.split(":")[0]) * 60;
+    const duration_hours = parseInt(agenda_prest.duration_hours);
 
-    const duration_minutes = parseInt(agenda_prest.hourDB.split(":")[1]);
+    const duration_minutes = parseInt(agenda_prest.duration_minutes);
 
-    const duree = duration_hour + duration_minutes;
+    const duree = duration_hours + duration_minutes;
     const sql2 =
       "INSERT INTO ligne_res(idRes,idPrest,duree,idAgenda,heurDB) VALUES (?,?,?,?,?)";
     const values2 = [
@@ -90,5 +98,53 @@ export async function POST(req: Request) {
       message: "Data inserted successfully",
       reservatId: insertedId_res,
     })
+  );
+}
+export async function PUT(req: Request) {
+  const body = await req.json();
+  const sql =
+    "UPDATE `reservat` SET `idClient`=?,`dateRes`=?,`heurDB`=?,`duree`=?,`note`=?  WHERE id=?";
+  const values = [
+    body.client.value,
+    body.dateRes,
+    body.heurDB,
+    body.duree,
+    body.note,
+    body.id,
+  ];
+  // const values = [body, body.id];
+  try {
+    await connection.query(sql, values);
+    body.agenda_prestationArr.map((agenda_prest: any) => {
+      // Your SQL query with parameters
+      const duration_hours = parseInt(agenda_prest.duration_hours);
+
+      const duration_minutes = parseInt(agenda_prest.duration_minutes);
+
+      const duree = duration_hours + duration_minutes;
+      //  transforme query insert to update
+      const sql2 =
+        "UPDATE ligne_res SET duree=?,idRes =? and idPrest =?,idAgenda =?,heurDB =? WHERE id=?";
+
+      const values2 = [
+        duree,
+        body.id,
+        agenda_prest.id_art,
+        agenda_prest.agenda.value,
+        agenda_prest.hourDB,
+        agenda_prest.id,
+      ];
+      console.log(values2);
+      connection.query(sql2, values2, () => 1);
+    });
+  } catch (error) {
+    console.error("Could not execute query:", error);
+    return new NextResponse(
+      { error: "Could not execute query" },
+      { status: 500 }
+    );
+  }
+  return new NextResponse(
+    JSON.stringify({ message: "Data updated successfully" })
   );
 }

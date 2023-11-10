@@ -179,8 +179,8 @@ export const saveReservat = async (formData) => {
   const { hourDB, minutesDB, ...rest } = formData;
   const time = `${hourDB.value}:${minutesDB.value}`;
   const updatedFormData = { ...rest, time, duree: totalDuration };
-  // console.log(updatedFormData);
-  // return;
+  console.log(updatedFormData);
+  return;
   const response = await fetch("http://localhost:3000/api/reservat", {
     method: "POST",
     headers: {
@@ -199,7 +199,7 @@ export const saveReservat = async (formData) => {
 export const processReservations = (reservations) => {
   const addSavedEvents = useStore.getState().addSavedEvents;
 
-  const Events = [];
+  const events = [];
   reservations.map((res) => {
     const startDate = res.dateRes.split("T")[0];
     const startTime = res.prest_heurDB;
@@ -220,8 +220,9 @@ export const processReservations = (reservations) => {
     const endDate = res.dateRes.split("T")[0];
     const endTime = endHour;
 
-    Events.push({
-      resourceId: 1,
+    events.push({
+      id: res.id,
+      resourceId: res.prest_idAgenda,
       title: res.prest_title,
       saved: true,
       start: `${startDate}T${startTime}`,
@@ -234,7 +235,7 @@ export const processReservations = (reservations) => {
     });
   });
 
-  addSavedEvents(Events);
+  addSavedEvents(events);
 };
 // create function that update agenda_prestation hourDB and duration_hour or duration_minutes by index with params (index,property,value)
 // transform agenda  to rdv and send it to prest_heurDB
