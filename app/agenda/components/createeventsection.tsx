@@ -116,6 +116,7 @@ export default function CreateEventSection({
     }),
     note: yup.string(),
     agenda_prestationArr: yup.array(),
+    idRes: yup.string().default(""),
   });
   const {
     register,
@@ -132,6 +133,9 @@ export default function CreateEventSection({
     name: "agenda_prestationArr",
   });
   useEffect(() => {
+    console.log("duration_hours", duration_hours);
+  }, [duration_hours]);
+  useEffect(() => {
     // setSelectedAgenda(eventAgenda);
     calculateTotalDuration();
     calculateTotalPrices();
@@ -147,6 +151,17 @@ export default function CreateEventSection({
   }, [dateTime.minutesDB]);
   useEffect(() => {
     setValue("agenda_prestationArr", agenda_prestationArr);
+    const clientData = agenda_prestationArr[0]?.client;
+    const idRes = agenda_prestationArr[0]?.id_res;
+    if (clientData) {
+      setValue("client", {
+        label: clientData.label,
+        value: clientData.value,
+      });
+    }
+    if (idRes) {
+      setValue("idRes", idRes);
+    }
   }, [agenda_prestationArr]);
   useEffect(() => {
     if (events && events.length > 0) {
@@ -214,10 +229,11 @@ export default function CreateEventSection({
                   {...field}
                   instanceId="select_client"
                   placeholder="Sélectionnez un Clients"
-                  defaultValue={{
-                    label: agenda_prestationArr[0]?.client.label || "0",
-                    value: agenda_prestationArr[0]?.client.value || "0",
-                  }}
+                  // defaultValue={{
+                  //   label: agenda_prestationArr[0]?.client.label || "0",
+                  //   value: agenda_prestationArr[0]?.client.value || "0",
+                  // }}
+
                   options={clientOptions}
                   // value={selectedClient}
                   {...(clientIsRef == true
@@ -246,7 +262,12 @@ export default function CreateEventSection({
           </div>
           <p className="text-red-500">{errors.client?.label?.message}</p>
         </div>
-
+        <input
+          type="hidden"
+          {...register("idRes")}
+          // defaultValue={agenda_prestationArr[0]?.id_res}
+          // value={agenda_prestationArr[0]?.id_res}
+        />
         <div className="flex gap-28 ">
           <div className="flex flex-col gap-1">
             <label className="font-semibold">Date:</label>

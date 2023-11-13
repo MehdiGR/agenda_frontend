@@ -70,7 +70,6 @@ export const addPrestation = (data) => {
     addedEventId,
     eventAgenda,
   } = useStore.getState();
-
   const hour = Math.floor(data.duree / 60);
   addDurationHour(hour);
   const minutes = data.duree % 60;
@@ -93,7 +92,9 @@ export const addPrestation = (data) => {
     end: dateTime.dateDB + "T" + timeEnd.toString(),
   };
 
+  console.log(events);
   if (existSaved) {
+    console.log("timeEnd", timeEnd);
     hourDB = parseInt(timeEnd.split(":")[0]) - Math.floor(data.duree / 60);
     minutesDB = parseInt(timeEnd.split(":")[1]) - Math.floor(data.duree % 60);
     time = {
@@ -162,7 +163,8 @@ export const calculateTotalDuration = () => {
   const duration_minutes = useStore.getState().duration_minutes;
   const totalHours = duration_hours.reduce((a, b) => a + b, 0);
   const totalMinutes = duration_minutes.reduce((a, b) => a + b, 0);
-
+  console.log("duration_hours", duration_hours);
+  console.log("duration_minutes", duration_minutes);
   const totalHoursInMinutes = totalHours * 60;
   total = totalHoursInMinutes + totalMinutes;
   setTotalDuration(total);
@@ -178,9 +180,13 @@ export const saveReservat = async (formData) => {
   const totalDuration = useStore.getState().totalDuration;
   const { hourDB, minutesDB, ...rest } = formData;
   const time = `${hourDB.value}:${minutesDB.value}`;
-  const updatedFormData = { ...rest, time, duree: totalDuration };
-  console.log(updatedFormData);
-  return;
+  const updatedFormData = {
+    ...rest,
+    time,
+    duree: totalDuration,
+  };
+  // console.log(updatedFormData);
+  // return;
   const response = await fetch("http://localhost:3000/api/reservat", {
     method: "POST",
     headers: {
@@ -219,7 +225,6 @@ export const processReservations = (reservations) => {
 
     const endDate = res.dateRes.split("T")[0];
     const endTime = endHour;
-
     events.push({
       id: res.id,
       resourceId: res.prest_idAgenda,
@@ -231,6 +236,8 @@ export const processReservations = (reservations) => {
       backgroundColor: "rgb(251, 233, 131)",
       borderColor: "rgb(251, 233, 131)",
       // classNames: ["added-event", "animated-event"],
+      duree: res.duree,
+      hourDB: res.heurDB,
       isTemp: false,
     });
   });

@@ -23,6 +23,11 @@ export default function Home({
     setDateTime,
     setEventAgenda,
     addAllAgendaPres,
+    addDurationHour,
+    addDurationMinutes,
+    resetDurationHour,
+
+    resetDurationMinutes,
   } = useStore();
   const [activeEventSection, setActiveEventSection] = useState(false);
   const [eventInfo, setEventInfo] = useState<any>({
@@ -82,34 +87,48 @@ export default function Home({
   };
   const handleUpdateEvent = (info: any) => {
     setActiveEventSection(() => true);
+    let hours: number = 0,
+      minutes: number = 0;
+    resetDurationHour();
+    resetDurationMinutes();
     const data = reservations
       .filter((res: any) => res.id == info.event.id)
-      .map((res: any) => ({
-        id_res: res.id,
-        id_pres: res.prest_id,
-        intitule: res.prest_title,
-        dateDB: res.dateRes, // Uncomment this line if needed
-        prixTTC: res.prest_prix,
-        hourDB: res.prest_heurDB.value, // Uncomment this line if needed
-        duree: res.prest_duree,
-        agenda: { label: res.prest_agenda, value: res.prest_idAgenda },
-        client: { label: res.idClient, value: res.client },
-        id_agenda: res.prest_idAgenda,
-      }));
-    console.log(data);
+      .map((res: any) => {
+        return {
+          id_res: res.id,
+          id_art: res.prest_id,
+          intitule: res.prest_title,
+          dateDB: res.dateRes, // Uncomment this line if needed
+          prixTTC: res.prest_prix,
+          hourDB: res.prest_heurDB, // Uncomment this line if needed
+          duree: res.prest_duree,
+          duration_hours: Math.floor(res.prest_duree / 60) * 60,
+          duration_minutes: Math.floor(res.prest_duree % 60),
+          agenda: { label: res.prest_agenda, value: res.prest_idAgenda },
+          client: { label: res.client, value: res.idClient },
+        };
+      });
+    // console.log(data);
     addAllAgendaPres(data);
     const dateTimeString = info.event.start;
     let date = new Date(dateTimeString);
     const formatted_date = date.toISOString();
     const dateDB = formatted_date.split("T")[0];
-    const hourDB = formatted_date.split("T")[1].split(":")[0];
-    const minutesDB = formatted_date.split("T")[1].split(":")[1];
+    // const hourDB = formatted_date.split("T")[1].split(":")[0];
+    // const minutesDB = formatted_date.split("T")[1].split(":")[1];
+    const hourDB = info.event.extendedProps.hourDB.split(":")[0];
+    const minutesDB = info.event.extendedProps.hourDB.split(":")[1];
     // setDateTime({date.toISOString().split("T")[0]);
     setDateTime({
       dateDB,
       hourDB: { label: hourDB, value: hourDB },
       minutesDB: { label: minutesDB, value: minutesDB },
     });
+    // console.log(info.event.extendedProps.hourDB);
+    hours = parseInt(info.event.extendedProps.duree) / 60;
+    minutes = parseInt(info.event.extendedProps.duree) % 60;
+    addDurationHour(Math.floor(hours));
+    addDurationMinutes(Math.floor(minutes));
   };
   return (
     <div className="flex  gap-10  h-full   ">

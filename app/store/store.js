@@ -189,6 +189,11 @@ export const useStore = create((set) => ({
         (_, i) => i !== index
       ),
     })),
+  // initialize duration hours and minutes
+
+  resetDurationHour: () => set(() => ({ duration_hours: [] })),
+
+  resetDurationMinutes: () => set(() => ({ duration_minutes: [] })),
   addDurationHour: (value) =>
     set((state) => ({ duration_hours: [...state.duration_hours, value] })),
   updateDurationHour: (value, index) =>
