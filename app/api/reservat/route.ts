@@ -149,6 +149,7 @@ export async function GET() {
 //     JSON.stringify({ message: "Data updated successfully" })
 //   );
 // }
+export const revalidate = true;
 export async function POST(req: Request) {
   const body = await req.json();
 
@@ -187,7 +188,7 @@ export async function POST(req: Request) {
   // Update or insert agenda_prestationArr
   await Promise.all(
     body.agenda_prestationArr.map(async (agenda_prest: any) => {
-      console.log("agenda_prest", agenda_prest);
+      // console.log("agenda_prest", agenda_prest);
       const duration_hours = parseInt(agenda_prest.duration_hours);
       const duration_minutes = parseInt(agenda_prest.duration_minutes);
       const duree = duration_hours + duration_minutes;

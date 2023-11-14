@@ -132,9 +132,7 @@ export default function CreateEventSection({
     control,
     name: "agenda_prestationArr",
   });
-  useEffect(() => {
-    console.log("duration_hours", duration_hours);
-  }, [duration_hours]);
+
   useEffect(() => {
     // setSelectedAgenda(eventAgenda);
     calculateTotalDuration();
@@ -158,32 +156,68 @@ export default function CreateEventSection({
         label: clientData.label,
         value: clientData.value,
       });
+    } else {
+      setValue("client", { label: "Sélectionnez un client", value: "" });
     }
     if (idRes) {
       setValue("idRes", idRes);
+    } else {
+      setValue("idRes", "");
     }
+    agenda_prestationArr.forEach((agendaItem: any, index: number) => {
+      setValue(
+        `agenda_prestationArr[${index}].agenda` as any,
+        // agendaItem.agenda?.value || eventAgenda.value
+        {
+          label: agendaItem.agenda?.label,
+          value: agendaItem.agenda?.value,
+        }
+      );
+      setValue(`agenda_prestationArr[${index}].hourDB` as any, {
+        label: (parseInt(agendaItem.duration_hours) / 60)
+          .toString()
+          .padStart(2, "0"),
+        value: (parseInt(agendaItem.duration_hours) / 60)
+          .toString()
+          .padStart(2, "0"),
+      });
+      setValue(`agenda_prestationArr[${index}].minutesDB` as any, {
+        label: parseInt(agendaItem.duration_minutes)
+          .toString()
+          .padStart(2, "0"),
+        value: parseInt(agendaItem.duration_minutes)
+          .toString()
+          .padStart(2, "0"),
+      });
+    });
   }, [agenda_prestationArr]);
   useEffect(() => {
     if (events && events.length > 0) {
-      if (events.length == 1) {
-        const dateDB = events[0].start.split("T")[0];
-        const hourDB = {
-          value: (events[0].start.split("T")[1].split(":")[0] || "")
-            .toString()
-            .padStart(2, "0"),
-          label: (events[0].start.split("T")[1].split(":")[0] || "")
-            .toString()
-            .padStart(2, "0"),
-        };
-        const minutesDB = {
-          value: (events[0].start.split("T")[1].split(":")[1] || "")
-            .toString()
-            .padStart(2, "0"),
-          label: (events[0].start.split("T")[1].split(":")[1] || "")
-            .toString()
-            .padStart(2, "0"),
-        };
-        setDateTime({ dateDB, hourDB, minutesDB });
+      if (events.length > 0) {
+        // console.log("events", events);
+        const eventTemp = events.find((event: any) => event.isTemp == true);
+        // console.log("eventTemp", eventTemp);
+        if (eventTemp) {
+          // console.log("eventTemp", eventTemp);
+          const dateDB = eventTemp.start.split("T")[0];
+          const hourDB = {
+            value: (eventTemp.start.split("T")[1].split(":")[0] || "")
+              .toString()
+              .padStart(2, "0"),
+            label: (eventTemp.start.split("T")[1].split(":")[0] || "")
+              .toString()
+              .padStart(2, "0"),
+          };
+          const minutesDB = {
+            value: (eventTemp.start.split("T")[1].split(":")[1] || "")
+              .toString()
+              .padStart(2, "0"),
+            label: (eventTemp.start.split("T")[1].split(":")[1] || "")
+              .toString()
+              .padStart(2, "0"),
+          };
+          setDateTime({ dateDB, hourDB, minutesDB });
+        }
       }
     }
   }, [events]);
@@ -263,7 +297,7 @@ export default function CreateEventSection({
           <p className="text-red-500">{errors.client?.label?.message}</p>
         </div>
         <input
-          type="hidden"
+          type="text"
           {...register("idRes")}
           // defaultValue={agenda_prestationArr[0]?.id_res}
           // value={agenda_prestationArr[0]?.id_res}
@@ -320,7 +354,6 @@ export default function CreateEventSection({
                       const new_hours = parseInt(selectedOption!.value); //example:2 * 60 = 120(new duration) = 2h
                       const duration_hours =
                         (new_hours - parseInt(dateTime.hourDB.value)) * 60;
-                      console.log(duration_hours);
 
                       duration_hours &&
                         updateEventsTime({
@@ -366,7 +399,6 @@ export default function CreateEventSection({
                         new_minutes - parseInt(dateTime.minutesDB.value);
 
                       // duration_minutes always > 0
-                      console.log("duration_minutes", duration_minutes);
 
                       duration_minutes &&
                         updateEventsTime({
@@ -420,21 +452,24 @@ export default function CreateEventSection({
                 //   let hours = Math.floor(ag_pr.duree / 60);
                 //   let minutes = ag_pr.duree % 60;
                 fields.map((item, index) => {
-                  // console.log(item);
+                  // console.log(agenda_prestationArr.length);
+                  console.log(item.agenda?.label);
                   return (
                     <tr key={index}>
-                      <td className="text-center py-4">{item.intitule}</td>
+                      <td className="text-center py-4"> {item.intitule}</td>
+
                       <td className="py-4">
                         <Select
                           // defaultValue={item.agenda}
+                          name={`agenda_prestationArr[${index}].agenda`}
                           className="m-auto"
                           instanceId="select_Agenda"
                           placeholder="Sélectionnez un Agendas"
                           options={agendaOptions}
-                          defaultValue={{
-                            label: item.agenda?.label || eventAgenda.label,
-                            value: item.agenda?.value || eventAgenda.value,
-                          }}
+                          // value={{
+                          //   label: item.agenda?.label || eventAgenda.label,
+                          //   value: item.agenda?.value || eventAgenda.value,
+                          // }}
                           styles={{
                             ...selectDefaultStyle,
                             container: (provided) => ({
@@ -466,14 +501,14 @@ export default function CreateEventSection({
                                 value: i.toString().padStart(2, "0"),
                                 label: i.toString().padStart(2, "0"),
                               }))}
-                              defaultValue={{
-                                value: Math.floor(item.duree / 60)
-                                  .toString()
-                                  .padStart(2, "0"),
-                                label: Math.floor(item.duree / 60)
-                                  .toString()
-                                  .padStart(2, "0"),
-                              }}
+                              // defaultValue={{
+                              //   value: Math.floor(item.duree / 60)
+                              //     .toString()
+                              //     .padStart(2, "0"),
+                              //   label: Math.floor(item.duree / 60)
+                              //     .toString()
+                              //     .padStart(2, "0"),
+                              // }}
                               styles={{
                                 ...selectHourStyles,
                                 container: (provided) => ({

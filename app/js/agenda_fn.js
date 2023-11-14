@@ -1,6 +1,7 @@
 // helper functions
 import { date } from "yup";
 import { useStore } from "../store/store";
+
 export const cancelCreationEvent = (setActive) => {
   useStore.getState().setActiveEventSection(false);
   useStore.getState().setActiveEventSection(false);
@@ -92,9 +93,7 @@ export const addPrestation = (data) => {
     end: dateTime.dateDB + "T" + timeEnd.toString(),
   };
 
-  console.log(events);
   if (existSaved) {
-    console.log("timeEnd", timeEnd);
     hourDB = parseInt(timeEnd.split(":")[0]) - Math.floor(data.duree / 60);
     minutesDB = parseInt(timeEnd.split(":")[1]) - Math.floor(data.duree % 60);
     time = {
@@ -135,6 +134,7 @@ export const addPrestation = (data) => {
     agenda: eventAgenda,
   };
   addAgendaPres(agendaData);
+  console.log("data", agendaData);
 };
 
 export const removePrestation = (index) => {
@@ -163,8 +163,6 @@ export const calculateTotalDuration = () => {
   const duration_minutes = useStore.getState().duration_minutes;
   const totalHours = duration_hours.reduce((a, b) => a + b, 0);
   const totalMinutes = duration_minutes.reduce((a, b) => a + b, 0);
-  console.log("duration_hours", duration_hours);
-  console.log("duration_minutes", duration_minutes);
   const totalHoursInMinutes = totalHours * 60;
   total = totalHoursInMinutes + totalMinutes;
   setTotalDuration(total);
@@ -193,9 +191,26 @@ export const saveReservat = async (formData) => {
       "Content-Type": "application/json",
     },
     body: JSON.stringify(updatedFormData),
+    next: { revalidate: 1 },
   });
 
   if (response.ok) {
+    // const newEvent = {
+    //   id: res.id,
+    //   resourceId: res.prest_idAgenda,
+    //   title: res.prest_title,
+    //   saved: true,
+    //   start: `${startDate}T${startTime}`,
+    //   end: `${endDate}T${endTime}`,
+    //   textColor: "black",
+    //   backgroundColor: "rgb(251, 233, 131)",
+    //   borderColor: "rgb(251, 233, 131)",
+    //   // classNames: ["added-event", "animated-event"],
+    //   duree: res.duree,
+    //   hourDB: res.heurDB,
+    //   isTemp: false,
+    // };
+    // addSavedEvent(newEvent);
   } else {
     // Request failed
     console.error("POST request failed");
@@ -226,12 +241,13 @@ export const processReservations = (reservations) => {
     const endDate = res.dateRes.split("T")[0];
     const endTime = endHour;
     events.push({
-      id: res.id,
-      resourceId: res.prest_idAgenda,
+      // id: res.prest_id,
+      idRes: res.id,
       title: res.prest_title,
-      saved: true,
       start: `${startDate}T${startTime}`,
       end: `${endDate}T${endTime}`,
+      resourceId: res.prest_idAgenda,
+      saved: true,
       textColor: "black",
       backgroundColor: "rgb(251, 233, 131)",
       borderColor: "rgb(251, 233, 131)",

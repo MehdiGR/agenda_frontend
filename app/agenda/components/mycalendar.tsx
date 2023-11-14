@@ -8,7 +8,7 @@ import resourceDayGridPlugin from "@fullcalendar/resource-daygrid";
 import resourceTimelinePlugin from "@fullcalendar/resource-timeline";
 import resourceTimeGridPlugin from "@fullcalendar/resource-timegrid";
 import frLocale from "@fullcalendar/core/locales/fr";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useStore } from "@/app/store/store";
 
 export default function MyCalendar({
@@ -25,7 +25,6 @@ export default function MyCalendar({
   //   { id: "b", title: "Room B", building: "Building 2" },
   //   { id: "c", title: "Room C", building: "Building 1" },
   // ];
-
   const { events, savedEvents } = useStore();
 
   const resources = agendas.map((agenda: any) => ({
@@ -33,7 +32,9 @@ export default function MyCalendar({
     title: agenda.nom,
     building: agenda.nom,
   }));
-
+  // useEffect(() => {
+  //   console.log("events", events);
+  // }, [events]);
   return (
     <div className="w-full" style={{ zIndex: 0 }}>
       <FullCalendar

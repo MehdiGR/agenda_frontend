@@ -40,7 +40,8 @@ export default async function CalendarPage() {
   });
   const periods = await resPrd.json();
   const resReservat = await fetch("http://localhost:3000/api/reservat", {
-    cache: "no-store",
+    // cache: "no-store",
+    next: { revalidate: 1 },
   });
   const reservations = await resReservat.json();
 

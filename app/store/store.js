@@ -55,7 +55,8 @@ export const useStore = create((set) => ({
     set((state) => ({ events: [...state.events, newEvent] })),
   // Function to add array of events
   addSavedEvents: (events) => set(() => ({ savedEvents: events })),
-
+  addSavedEvent: (newEvent) =>
+    set((state) => ({ savedEvents: [...state.events, newEvent] })),
   // update function add condition if index is an array
   updateEvent: (updatedEvent, index = null) =>
     set((state) => {

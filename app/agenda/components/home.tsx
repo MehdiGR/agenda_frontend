@@ -26,7 +26,7 @@ export default function Home({
     addDurationHour,
     addDurationMinutes,
     resetDurationHour,
-
+    savedEvents,
     resetDurationMinutes,
   } = useStore();
   const [activeEventSection, setActiveEventSection] = useState(false);
@@ -44,7 +44,6 @@ export default function Home({
       // update active state for showing  the create event section
       setActiveEventSection(() => true);
       const newEvent = {
-        // title: arg.resource.title,
         start: arg.dateStr,
         resourceId: arg.resource.id,
         editable: true,
@@ -61,6 +60,7 @@ export default function Home({
       // Update the events array with the new event
       // setEvents([...events, newEvent]);
       const existTemp = events.findIndex((event: any) => event.isTemp == true);
+      // //  && event.saved == false
       if (existTemp == -1) {
         addEvent(newEvent);
       } else {
@@ -68,6 +68,10 @@ export default function Home({
         updateEvent(newEvent, index);
       }
       setAddedEventId(newEvent.resourceId);
+
+      resetDurationHour();
+      resetDurationMinutes();
+      addAllAgendaPres([]);
     }
   };
   const handleEventDrop = (arg: any) => {
@@ -86,49 +90,52 @@ export default function Home({
     setDateTime(newDate);
   };
   const handleUpdateEvent = (info: any) => {
-    setActiveEventSection(() => true);
-    let hours: number = 0,
-      minutes: number = 0;
-    resetDurationHour();
-    resetDurationMinutes();
-    const data = reservations
-      .filter((res: any) => res.id == info.event.id)
-      .map((res: any) => {
-        return {
-          id_res: res.id,
-          id_art: res.prest_id,
-          intitule: res.prest_title,
-          dateDB: res.dateRes, // Uncomment this line if needed
-          prixTTC: res.prest_prix,
-          hourDB: res.prest_heurDB, // Uncomment this line if needed
-          duree: res.prest_duree,
-          duration_hours: Math.floor(res.prest_duree / 60) * 60,
-          duration_minutes: Math.floor(res.prest_duree % 60),
-          agenda: { label: res.prest_agenda, value: res.prest_idAgenda },
-          client: { label: res.client, value: res.idClient },
-        };
+    if (info.event.extendedProps.idRes) {
+      setActiveEventSection(() => true);
+      let hours: number = 0,
+        minutes: number = 0;
+      resetDurationHour();
+      resetDurationMinutes();
+      addAllAgendaPres([]);
+      const data = reservations
+        .filter((res: any) => res.id == info.event.extendedProps.idRes)
+        .map((res: any) => {
+          return {
+            id_res: res.id,
+            id_art: res.prest_id,
+            intitule: res.prest_title,
+            dateDB: res.dateRes, // Uncomment this line if needed
+            prixTTC: res.prest_prix,
+            hourDB: res.prest_heurDB, // Uncomment this line if needed
+            duree: res.prest_duree,
+            duration_hours: Math.floor(res.prest_duree / 60) * 60,
+            duration_minutes: Math.floor(res.prest_duree % 60),
+            agenda: { label: res.prest_agenda, value: res.prest_idAgenda },
+            client: { label: res.client, value: res.idClient },
+          };
+        });
+      console.log(data);
+      addAllAgendaPres(data);
+      const dateTimeString = info.event.start;
+      let date = new Date(dateTimeString);
+      const formatted_date = date.toISOString();
+      const dateDB = formatted_date.split("T")[0];
+      // const hourDB = formatted_date.split("T")[1].split(":")[0];
+      // const minutesDB = formatted_date.split("T")[1].split(":")[1];
+      const hourDB = info.event.extendedProps.hourDB.split(":")[0];
+      const minutesDB = info.event.extendedProps.hourDB.split(":")[1];
+      // setDateTime({date.toISOString().split("T")[0]);
+      setDateTime({
+        dateDB,
+        hourDB: { label: hourDB, value: hourDB },
+        minutesDB: { label: minutesDB, value: minutesDB },
       });
-    // console.log(data);
-    addAllAgendaPres(data);
-    const dateTimeString = info.event.start;
-    let date = new Date(dateTimeString);
-    const formatted_date = date.toISOString();
-    const dateDB = formatted_date.split("T")[0];
-    // const hourDB = formatted_date.split("T")[1].split(":")[0];
-    // const minutesDB = formatted_date.split("T")[1].split(":")[1];
-    const hourDB = info.event.extendedProps.hourDB.split(":")[0];
-    const minutesDB = info.event.extendedProps.hourDB.split(":")[1];
-    // setDateTime({date.toISOString().split("T")[0]);
-    setDateTime({
-      dateDB,
-      hourDB: { label: hourDB, value: hourDB },
-      minutesDB: { label: minutesDB, value: minutesDB },
-    });
-    // console.log(info.event.extendedProps.hourDB);
-    hours = parseInt(info.event.extendedProps.duree) / 60;
-    minutes = parseInt(info.event.extendedProps.duree) % 60;
-    addDurationHour(Math.floor(hours));
-    addDurationMinutes(Math.floor(minutes));
+      // console.log(info.event.extendedProps.hourDB);
+      hours = parseInt(info.event.extendedProps.duree) / 60;
+      minutes = parseInt(info.event.extendedProps.duree) % 60;
+      addDurationHour(Math.floor(hours));
+      addDurationMinutes(Math.floor(minutes));
+    }
   };
   return (
     <div className="flex  gap-10  h-full   ">
