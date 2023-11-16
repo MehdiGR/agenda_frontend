@@ -51,7 +51,7 @@ export default function MyCalendar({
         schedulerLicenseKey="CC-Attribution-NonCommercial-NoDerivatives"
         plugins={[resourceTimeGridPlugin, interactionPlugin]}
         initialView="resourceTimeGridFourDay"
-        events={[...events, ...savedEvents]}
+        events={events}
         headerToolbar={{
           left: "prev,next",
           center: "title",

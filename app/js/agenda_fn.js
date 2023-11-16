@@ -85,7 +85,7 @@ export const addPrestation = (data) => {
   timeEnd = timeEnd.replace("h", ":");
   let hourDB = dateTime.hourDB.value;
   let minutesDB = dateTime.minutesDB.value;
-  const existSaved = events.find((event) => !event.isTemp);
+  const existeTempEvent = events.find((event) => event.isTemp);
   const timeStart = dateTime.dateDB + "T" + hourDB + ":" + minutesDB;
 
   let time = {
@@ -93,7 +93,7 @@ export const addPrestation = (data) => {
     end: dateTime.dateDB + "T" + timeEnd.toString(),
   };
 
-  if (existSaved) {
+  if (!existeTempEvent) {
     hourDB = parseInt(timeEnd.split(":")[0]) - Math.floor(data.duree / 60);
     minutesDB = parseInt(timeEnd.split(":")[1]) - Math.floor(data.duree % 60);
     time = {
@@ -107,7 +107,9 @@ export const addPrestation = (data) => {
     };
   }
 
-  const newEvent = {
+  // console.log(lastTempIndex);
+  // return;
+  let newEvent = {
     ...time,
     title: data.intitule,
     prestationId: data.id,
@@ -119,33 +121,45 @@ export const addPrestation = (data) => {
     borderColor: "rgb(251, 233, 131)",
     textColor: "#383838",
   };
+  const indexTemp = events.findIndex((event) => event.isTemp);
 
-  const indexExistTemp = events.findIndex((event) => event.isTemp);
-  if (indexExistTemp === -1) {
+  let lastIndex = events.findLastIndex((event) => event);
+  if (indexTemp === -1) {
+    lastIndex = lastIndex + 1;
+    newEvent = { ...newEvent, eventIndex: lastIndex };
+    console.log("add", newEvent);
     addEvent(newEvent);
   } else {
-    updateEvent(newEvent, indexExistTemp);
+    newEvent = { ...newEvent, eventIndex: lastIndex };
+    console.log("update", newEvent);
+    updateEvent(newEvent, indexTemp);
   }
+
   const agendaData = {
     ...data,
-    hourDB: hourDB + ":" + minutesDB,
+    eventIndex: lastIndex,
+    hourDB: `${hourDB}:${minutesDB}`,
     duration_hours: Math.floor(parseInt(data.duree) / 60) * 60,
     duration_minutes: parseInt(data.duree) % 60,
     agenda: eventAgenda,
   };
+
   addAgendaPres(agendaData);
   console.log("data", agendaData);
 };
 
-export const removePrestation = (index) => {
+export const removePrestation = (eventIndex, rowIndex) => {
+  // console.log(eventIndex);
+  // console.log(rowIndex);
+  // return;
   const removeAgendaPres = useStore.getState().removeAgendaPres;
   const removeDurationHour = useStore.getState().removeDurationHour;
   const removeDurationMinutes = useStore.getState().removeDurationMinutes;
   const removeEvent = useStore.getState().removeEvent;
-  removeAgendaPres(index);
-  removeEvent(index);
-  removeDurationHour(index);
-  removeDurationMinutes(index);
+  removeAgendaPres(eventIndex);
+  removeEvent(eventIndex);
+  removeDurationHour(rowIndex);
+  removeDurationMinutes(rowIndex);
 };
 export const calculateTotalPrices = () => {
   const agenda_prestationArr = useStore.getState().agenda_prestationArr;
@@ -183,8 +197,8 @@ export const saveReservat = async (formData) => {
     time,
     duree: totalDuration,
   };
-  // console.log(updatedFormData);
-  // return;
+  console.log(updatedFormData);
+  return;
   const response = await fetch("http://localhost:3000/api/reservat", {
     method: "POST",
     headers: {
@@ -221,7 +235,7 @@ export const processReservations = (reservations) => {
   const addSavedEvents = useStore.getState().addSavedEvents;
 
   const events = [];
-  reservations.map((res) => {
+  reservations.map((res, index) => {
     const startDate = res.dateRes.split("T")[0];
     const startTime = res.prest_heurDB;
 
@@ -241,8 +255,11 @@ export const processReservations = (reservations) => {
     const endDate = res.dateRes.split("T")[0];
     const endTime = endHour;
     events.push({
-      // id: res.prest_id,
+      eventIndex: index,
       idRes: res.id,
+      ligne_id: res.ligne_id,
+      id_art: res.prest_id,
+      prixTTC: res.prest_prix,
       title: res.prest_title,
       start: `${startDate}T${startTime}`,
       end: `${endDate}T${endTime}`,
@@ -255,6 +272,10 @@ export const processReservations = (reservations) => {
       duree: res.duree,
       hourDB: res.heurDB,
       isTemp: false,
+      agenda: { label: res.agenda, value: res.prest_idAgenda },
+
+      client: { label: res.client, value: res.idClient },
+      // editable: false,
     });
   });
 

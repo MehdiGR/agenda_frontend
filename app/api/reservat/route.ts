@@ -14,6 +14,7 @@ export async function GET() {
               lr.duree AS prest_duree,
               lr.heurDB AS prest_heurDB,
               lr.idAgenda AS prest_idAgenda,
+              lr.id AS ligne_id,
               ag.nom AS prest_agenda,
               clt.nom as client
           FROM
@@ -27,7 +28,7 @@ export async function GET() {
                JOIN agenda AS ag
           ON
               ag.id = lr.idAgenda
-              JOIN client as clt on clt.id=rsv.idClient;`,
+              JOIN client as clt on clt.id=rsv.idClient order by rsv.dateRes,rsv.heurDB,lr.heurDB;`,
         (error, results) => (error ? reject(error) : resolve(results))
       )
     );
@@ -194,25 +195,21 @@ export async function POST(req: Request) {
       const duree = duration_hours + duration_minutes;
 
       // Check if a record with the given criteria already exists
-      const existingRecord = await checkExistingRecord(
-        insertedId_res,
-        agenda_prest.id_art,
-        duree,
-        agenda_prest.agenda.value,
-        agenda_prest.hourDB
-      );
+      const existingRecord = await checkExistingRecord(agenda_prest.ligne_id);
 
       if (existingRecord) {
         // Update existing record
         const updateRecordSQL =
-          "UPDATE ligne_res SET duree=?, idPrest=? , idAgenda=? , heurDB=?  WHERE idRes=?";
+          "UPDATE ligne_res SET duree=?, idPrest=? , idAgenda=? , heurDB=?  WHERE id=?";
         const updateRecordValues = [
           duree,
-          insertedId_res,
           agenda_prest.id_art,
           agenda_prest.agenda.value,
           agenda_prest.hourDB,
+          agenda_prest.ligne_id,
         ];
+        console.log("updateRecordValues", updateRecordValues);
+        console.log("updateRecordValues", updateRecordValues);
 
         await executeQuery(updateRecordSQL, updateRecordValues);
       } else {
@@ -253,16 +250,9 @@ async function executeQuery(sql: string, values: any[]): Promise<any> {
   });
 }
 
-async function checkExistingRecord(
-  idRes: number,
-  idPrest: number,
-  duree: number,
-  idAgenda: number,
-  heurDB: string
-): Promise<boolean> {
-  const sql =
-    "SELECT * FROM ligne_res WHERE idRes=? AND idPrest=? AND duree=? AND idAgenda=? AND heurDB=?";
-  const values = [idRes, idPrest, duree, idAgenda, heurDB];
+async function checkExistingRecord(ligne_id: number): Promise<boolean> {
+  const sql = "SELECT * FROM ligne_res WHERE id=?";
+  const values = [ligne_id];
 
   return new Promise((resolve, reject) => {
     connection.query(

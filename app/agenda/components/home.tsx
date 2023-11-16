@@ -43,7 +43,8 @@ export default function Home({
     if (arg.hasOwnProperty("resource")) {
       // update active state for showing  the create event section
       setActiveEventSection(() => true);
-      const newEvent = {
+      const lastIndex = events.findLastIndex((event: any) => event);
+      let newEvent = {
         start: arg.dateStr,
         resourceId: arg.resource.id,
         editable: true,
@@ -52,6 +53,7 @@ export default function Home({
         textColor: "#FFFFFF",
         border: "none",
         isTemp: true,
+        eventIndex: "",
       };
       setEventAgenda({
         label: arg.resource.title,
@@ -62,9 +64,11 @@ export default function Home({
       const existTemp = events.findIndex((event: any) => event.isTemp == true);
       // //  && event.saved == false
       if (existTemp == -1) {
+        newEvent = { ...newEvent, eventIndex: lastIndex + 1 };
         addEvent(newEvent);
       } else {
         const index = existTemp;
+        newEvent = { ...newEvent, eventIndex: lastIndex };
         updateEvent(newEvent, index);
       }
       setAddedEventId(newEvent.resourceId);
@@ -90,6 +94,8 @@ export default function Home({
     setDateTime(newDate);
   };
   const handleUpdateEvent = (info: any) => {
+    // console.log(info.event.extendedProps);
+    // return;
     if (info.event.extendedProps.idRes) {
       setActiveEventSection(() => true);
       let hours: number = 0,
@@ -97,21 +103,41 @@ export default function Home({
       resetDurationHour();
       resetDurationMinutes();
       addAllAgendaPres([]);
-      const data = reservations
-        .filter((res: any) => res.id == info.event.extendedProps.idRes)
-        .map((res: any) => {
+      const eventIndex = parseInt(info.event.extendedProps.eventIndex);
+      const data = events
+        .filter((res: any) => res.idRes == info.event.extendedProps.idRes)
+        .map((res: any, index: number) => {
+          // console.log(res);
+          let rowIndex = index == 0 ? eventIndex : eventIndex + 1;
+          // return {
+          //   eventIndex: res.eventIndex,
+          //   res_id: res.id,
+          //   id_art: res.prest_id,
+          //   ligne_id: res.ligne_id,
+          //   intitule: res.prest_title,
+          //   dateDB: res.dateRes,
+          //   prixTTC: res.prest_prix,
+          //   hourDB: res.prest_heurDB,
+          //   duree: res.prest_duree,
+          //   duration_hours: Math.floor(res.prest_duree / 60) * 60,
+          //   duration_minutes: Math.floor(res.prest_duree % 60),
+          //   agenda: { label: res.prest_agenda, value: res.prest_idAgenda },
+          //   client: { label: res.client, value: res.idClient },
+          // };
           return {
-            id_res: res.id,
-            id_art: res.prest_id,
-            intitule: res.prest_title,
-            dateDB: res.dateRes, // Uncomment this line if needed
+            eventIndex: res.eventIndex,
+            res_id: res.idRes,
+            id_art: res.id_art,
+            ligne_id: res.ligne_id,
+            intitule: res.title,
+            dateDB: res.start.split("T")[0],
             prixTTC: res.prest_prix,
-            hourDB: res.prest_heurDB, // Uncomment this line if needed
-            duree: res.prest_duree,
-            duration_hours: Math.floor(res.prest_duree / 60) * 60,
-            duration_minutes: Math.floor(res.prest_duree % 60),
-            agenda: { label: res.prest_agenda, value: res.prest_idAgenda },
-            client: { label: res.client, value: res.idClient },
+            hourDB: res.hourDB,
+            duree: res.duree,
+            duration_hours: Math.floor(res.duree / 60) * 60,
+            duration_minutes: Math.floor(res.duree % 60),
+            agenda: { label: res.agenda.label, value: res.agenda.value },
+            client: { label: res.client.label, value: res.client.value },
           };
         });
       console.log(data);

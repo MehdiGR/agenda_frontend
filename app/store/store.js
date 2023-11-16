@@ -54,7 +54,7 @@ export const useStore = create((set) => ({
   addEvent: (newEvent) =>
     set((state) => ({ events: [...state.events, newEvent] })),
   // Function to add array of events
-  addSavedEvents: (events) => set(() => ({ savedEvents: events })),
+  addSavedEvents: (events) => set(() => ({ events: events })),
   addSavedEvent: (newEvent) =>
     set((state) => ({ savedEvents: [...state.events, newEvent] })),
   // update function add condition if index is an array
@@ -77,77 +77,107 @@ export const useStore = create((set) => ({
       }
     }),
   // update time for all events by moving the start and end times of event with the duration
-  updateEventsTime: ({ index, duration, select_type, globalChange = false }) =>
+  updateEventsTime: ({
+    index,
+    duration,
+    select_type,
+    globalChange = false,
+    idAgenda = null,
+    dateDB = null,
+  }) =>
     set((state) => {
+      // return;
+      let i;
+      let prevIndex;
+
       const modEndTimes = [];
-      const updatedEvents = state.events.map((event, i) => {
-        const [startD, startT] = event.start.split("T");
-        const [endD, endT] = event.end.split("T");
+      const updatedEvents = state.events.map((event) => {
+        i = event.eventIndex;
 
-        let hour, minutes;
-        let newEvent = { ...event };
-        let EndHour;
-        let EndMinutes;
+        if (
+          event.resourceId == idAgenda &&
+          dateDB == event.start.split("T")[0] &&
+          (i == index || i > index)
+        ) {
+          // console.log("i", i, "eventIndex", index);
+          console.log(event.resourceId, idAgenda);
+          // If this is the event you want to update or events after it, update the event
+          const [startD, startT] = event.start.split("T");
+          const [endD, endT] = event.end.split("T");
 
-        if (i === index) {
-          EndHour = globalChange ? endT.split(":")[0] : "";
-          EndMinutes = globalChange ? endT.split(":")[1] : "";
-          if (select_type === "select_hour") {
-            hour = startT.split(":")[0];
-            minutes = endT.split(":")[1];
-          } else if (select_type === "select_minutes") {
-            minutes = startT.split(":")[1];
-            hour = globalChange ? startT.split(":")[0] : endT.split(":")[0];
-          }
-          // console.log("minutes", minutes, "duration", dur, "hour", hour);
-          const newTime = updateTime({
-            select_type,
-            duration,
-            hour,
-            minutes,
-            updateHour:
-              globalChange && select_type == "select_minutes" ? false : true,
-            updateMinutes: true,
-          });
+          let hour, minutes;
+          let newEvent = { ...event };
+          let EndHour, EndMinutes;
 
-          if (globalChange == false) newEvent.end = `${startD}T${newTime}`;
-          // if globalChange is true, update the end time of the event
-          else if (globalChange == true) {
-            const newEndTime = updateTime({
+          if (i === index) {
+            EndHour = globalChange ? endT.split(":")[0] : "";
+            EndMinutes = globalChange ? endT.split(":")[1] : "";
+            if (select_type === "select_hour") {
+              hour = startT.split(":")[0];
+              minutes = endT.split(":")[1];
+            } else if (select_type === "select_minutes") {
+              minutes = startT.split(":")[1];
+              hour = globalChange ? startT.split(":")[0] : endT.split(":")[0];
+            }
+            const newTime = updateTime({
               select_type,
               duration,
-              hour: EndHour,
-              minutes: EndMinutes,
-              updateHour: select_type == "select_minutes" ? false : true,
+              hour,
+              minutes,
+              updateHour:
+                globalChange && select_type === "select_minutes" ? false : true,
               updateMinutes: true,
             });
-            newEvent.start = `${startD}T${newTime}`;
-            newEvent.end = `${startD}T${newEndTime}`;
+
+            if (globalChange === false) newEvent.end = `${startD}T${newTime}`;
+            else if (globalChange === true) {
+              const newEndTime = updateTime({
+                select_type,
+                duration,
+                hour: EndHour,
+                minutes: EndMinutes,
+                updateHour: select_type === "select_minutes" ? false : true,
+                updateMinutes: true,
+              });
+              newEvent.start = `${startD}T${newTime}`;
+              newEvent.end = `${startD}T${newEndTime}`;
+            }
+            prevIndex = i;
+            modEndTimes[i] = newEvent.end;
+            // console.log(modEndTimes[i - 1]);
+            // && typeof modEndTimes[i - 1] !== "undefined"
+            console.log();
+          } else if (i > index) {
+            console.log("prev", prevIndex);
+            // console.log("i next", i);
+            console.log(modEndTimes[prevIndex]);
+            const [curStartD, curStartT] = state.events[i].start.split("T");
+            const [curStartH, curStartM] = curStartT.split(":");
+            const [curEndD, curEndT] = state.events[i].end.split("T");
+            const [curEndH, curEndM] = curEndT.split(":");
+            const timeDiff = (curEndH - curStartH) * 60 + (curEndM - curStartM);
+            const [nextEndH, nextEndM] = modEndTimes[prevIndex]
+              .split("T")[1]
+              .split(":");
+            const nextEndTime = updateTime({
+              select_type,
+              duration: timeDiff,
+              hour: nextEndH,
+              minutes: nextEndM,
+              updateHour: true,
+              updateMinutes: true,
+            });
+            newEvent.start = modEndTimes[prevIndex];
+            newEvent.end = `${curStartD}T${nextEndTime}`;
+            modEndTimes[i] = newEvent.end;
+            prevIndex = i;
           }
-          modEndTimes[i] = newEvent.end;
-        } else if (i > index) {
-          const [curStartD, curStartT] = state.events[i].start.split("T");
-          const [curStartH, curStartM] = curStartT.split(":");
-          const [curEndD, curEndT] = state.events[i].end.split("T");
-          const [curEndH, curEndM] = curEndT.split(":");
-          const timeDiff = (curEndH - curStartH) * 60 + (curEndM - curStartM);
-          const [nextEndH, nextEndM] = modEndTimes[i - 1]
-            .split("T")[1]
-            .split(":");
-          const nextEndTime = updateTime({
-            select_type,
-            duration: timeDiff,
-            hour: nextEndH,
-            minutes: nextEndM,
-            updateHour: true,
-            updateMinutes: true,
-          });
-          newEvent.start = modEndTimes[i - 1];
-          newEvent.end = `${curStartD}T${nextEndTime}`;
-          modEndTimes[i] = newEvent.end;
+          return newEvent;
         }
-        return newEvent;
+        // If this is not the event to update, return the original event
+        return event;
       });
+
       return { ...state, events: updatedEvents };
     }),
 
@@ -168,7 +198,7 @@ export const useStore = create((set) => ({
 
   removeEvent: (index) =>
     set((state) => ({
-      events: state.events.filter((_, i) => i !== index),
+      events: state.events.filter((event, i) => event.eventIndex !== index),
     })),
   setEventAgenda: (value) => set(() => ({ eventAgenda: value })),
   setEventInfo: (value) => set(() => ({ eventInfo: value })),
@@ -187,7 +217,7 @@ export const useStore = create((set) => ({
   removeAgendaPres: (index) =>
     set((state) => ({
       agenda_prestationArr: state.agenda_prestationArr.filter(
-        (_, i) => i !== index
+        (agenda_pres, i) => agenda_pres.eventIndex !== index
       ),
     })),
   // initialize duration hours and minutes

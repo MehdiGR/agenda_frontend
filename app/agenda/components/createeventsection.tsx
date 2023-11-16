@@ -150,46 +150,20 @@ export default function CreateEventSection({
   useEffect(() => {
     setValue("agenda_prestationArr", agenda_prestationArr);
     const clientData = agenda_prestationArr[0]?.client;
-    const idRes = agenda_prestationArr[0]?.id_res;
+    const idRes = agenda_prestationArr[0]?.res_id;
     if (clientData) {
       setValue("client", {
         label: clientData.label,
         value: clientData.value,
       });
     } else {
-      setValue("client", { label: "Sélectionnez un client", value: "" });
+      // setValue("client", { label: "Sélectionnez un client", value: "" });
     }
     if (idRes) {
       setValue("idRes", idRes);
     } else {
       setValue("idRes", "");
     }
-    agenda_prestationArr.forEach((agendaItem: any, index: number) => {
-      setValue(
-        `agenda_prestationArr[${index}].agenda` as any,
-        // agendaItem.agenda?.value || eventAgenda.value
-        {
-          label: agendaItem.agenda?.label,
-          value: agendaItem.agenda?.value,
-        }
-      );
-      setValue(`agenda_prestationArr[${index}].hourDB` as any, {
-        label: (parseInt(agendaItem.duration_hours) / 60)
-          .toString()
-          .padStart(2, "0"),
-        value: (parseInt(agendaItem.duration_hours) / 60)
-          .toString()
-          .padStart(2, "0"),
-      });
-      setValue(`agenda_prestationArr[${index}].minutesDB` as any, {
-        label: parseInt(agendaItem.duration_minutes)
-          .toString()
-          .padStart(2, "0"),
-        value: parseInt(agendaItem.duration_minutes)
-          .toString()
-          .padStart(2, "0"),
-      });
-    });
   }, [agenda_prestationArr]);
   useEffect(() => {
     if (events && events.length > 0) {
@@ -297,10 +271,10 @@ export default function CreateEventSection({
           <p className="text-red-500">{errors.client?.label?.message}</p>
         </div>
         <input
-          type="text"
+          type="hidden"
           {...register("idRes")}
-          // defaultValue={agenda_prestationArr[0]?.id_res}
-          // value={agenda_prestationArr[0]?.id_res}
+          // defaultValue={agenda_prestationArr[0]?.res_id}
+          // value={agenda_prestationArr[0]?.res_id}
         />
         <div className="flex gap-28 ">
           <div className="flex flex-col gap-1">
@@ -452,39 +426,52 @@ export default function CreateEventSection({
                 //   let hours = Math.floor(ag_pr.duree / 60);
                 //   let minutes = ag_pr.duree % 60;
                 fields.map((item, index) => {
-                  // console.log(agenda_prestationArr.length);
-                  console.log(item.agenda?.label);
                   return (
                     <tr key={index}>
-                      <td className="text-center py-4"> {item.intitule}</td>
-
+                      <input
+                        type="hidden"
+                        name={`agenda_prestationArr[${index}].ligne_id`}
+                        value={agenda_prestationArr[index]?.ligne_id || ""}
+                      />
+                      <td className="text-center py-4">{item.intitule}</td>
                       <td className="py-4">
-                        <Select
-                          // defaultValue={item.agenda}
+                        <Controller
                           name={`agenda_prestationArr[${index}].agenda`}
-                          className="m-auto"
-                          instanceId="select_Agenda"
-                          placeholder="Sélectionnez un Agendas"
-                          options={agendaOptions}
-                          // value={{
-                          //   label: item.agenda?.label || eventAgenda.label,
-                          //   value: item.agenda?.value || eventAgenda.value,
-                          // }}
-                          styles={{
-                            ...selectDefaultStyle,
-                            container: (provided) => ({
-                              ...provided,
-                              width: "300px",
-                            }),
-                          }}
-                          onChange={(selectedOption) => {
-                            // handleOptionChangeAg(
-                            //   selectedAgenda,
-                            //   setSelectedAgenda
-                            // )
-                            setValue(
-                              `agenda_prestationArr[${index}].agenda` as any,
-                              selectedOption!.value
+                          control={control}
+                          render={({ field }) => {
+                            useEffect(() => {
+                              // Set the initial value when the component mounts
+                              const initialValue = agendaOptions.find(
+                                (option) => option.value === item.agenda.value
+                              );
+                              setValue(
+                                `agenda_prestationArr[${index}].agenda`,
+                                initialValue
+                              );
+                            }, [item.agenda]); // Use item.agenda as a dependency
+
+                            return (
+                              <Select
+                                {...field}
+                                name={`agenda_prestationArr[${index}].agenda`}
+                                instanceId={`select_Agenda_${index}`}
+                                placeholder="Sélectionnez un Agendas"
+                                options={agendaOptions}
+                                value={field.value} // Use field.value
+                                styles={{
+                                  ...selectDefaultStyle,
+                                  container: (provided) => ({
+                                    ...provided,
+                                    width: "300px",
+                                  }),
+                                }}
+                                onChange={(selectedOption) => {
+                                  setValue(
+                                    `agenda_prestationArr[${index}].agenda`,
+                                    selectedOption
+                                  );
+                                }}
+                              />
                             );
                           }}
                         />
@@ -493,106 +480,130 @@ export default function CreateEventSection({
                         <Controller
                           name={`agenda_prestationArr[${index}].hourDB`}
                           control={control}
-                          render={({ field: { onChange, value } }) => (
-                            <Select
-                              instanceId="select_hour_tb"
-                              placeholder=""
-                              options={Array.from({ length: 24 }, (_, i) => ({
-                                value: i.toString().padStart(2, "0"),
-                                label: i.toString().padStart(2, "0"),
-                              }))}
-                              // defaultValue={{
-                              //   value: Math.floor(item.duree / 60)
-                              //     .toString()
-                              //     .padStart(2, "0"),
-                              //   label: Math.floor(item.duree / 60)
-                              //     .toString()
-                              //     .padStart(2, "0"),
-                              // }}
-                              styles={{
-                                ...selectHourStyles,
-                                container: (provided) => ({
-                                  ...provided,
-                                  width: "fit-content",
-                                }),
-                              }}
-                              onChange={(selectedOption) => {
-                                updateDurationHour(
-                                  parseInt(selectedOption!.value),
-                                  index
-                                );
+                          render={({ field }) => {
+                            useEffect(() => {
+                              // Set the initial value when the component mounts
+                              const initialHour = Math.floor(item.duree / 60)
+                                .toString()
+                                .padStart(2, "0");
+                              setValue(
+                                `agenda_prestationArr[${index}].hourDB`,
+                                {
+                                  label: initialHour,
+                                  value: initialHour,
+                                }
+                              );
+                            }, [item.duree]); // Use item.duree as a dependency
 
-                                const new_duration_hours =
-                                  parseInt(selectedOption!.value) * 60; //example:2 * 60 = 120(new duration) = 2h
+                            return (
+                              <Select
+                                {...field}
+                                instanceId="select_hour_tb"
+                                placeholder=""
+                                options={Array.from({ length: 24 }, (_, i) => ({
+                                  value: i.toString().padStart(2, "0"),
+                                  label: i.toString().padStart(2, "0"),
+                                }))}
+                                value={field.value} // Use field.value
+                                styles={{
+                                  ...selectHourStyles,
+                                  container: (provided) => ({
+                                    ...provided,
+                                    width: "fit-content",
+                                  }),
+                                }}
+                                onChange={(selectedOption) => {
+                                  const newDurationHours = parseInt(
+                                    selectedOption!.value
+                                  );
+                                  updateDurationHour(newDurationHours, index);
 
-                                setValue(
-                                  `agenda_prestationArr[${index}].duration_hours` as any,
-                                  new_duration_hours
-                                );
-                                //
+                                  setValue(
+                                    `agenda_prestationArr[${index}].hourDB` as any,
+                                    selectedOption
+                                  );
 
-                                updateEventsTime({
-                                  index,
-                                  duration: new_duration_hours,
-                                  select_type: "select_hour",
-                                });
-                                // setValue(
-                                //   `agenda_prestation[${index}].hourDB` as any,
-                                //   item.hourDB
-                                // );
-                              }}
-                            />
-                          )}
+                                  setValue(
+                                    `agenda_prestationArr[${index}].duration_hours` as any,
+                                    newDurationHours * 60
+                                  );
+                                  console.log(item.eventIndex);
+                                  updateEventsTime({
+                                    index: item.eventIndex,
+                                    duration: newDurationHours * 60,
+                                    select_type: "select_hour",
+                                    idAgenda:
+                                      agenda_prestationArr[index].agenda.value,
+                                    dateDB: dateTime.dateDB,
+                                  });
+                                }}
+                              />
+                            );
+                          }}
                         />
+
                         <span className="font-medium m-2">h</span>
                         <Controller
                           name={`agenda_prestationArr[${index}].minutesDB`}
                           control={control}
-                          render={({ field: { onChange, value } }) => (
-                            <Select
-                              options={Array.from({ length: 60 }, (_, i) => ({
-                                value: i.toString().padStart(2, "0"),
-                                label: i.toString().padStart(2, "0"),
-                              }))}
-                              defaultValue={{
-                                value: (item.duree % 60)
-                                  .toString()
-                                  .padStart(2, "0"),
-                                label: (item.duree % 60)
-                                  .toString()
-                                  .padStart(2, "0"),
-                              }}
-                              styles={{
-                                ...selectHourStyles,
-                                container: (provided) => ({
-                                  ...provided,
-                                  width: "fit-content",
-                                }),
-                              }}
-                              onChange={(selectedOption) => {
-                                updateDurationMinutes(
-                                  parseInt(selectedOption!.value),
-                                  index
-                                );
-                                const new_duration_minutes = parseInt(
-                                  selectedOption!.value
-                                );
+                          render={({ field }) => {
+                            useEffect(() => {
+                              // Set the initial value when the component mounts
+                              const initialMinutes = (item.duree % 60)
+                                .toString()
+                                .padStart(2, "0");
+                              setValue(
+                                `agenda_prestationArr[${index}].minutesDB`,
+                                {
+                                  label: initialMinutes,
+                                  value: initialMinutes,
+                                }
+                              );
+                            }, [item.duree]); // Use item.duree as a dependency
 
-                                setValue(
-                                  `agenda_prestationArr[${index}].duration_minutes` as any,
-                                  new_duration_minutes
-                                );
-                                //
+                            return (
+                              <Select
+                                {...field}
+                                options={Array.from({ length: 60 }, (_, i) => ({
+                                  value: i.toString().padStart(2, "0"),
+                                  label: i.toString().padStart(2, "0"),
+                                }))}
+                                value={field.value} // Use field.value
+                                styles={{
+                                  ...selectHourStyles,
+                                  container: (provided) => ({
+                                    ...provided,
+                                    width: "fit-content",
+                                  }),
+                                }}
+                                onChange={(selectedOption) => {
+                                  const newDurationMinutes = parseInt(
+                                    selectedOption!.value
+                                  );
+                                  updateDurationMinutes(
+                                    newDurationMinutes,
+                                    index
+                                  );
 
-                                updateEventsTime({
-                                  index,
-                                  duration: new_duration_minutes,
-                                  select_type: "select_minutes",
-                                });
-                                // onChange(duration_minutes);
-                              }}
-                            />
-                          )}
+                                  setValue(
+                                    `agenda_prestationArr[${index}].minutesDB` as any,
+                                    selectedOption
+                                  );
+
+                                  setValue(
+                                    `agenda_prestationArr[${index}].duration_minutes` as any,
+                                    newDurationMinutes
+                                  );
+
+                                  updateEventsTime({
+                                    index: item.eventIndex,
+                                    duration: newDurationMinutes,
+                                    select_type: "select_minutes",
+                                  });
+                                }}
+                              />
+                            );
+                          }}
                         />
                       </td>
                       <td className="text-center py-4">{item.prixTTC}</td>
@@ -602,8 +613,12 @@ export default function CreateEventSection({
                           priority
                           alt="supprimer"
                           src={removeIcon}
-                          onClick={() => removePrestation(index)}
+                          onClick={() =>
+                            removePrestation(item.eventIndex, index)
+                          }
                         />
+                        {/* {agenda_prestationArr[index].res_id} */}
+                        {item.eventIndex}
                       </td>
                     </tr>
                   );
