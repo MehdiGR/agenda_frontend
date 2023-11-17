@@ -191,14 +191,32 @@ export const formatDuration = (totalMinutes) => {
 };
 export const saveReservat = async (formData) => {
   const totalDuration = useStore.getState().totalDuration;
-  const { hourDB, minutesDB, eventIndex, ...rest } = formData;
+  const { hourDB, minutesDB, agenda_prestationArr, ...rest } = formData;
   const time = `${hourDB.value}:${minutesDB.value}`;
   const updatedFormData = {
     ...rest,
     time,
     duree: totalDuration,
   };
-  console.log(eventIndex);
+  // console.log(agenda_prestationArr);
+  // extract all eventIndex from agenda_prestationArr
+
+  const eventIndexArr = agenda_prestationArr.map((item) => item.eventIndex);
+  console.log(eventIndexArr);
+  // search on events array for eventIndexArr
+  const events = useStore.getState().events;
+  const updatedEvents = events.map((event) => {
+    if (eventIndexArr.includes(event.eventIndex)) {
+      return {
+        ...event,
+        saved: true,
+        backgroundColor: "red",
+      };
+    }
+    return event;
+  });
+  useStore.getState().fixUpdatedEvents(updatedEvents);
+  // return;
   return;
   const response = await fetch("http://localhost:3000/api/reservat", {
     method: "POST",
