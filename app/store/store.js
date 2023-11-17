@@ -77,13 +77,16 @@ export const useStore = create((set) => ({
       }
     }),
   // Refactored code to update events in the app
+  // Refactored code to update events in the app
   fixUpdatedEvents: (updatedEvents) =>
     set((state) => ({
-      events: state.events.map((event, index) => {
-        const updatedEvent = updatedEvents[event.eventIndex];
+      events: state.events.map((event) => {
+        const updatedEvent = updatedEvents.find(
+          (updatedEvent) => updatedEvent.eventIndex === event.eventIndex
+        );
         return {
           ...event,
-          ...(event.eventIndex === updatedEvent ? updatedEvent : {}),
+          ...(updatedEvent ? updatedEvent : {}),
         };
       }),
     })),
