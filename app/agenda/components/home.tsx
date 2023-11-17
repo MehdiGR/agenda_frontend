@@ -131,8 +131,8 @@ export default function Home({
             ligne_id: res.ligne_id,
             intitule: res.title,
             dateDB: res.start.split("T")[0],
-            prixTTC: res.prest_prix,
-            hourDB: res.hourDB,
+            prixTTC: res.prixTTC,
+            hourDB: `${res.hourDB}:${res.minutesDB}`,
             duree: res.duree,
             duration_hours: Math.floor(res.duree / 60) * 60,
             duration_minutes: Math.floor(res.duree % 60),
@@ -140,7 +140,7 @@ export default function Home({
             client: { label: res.client.label, value: res.client.value },
           };
         });
-      console.log(data);
+      // console.log(data);
       addAllAgendaPres(data);
       const dateTimeString = info.event.start;
       let date = new Date(dateTimeString);
@@ -148,8 +148,9 @@ export default function Home({
       const dateDB = formatted_date.split("T")[0];
       // const hourDB = formatted_date.split("T")[1].split(":")[0];
       // const minutesDB = formatted_date.split("T")[1].split(":")[1];
-      const hourDB = info.event.extendedProps.hourDB.split(":")[0];
-      const minutesDB = info.event.extendedProps.hourDB.split(":")[1];
+      const hourDB = info.event.extendedProps.hourDB;
+      const minutesDB = info.event.extendedProps.minutesDB;
+      console.log(info.event.extendedProps);
       // setDateTime({date.toISOString().split("T")[0]);
       setDateTime({
         dateDB,

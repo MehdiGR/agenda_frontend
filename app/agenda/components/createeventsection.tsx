@@ -342,6 +342,7 @@ export default function CreateEventSection({
               />
               {errors.hourDB?.message}
               <span className="font-medium m-2">h</span>
+              {/* {"sss " + dateTime.minutesDB.label} */}
               <Controller
                 name="minutesDB"
                 control={control}
@@ -426,6 +427,7 @@ export default function CreateEventSection({
                 //   let hours = Math.floor(ag_pr.duree / 60);
                 //   let minutes = ag_pr.duree % 60;
                 fields.map((item, index) => {
+                  // console.log(item);
                   return (
                     <tr key={index}>
                       <input
@@ -478,7 +480,9 @@ export default function CreateEventSection({
                       </td>
                       <td className="text-center py-4 flex justify-center ">
                         <Controller
-                          name={`agenda_prestationArr[${index}].hourDB`}
+                          name={
+                            `agenda_prestationArr[${index}].duration_hoursDB` as any
+                          }
                           control={control}
                           render={({ field }) => {
                             useEffect(() => {
@@ -487,13 +491,14 @@ export default function CreateEventSection({
                                 .toString()
                                 .padStart(2, "0");
                               setValue(
-                                `agenda_prestationArr[${index}].hourDB`,
+                                `agenda_prestationArr[${index}].duration_hoursDB` as any,
                                 {
                                   label: initialHour,
                                   value: initialHour,
                                 }
                               );
-                            }, [item.duree]); // Use item.duree as a dependency
+                              console.log("duree", item.duration_hours);
+                            }, [item.duration_hours]); // Use item.duree as a dependency
 
                             return (
                               <Select
@@ -519,7 +524,7 @@ export default function CreateEventSection({
                                   updateDurationHour(newDurationHours, index);
 
                                   setValue(
-                                    `agenda_prestationArr[${index}].hourDB` as any,
+                                    `agenda_prestationArr[${index}].duration_hoursDB` as any,
                                     selectedOption
                                   );
 
@@ -527,7 +532,6 @@ export default function CreateEventSection({
                                     `agenda_prestationArr[${index}].duration_hours` as any,
                                     newDurationHours * 60
                                   );
-                                  console.log(item.eventIndex);
                                   updateEventsTime({
                                     index: item.eventIndex,
                                     duration: newDurationHours * 60,
@@ -535,6 +539,7 @@ export default function CreateEventSection({
                                     idAgenda:
                                       agenda_prestationArr[index].agenda.value,
                                     dateDB: dateTime.dateDB,
+                                    idRes: item.res_id || "",
                                   });
                                 }}
                               />
@@ -544,7 +549,7 @@ export default function CreateEventSection({
 
                         <span className="font-medium m-2">h</span>
                         <Controller
-                          name={`agenda_prestationArr[${index}].minutesDB`}
+                          name={`agenda_prestationArr[${index}].duration_minutesDB`}
                           control={control}
                           render={({ field }) => {
                             useEffect(() => {
@@ -553,7 +558,7 @@ export default function CreateEventSection({
                                 .toString()
                                 .padStart(2, "0");
                               setValue(
-                                `agenda_prestationArr[${index}].minutesDB`,
+                                `agenda_prestationArr[${index}].duration_minutesDB` as any,
                                 {
                                   label: initialMinutes,
                                   value: initialMinutes,
@@ -585,10 +590,10 @@ export default function CreateEventSection({
                                     index
                                   );
 
-                                  setValue(
-                                    `agenda_prestationArr[${index}].minutesDB` as any,
-                                    selectedOption
-                                  );
+                                  // setValue(
+                                  //   `agenda_prestationArr[${index}].minutesDB` as any,
+                                  //   selectedOption
+                                  // );
 
                                   setValue(
                                     `agenda_prestationArr[${index}].duration_minutes` as any,
@@ -599,6 +604,10 @@ export default function CreateEventSection({
                                     index: item.eventIndex,
                                     duration: newDurationMinutes,
                                     select_type: "select_minutes",
+
+                                    idAgenda:
+                                      agenda_prestationArr[index].agenda.value,
+                                    dateDB: dateTime.dateDB,
                                   });
                                 }}
                               />
@@ -618,7 +627,11 @@ export default function CreateEventSection({
                           }
                         />
                         {/* {agenda_prestationArr[index].res_id} */}
-                        {item.eventIndex}
+                        <input
+                          name="eventIndex"
+                          type="text"
+                          value={item.eventIndex}
+                        />
                       </td>
                     </tr>
                   );

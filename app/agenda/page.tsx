@@ -1,4 +1,3 @@
-import { useStore } from "../store/store";
 import Home from "./components/home";
 
 export default async function CalendarPage() {

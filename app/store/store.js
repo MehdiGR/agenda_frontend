@@ -84,6 +84,7 @@ export const useStore = create((set) => ({
     globalChange = false,
     idAgenda = null,
     dateDB = null,
+    idRes = null,
   }) =>
     set((state) => {
       // return;
@@ -93,6 +94,13 @@ export const useStore = create((set) => ({
       const modEndTimes = [];
       const updatedEvents = state.events.map((event) => {
         i = event.eventIndex;
+        //  if idRes not null add it to condition
+        let existIdRes;
+        if (idRes != "") {
+          existIdRes = event.idRes == idRes ? true : false;
+        } else {
+          existIdRes = true;
+        }
 
         if (
           event.resourceId == idAgenda &&
@@ -100,7 +108,6 @@ export const useStore = create((set) => ({
           (i == index || i > index)
         ) {
           // console.log("i", i, "eventIndex", index);
-          console.log(event.resourceId, idAgenda);
           // If this is the event you want to update or events after it, update the event
           const [startD, startT] = event.start.split("T");
           const [endD, endT] = event.end.split("T");
@@ -146,11 +153,11 @@ export const useStore = create((set) => ({
             modEndTimes[i] = newEvent.end;
             // console.log(modEndTimes[i - 1]);
             // && typeof modEndTimes[i - 1] !== "undefined"
-            console.log();
-          } else if (i > index) {
-            console.log("prev", prevIndex);
+          } else if (i > index && existIdRes) {
+            console.log(existIdRes);
+            // console.log("prev", prevIndex);
             // console.log("i next", i);
-            console.log(modEndTimes[prevIndex]);
+            // console.log(modEndTimes[prevIndex]);
             const [curStartD, curStartT] = state.events[i].start.split("T");
             const [curStartH, curStartM] = curStartT.split(":");
             const [curEndD, curEndT] = state.events[i].end.split("T");
@@ -255,3 +262,7 @@ export const useStore = create((set) => ({
   setTotalPrice: (value) => set(() => ({ totalPrice: value })),
   setClientOptions: (value) => set(() => ({ clientOptions: value })),
 }));
+export const exposeStore = () => ({
+  getTotalDuration: () => store.getState().totalDuration,
+  getEvents: () => store.getState().events,
+});

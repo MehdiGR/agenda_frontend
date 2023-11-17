@@ -1,7 +1,8 @@
 // helper functions
+// "use server";
 import { date } from "yup";
 import { useStore } from "../store/store";
-
+import { revalidatePath } from "next/cache";
 export const cancelCreationEvent = (setActive) => {
   useStore.getState().setActiveEventSection(false);
   useStore.getState().setActiveEventSection(false);
@@ -107,7 +108,7 @@ export const addPrestation = (data) => {
     };
   }
 
-  // console.log(lastTempIndex);
+  // console.log("hourDB", hourDB);
   // return;
   let newEvent = {
     ...time,
@@ -190,14 +191,14 @@ export const formatDuration = (totalMinutes) => {
 };
 export const saveReservat = async (formData) => {
   const totalDuration = useStore.getState().totalDuration;
-  const { hourDB, minutesDB, ...rest } = formData;
+  const { hourDB, minutesDB, eventIndex, ...rest } = formData;
   const time = `${hourDB.value}:${minutesDB.value}`;
   const updatedFormData = {
     ...rest,
     time,
     duree: totalDuration,
   };
-  console.log(updatedFormData);
+  console.log(eventIndex);
   return;
   const response = await fetch("http://localhost:3000/api/reservat", {
     method: "POST",
@@ -205,10 +206,11 @@ export const saveReservat = async (formData) => {
       "Content-Type": "application/json",
     },
     body: JSON.stringify(updatedFormData),
-    next: { revalidate: 1 },
   });
 
   if (response.ok) {
+    console.log("response", response);
+    // response.revalidate("/");
     // const newEvent = {
     //   id: res.id,
     //   resourceId: res.prest_idAgenda,
@@ -232,6 +234,7 @@ export const saveReservat = async (formData) => {
 };
 
 export const processReservations = (reservations) => {
+  console.log(reservations);
   const addSavedEvents = useStore.getState().addSavedEvents;
 
   const events = [];
@@ -269,8 +272,9 @@ export const processReservations = (reservations) => {
       backgroundColor: "rgb(251, 233, 131)",
       borderColor: "rgb(251, 233, 131)",
       // classNames: ["added-event", "animated-event"],
-      duree: res.duree,
-      hourDB: res.heurDB,
+      duree: res.prest_duree,
+      hourDB: res.heurDB.split(":")[0],
+      minutesDB: res.heurDB.split(":")[1],
       isTemp: false,
       agenda: { label: res.agenda, value: res.prest_idAgenda },
 
