@@ -76,15 +76,16 @@ export const useStore = create((set) => ({
         };
       }
     }),
-  // make function updateEvents(updatedEvents) to update all events in app
+  // Refactored code to update events in the app
   fixUpdatedEvents: (updatedEvents) =>
     set((state) => ({
-      events: state.events.map((event, index) => ({
-        ...event,
-        ...(event.eventIndex === updatedEvents[event.eventIndex]
-          ? updatedEvents[event.eventIndex]
-          : {}),
-      })),
+      events: state.events.map((event, index) => {
+        const updatedEvent = updatedEvents[event.eventIndex];
+        return {
+          ...event,
+          ...(event.eventIndex === updatedEvent ? updatedEvent : {}),
+        };
+      }),
     })),
   // update time for all events by moving the start and end times of event with the duration
   updateEventsTime: ({

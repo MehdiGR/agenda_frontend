@@ -210,11 +210,12 @@ export const saveReservat = async (formData) => {
       return {
         ...event,
         saved: true,
-        backgroundColor: "red",
+        start: "2023-11-18T09:00:00",
       };
     }
     return event;
   });
+  console.log("updatedEvents", updatedEvents);
   useStore.getState().fixUpdatedEvents(updatedEvents);
   // return;
   return;
