@@ -1,4 +1,6 @@
+import Link from "next/link";
 import Home from "./components/home";
+import { revalidatePath } from "next/cache";
 
 export default async function CalendarPage() {
   // const clients = await fetch("http://localhost:3000/api/client", {
@@ -39,13 +41,14 @@ export default async function CalendarPage() {
   });
   const periods = await resPrd.json();
   const resReservat = await fetch("http://localhost:3000/api/reservat", {
-    // cache: "no-store",
-    next: { revalidate: 1 },
+    cache: "no-store",
   });
   const reservations = await resReservat.json();
+  console.log("reservations", reservations);
 
   return (
     <div className="h-full  p-6">
+      <Link href="/">Home</Link>
       <Home
         clients={clients}
         villes={villes}
@@ -59,3 +62,4 @@ export default async function CalendarPage() {
     </div>
   );
 }
+export const revalidate = 6;

@@ -28,6 +28,7 @@ export default function Home({
     resetDurationHour,
     savedEvents,
     resetDurationMinutes,
+    refresh_data,
   } = useStore();
   const [activeEventSection, setActiveEventSection] = useState(false);
   const [eventInfo, setEventInfo] = useState<any>({
@@ -37,6 +38,7 @@ export default function Home({
   });
   useEffect(() => {
     processReservations(reservations);
+    // console.log("reservations", reservations);
   }, []);
 
   const handleAddEvent = (arg: any) => {

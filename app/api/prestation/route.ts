@@ -19,7 +19,7 @@ export async function GET() {
           WHERE
               idTypeArticle = 3
           GROUP BY
-              art.id;`,
+              art.id limit 3`,
         (error, results) => (error ? reject(error) : resolve(results))
       )
     );

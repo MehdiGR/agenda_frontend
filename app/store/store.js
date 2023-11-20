@@ -49,6 +49,8 @@ export const useStore = create((set) => ({
     hourDB: { label: "", value: "" },
     minutesDB: { label: "", value: "" },
   },
+  refresh_data: false,
+  setRefreshData: (value) => set(() => ({ refresh_data: value })),
 
   setActiveEventSection: (value) => set(() => ({ activeEventSection: value })),
   addEvent: (newEvent) =>

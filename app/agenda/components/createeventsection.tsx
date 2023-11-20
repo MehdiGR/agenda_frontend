@@ -1,10 +1,15 @@
 "use client";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useTransition } from "react";
 import ModalClient from "./modalclient";
-import Select from "react-select";
+import Select, { InputProps } from "react-select";
 // import { OptionsType, OptionTypeBase } from "react-select";
 import PrestationSlider from "./prestationsSlider";
-import { Controller, useFieldArray, useForm } from "react-hook-form";
+import {
+  Controller,
+  SubmitHandler,
+  useFieldArray,
+  useForm,
+} from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import removeIcon from "@/public/square_remove.svg";
@@ -22,6 +27,7 @@ import {
   calculateTotalPrices,
 } from "@/app/js/agenda_fn";
 import { useStore } from "@/app/store/store";
+import { saveReservation } from "@/app/lib/reservatActions";
 
 export default function CreateEventSection({
   active,
@@ -47,6 +53,7 @@ export default function CreateEventSection({
     updateEventsTime,
     dateEventDates,
   } = useStore();
+
   const [clientIsRef, setIsRef] = useState(true);
   const [selectedClientType, setSelectedClientType] = useState("client_ref");
   const [clientOptions, setClientOptions] = useState(
@@ -195,10 +202,20 @@ export default function CreateEventSection({
       }
     }
   }, [events]);
+  const [isPending, startTransition] = useTransition();
+
+  const saveReservat2: any = async (data) => {
+    startTransition(async () => {
+      const result = await saveReservation(data);
+    });
+  };
 
   return (
     <div className={`relative   h-fit w-full ${!active ? "hidden" : ""}`}>
-      <form onSubmit={handleSubmit(saveReservat)} className=" space-y-4 h-full">
+      <form
+        onSubmit={handleSubmit(saveReservat2)}
+        className=" space-y-4 h-full"
+      >
         <div className="flex gap-3">
           <input
             type="radio"
@@ -629,7 +646,7 @@ export default function CreateEventSection({
                         {/* {agenda_prestationArr[index].res_id} */}
                         <input
                           name="eventIndex"
-                          type="text"
+                          type="hidden"
                           value={item.eventIndex}
                         />
                       </td>

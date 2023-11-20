@@ -1,9 +1,11 @@
+"use server";
+
 import { revalidatePath } from "next/cache";
 
-import connection from "../db";
+import connection from "./db";
 import { NextResponse } from "next/server";
 
-export async function GET(req: Request) {
+export async function get_resavations() {
   try {
     const reservat = await new Promise((resolve, reject) =>
       connection.query(
@@ -30,12 +32,12 @@ export async function GET(req: Request) {
           ON
               ag.id = lr.idAgenda
               JOIN client as clt on clt.id=rsv.idClient order by rsv.dateRes,rsv.heurDB,lr.heurDB;`,
-        (error: any, results: any) => (error ? reject(error) : resolve(results))
+        (error, results) => (error ? reject(error) : resolve(results))
       )
     );
 
     return new NextResponse(JSON.stringify(reservat));
-  } catch (error: any) {
+  } catch (error) {
     console.error("Could not execute query:", error);
     return new NextResponse(
       { error: "Could not execute query" },
@@ -44,8 +46,7 @@ export async function GET(req: Request) {
   }
 }
 const revalidate = true;
-export async function POST(req: Request) {
-  const body = await req.json();
+export async function saveReservation(data) {
   // revalidatePath("/agenda");
   // return new NextResponse(
   //   JSON.stringify({
@@ -53,17 +54,17 @@ export async function POST(req: Request) {
   //   })
   // );
   // return;
-  let insertedId_res = body.idRes;
+  let insertedId_res = data.idRes;
   if (insertedId_res === "" || insertedId_res === null) {
     // Your SQL query with parameters
     const reservationSQL =
       "INSERT INTO reservat(idClient,dateRes,heurDB,duree,note) VALUES (?,?,?,?,?)";
     const reservationValues = [
-      body.client.value,
-      body.dateRes,
-      body?.time,
-      body?.duree,
-      body?.note,
+      data.client.value,
+      data.dateRes,
+      data?.time,
+      data?.duree,
+      data?.note,
     ];
     // Execute the reservation query with parameters
     insertedId_res = await executeQuery(reservationSQL, reservationValues);
@@ -73,11 +74,11 @@ export async function POST(req: Request) {
     const updateReservationSQL =
       "UPDATE reservat SET idClient=?, dateRes=?, heurDB=?, duree=?, note=? WHERE id=?";
     const updateReservationValues = [
-      body.client.value,
-      body.dateRes,
-      body?.time,
-      body?.duree,
-      body?.note,
+      data.client.value,
+      data.dateRes,
+      data?.time,
+      data?.duree,
+      data?.note,
       insertedId_res,
     ];
 
@@ -86,7 +87,7 @@ export async function POST(req: Request) {
 
   // Update or insert agenda_prestationArr
   await Promise.all(
-    body.agenda_prestationArr.map(async (agenda_prest: any) => {
+    data.agenda_prestationArr.map(async (agenda_prest) => {
       // console.log("agenda_prest", agenda_prest);
 
       const duration_hours = parseInt(agenda_prest.duration_hours);
@@ -125,7 +126,7 @@ export async function POST(req: Request) {
       }
     })
   );
-  revalidatePath("/api/reservat");
+  revalidatePath("/agenda");
   return new NextResponse(
     JSON.stringify({
       message: "Data inserted/updated successfully",
@@ -135,31 +136,23 @@ export async function POST(req: Request) {
   );
 }
 
-async function executeQuery(sql: string, values: any[]): Promise<any> {
+async function executeQuery(sql, values) {
   return new Promise((resolve, reject) => {
-    connection.query(
-      sql,
-      values,
-      function (err: any, result: any, fields: any) {
-        if (err) reject(err);
-        resolve(result.insertId || values[values.length - 1]); // Return either the insertId or the idRes for updates
-      }
-    );
+    connection.query(sql, values, function (err, result, fields) {
+      if (err) reject(err);
+      resolve(result.insertId || values[values.length - 1]); // Return either the insertId or the idRes for updates
+    });
   });
 }
 
-async function checkExistingRecord(ligne_id: number): Promise<boolean> {
+async function checkExistingRecord(ligne_id) {
   const sql = "SELECT * FROM ligne_res WHERE id=?";
   const values = [ligne_id];
 
   return new Promise((resolve, reject) => {
-    connection.query(
-      sql,
-      values,
-      function (err: any, result: any, fields: any) {
-        if (err) reject(err);
-        resolve(result.length > 0);
-      }
-    );
+    connection.query(sql, values, function (err, result, fields) {
+      if (err) reject(err);
+      resolve(result.length > 0);
+    });
   });
 }

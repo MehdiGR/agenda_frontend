@@ -191,34 +191,16 @@ export const formatDuration = (totalMinutes) => {
 };
 export const saveReservat = async (formData) => {
   const totalDuration = useStore.getState().totalDuration;
-  const { hourDB, minutesDB, agenda_prestationArr, ...rest } = formData;
+  const agenda_prestationArr = useStore.getState().agenda_prestationArr;
+  const { hourDB, minutesDB, ...rest } = formData;
   const time = `${hourDB.value}:${minutesDB.value}`;
   const updatedFormData = {
     ...rest,
     time,
     duree: totalDuration,
   };
-  // console.log(agenda_prestationArr);
-  // extract all eventIndex from agenda_prestationArr
-
-  const eventIndexArr = agenda_prestationArr.map((item) => item.eventIndex);
-  console.log(eventIndexArr);
-  // search on events array for eventIndexArr
-  const events = useStore.getState().events;
-  const updatedEvents = events.map((event) => {
-    if (eventIndexArr.includes(event.eventIndex)) {
-      return {
-        ...event,
-        saved: true,
-        start: "2023-11-18T09:00:00",
-      };
-    }
-    return event;
-  });
-  console.log("updatedEvents", updatedEvents);
-  useStore.getState().fixUpdatedEvents(updatedEvents);
+  // console.log("updatedFormData", updatedFormData);
   // return;
-  return;
   const response = await fetch("http://localhost:3000/api/reservat", {
     method: "POST",
     headers: {
@@ -228,24 +210,27 @@ export const saveReservat = async (formData) => {
   });
 
   if (response.ok) {
+    return response.json();
+    // // extract all eventIndex from agenda_prestationArr
+    // const eventIndexArr = agenda_prestationArr.map((item) => item.eventIndex);
+    // const events = useStore.getState().events;
+
+    // const fixUpdatedEvents = useStore.getState().fixUpdatedEvents;
+    // const addAllAgendaPres = useStore.getState().addAllAgendaPres;
+
+    // // search on events array for eventIndexArr
+    // const updatedEvents = events
+    //   .filter((event) => eventIndexArr.includes(event.eventIndex))
+    //   .map((event) => ({
+    //     ...event,
+    //     textColor: "black",
+    //     backgroundColor: "rgb(251, 233, 131)",
+    //     borderColor: "rgb(251, 233, 131)",
+    //     classNames: [""],
+    //   }));
+    // fixUpdatedEvents(updatedEvents);
+    // addAllAgendaPres([]);
     console.log("response", response);
-    // response.revalidate("/");
-    // const newEvent = {
-    //   id: res.id,
-    //   resourceId: res.prest_idAgenda,
-    //   title: res.prest_title,
-    //   saved: true,
-    //   start: `${startDate}T${startTime}`,
-    //   end: `${endDate}T${endTime}`,
-    //   textColor: "black",
-    //   backgroundColor: "rgb(251, 233, 131)",
-    //   borderColor: "rgb(251, 233, 131)",
-    //   // classNames: ["added-event", "animated-event"],
-    //   duree: res.duree,
-    //   hourDB: res.heurDB,
-    //   isTemp: false,
-    // };
-    // addSavedEvent(newEvent);
   } else {
     // Request failed
     console.error("POST request failed");
