@@ -1,9 +1,10 @@
 "use server";
+import { exposeStore } from "@/app/store/store";
 
 import { revalidatePath } from "next/cache";
 
 import connection from "./db";
-import { NextResponse } from "next/server";
+// import { NextResponse } from "next/server";
 
 export async function get_resavations() {
   try {
@@ -36,24 +37,28 @@ export async function get_resavations() {
       )
     );
 
-    return new NextResponse(JSON.stringify(reservat));
+    // return new NextResponse(JSON.stringify(reservat));
   } catch (error) {
     console.error("Could not execute query:", error);
-    return new NextResponse(
-      { error: "Could not execute query" },
-      { status: 500 }
-    );
+    // return new NextResponse(
+    //   { error: "Could not execute query" },
+    //   { status: 500 }
+    // );
   }
 }
-const revalidate = true;
 export async function saveReservation(data) {
+  const { getTotalDuration } = exposeStore();
+
+  const time = `${data.hourDB.value}:${data.minutesDB.value}`;
+  const duree = getTotalDuration();
   // revalidatePath("/agenda");
   // return new NextResponse(
   //   JSON.stringify({
   //     message: "Data inserted/updated successfully",
   //   })
   // );
-  // return;
+  // console.log("data", data);
+  // return data;
   let insertedId_res = data.idRes;
   if (insertedId_res === "" || insertedId_res === null) {
     // Your SQL query with parameters
@@ -62,8 +67,8 @@ export async function saveReservation(data) {
     const reservationValues = [
       data.client.value,
       data.dateRes,
-      data?.time,
-      data?.duree,
+      time,
+      duree,
       data?.note,
     ];
     // Execute the reservation query with parameters
@@ -126,14 +131,14 @@ export async function saveReservation(data) {
       }
     })
   );
-  revalidatePath("/agenda");
-  return new NextResponse(
-    JSON.stringify({
-      message: "Data inserted/updated successfully",
-      reservatId: insertedId_res,
-      revalidate: true,
-    })
-  );
+  revalidatePath("/");
+  // return new NextResponse(
+  //   JSON.stringify({
+  //     message: "Data inserted/updated successfully",
+  //     reservatId: insertedId_res,
+  //     revalidate: true,
+  //   })
+  // );
 }
 
 async function executeQuery(sql, values) {

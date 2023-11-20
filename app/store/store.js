@@ -278,7 +278,7 @@ export const useStore = create((set) => ({
   setTotalPrice: (value) => set(() => ({ totalPrice: value })),
   setClientOptions: (value) => set(() => ({ clientOptions: value })),
 }));
-// export const exposeStore = () => ({
-//   getTotalDuration: () => store.getState().totalDuration,
-//   getEvents: () => store.getState().events,
-// });
+export const exposeStore = () => ({
+  getTotalDuration: () => useStore.getState().totalDuration,
+  getEvents: () => useStore.getState().events,
+});

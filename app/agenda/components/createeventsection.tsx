@@ -207,6 +207,8 @@ export default function CreateEventSection({
   const saveReservat2: any = async (data) => {
     startTransition(async () => {
       const result = await saveReservation(data);
+      console.log(result);
+      console.log("msmsms");
     });
   };
 
