@@ -39,7 +39,7 @@ export default function Home({
   useEffect(() => {
     processReservations(reservations);
     // console.log("reservations", reservations);
-  }, []);
+  }, [reservations]);
 
   const handleAddEvent = (arg: any) => {
     if (arg.hasOwnProperty("resource")) {
