@@ -125,7 +125,7 @@ export async function POST(req: Request) {
       }
     })
   );
-  revalidatePath("/api/reservat");
+  revalidatePath("/agenda");
   return new NextResponse(
     JSON.stringify({
       message: "Data inserted/updated successfully",

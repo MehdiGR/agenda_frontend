@@ -1,11 +1,13 @@
 // helper functions
-// "use server";
-import { date } from "yup";
 import { useStore } from "../store/store";
-import { revalidatePath } from "next/cache";
-export const cancelCreationEvent = (setActive) => {
+export const cancelCreationEvent = () => {
+  console.log("item");
   useStore.getState().setActiveEventSection(false);
-  useStore.getState().setActiveEventSection(false);
+  useStore.getState().setOnEditingEvent(false);
+  const events = useStore.getState().events;
+  const setEvents = useStore.getState().setEvents;
+  const updatedEvent = events.filter((event) => event.saved == true);
+  setEvents(updatedEvent);
 };
 
 export const handleOptionChangeTypeClt = (
@@ -239,7 +241,7 @@ export const saveReservat = async (formData) => {
 
 export const processReservations = (reservations) => {
   console.log(reservations);
-  const addSavedEvents = useStore.getState().addSavedEvents;
+  const setEvents = useStore.getState().setEvents;
 
   const events = [];
   reservations.map((res, index) => {
@@ -287,7 +289,7 @@ export const processReservations = (reservations) => {
     });
   });
 
-  addSavedEvents(events);
+  setEvents(events);
 };
 // create function that update agenda_prestation hourDB and duration_hour or duration_minutes by index with params (index,property,value)
 // transform agenda  to rdv and send it to prest_heurDB

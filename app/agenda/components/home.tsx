@@ -26,23 +26,21 @@ export default function Home({
     addDurationHour,
     addDurationMinutes,
     resetDurationHour,
-    savedEvents,
     resetDurationMinutes,
-    refresh_data,
+    onEditingEvent,
+    setOnEditingEvent,
+    setActiveEventSection,
   } = useStore();
-  const [activeEventSection, setActiveEventSection] = useState(false);
-  const [eventInfo, setEventInfo] = useState<any>({
-    dateRes: "",
-    hourDB: "",
-    minuteDB: "",
-  });
+  // const [activeEventSection, setActiveEventSection] = useState(false);
+
   useEffect(() => {
     processReservations(reservations);
-    // console.log("reservations", reservations);
+    setActiveEventSection(false);
+    setOnEditingEvent(false);
   }, [reservations]);
 
   const handleAddEvent = (arg: any) => {
-    if (arg.hasOwnProperty("resource")) {
+    if (arg.hasOwnProperty("resource") && onEditingEvent == false) {
       // update active state for showing  the create event section
       setActiveEventSection(() => true);
       const lastIndex = events.findLastIndex((event: any) => event);
@@ -75,9 +73,11 @@ export default function Home({
       }
       setAddedEventId(newEvent.resourceId);
 
-      resetDurationHour();
-      resetDurationMinutes();
-      addAllAgendaPres([]);
+      // resetDurationHour();
+      // resetDurationMinutes();
+      // addAllAgendaPres([]);
+      // setActiveEventSection(true);
+      setOnEditingEvent(true);
     }
   };
   const handleEventDrop = (arg: any) => {
@@ -98,34 +98,20 @@ export default function Home({
   const handleUpdateEvent = (info: any) => {
     // console.log(info.event.extendedProps);
     // return;
-    if (info.event.extendedProps.idRes) {
+    if (info.event.extendedProps.idRes && onEditingEvent == false) {
       setActiveEventSection(() => true);
       let hours: number = 0,
         minutes: number = 0;
-      resetDurationHour();
-      resetDurationMinutes();
-      addAllAgendaPres([]);
+      // resetDurationHour();
+      // resetDurationMinutes();
+      // addAllAgendaPres([]);
       const eventIndex = parseInt(info.event.extendedProps.eventIndex);
       const data = events
         .filter((res: any) => res.idRes == info.event.extendedProps.idRes)
         .map((res: any, index: number) => {
           // console.log(res);
           let rowIndex = index == 0 ? eventIndex : eventIndex + 1;
-          // return {
-          //   eventIndex: res.eventIndex,
-          //   res_id: res.id,
-          //   id_art: res.prest_id,
-          //   ligne_id: res.ligne_id,
-          //   intitule: res.prest_title,
-          //   dateDB: res.dateRes,
-          //   prixTTC: res.prest_prix,
-          //   hourDB: res.prest_heurDB,
-          //   duree: res.prest_duree,
-          //   duration_hours: Math.floor(res.prest_duree / 60) * 60,
-          //   duration_minutes: Math.floor(res.prest_duree % 60),
-          //   agenda: { label: res.prest_agenda, value: res.prest_idAgenda },
-          //   client: { label: res.client, value: res.idClient },
-          // };
+
           return {
             eventIndex: res.eventIndex,
             res_id: res.idRes,
@@ -164,13 +150,12 @@ export default function Home({
       minutes = parseInt(info.event.extendedProps.duree) % 60;
       addDurationHour(Math.floor(hours));
       addDurationMinutes(Math.floor(minutes));
+      setOnEditingEvent(true);
     }
   };
   return (
     <div className="flex  gap-10  h-full   ">
       <CreateEventSection
-        active={activeEventSection}
-        setActive={setActiveEventSection}
         clients={clients}
         villes={villes}
         collaborateurs={collaborateurs}
@@ -181,10 +166,7 @@ export default function Home({
         handleAddEvent={handleAddEvent}
         handleEventDrop={handleEventDrop}
         handleUpdateEvent={handleUpdateEvent}
-        active={activeEventSection}
         agendas={agendas}
-        periods={periods}
-        eventInfo={eventInfo}
       />
     </div>
   );

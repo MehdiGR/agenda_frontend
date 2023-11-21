@@ -15,10 +15,7 @@ export default function MyCalendar({
   handleAddEvent,
   handleEventDrop,
   handleUpdateEvent,
-  active,
   agendas,
-  periods,
-  eventInfo,
 }) {
   // const resources = [
   //   { id: "a", title: "Room A", building: "Building 1" },

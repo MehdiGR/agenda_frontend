@@ -48,7 +48,6 @@ export default async function CalendarPage() {
 
   return (
     <div className="h-full  p-6">
-      <Link href="/">Home</Link>
       <Home
         clients={clients}
         villes={villes}

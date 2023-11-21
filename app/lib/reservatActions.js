@@ -51,14 +51,7 @@ export async function saveReservation(data) {
 
   const time = `${data.hourDB.value}:${data.minutesDB.value}`;
   const duree = getTotalDuration();
-  // revalidatePath("/agenda");
-  // return new NextResponse(
-  //   JSON.stringify({
-  //     message: "Data inserted/updated successfully",
-  //   })
-  // );
-  // console.log("data", data);
-  // return data;
+
   let insertedId_res = data.idRes;
   if (insertedId_res === "" || insertedId_res === null) {
     // Your SQL query with parameters
@@ -132,13 +125,6 @@ export async function saveReservation(data) {
     })
   );
   revalidatePath("/");
-  // return new NextResponse(
-  //   JSON.stringify({
-  //     message: "Data inserted/updated successfully",
-  //     reservatId: insertedId_res,
-  //     revalidate: true,
-  //   })
-  // );
 }
 
 async function executeQuery(sql, values) {

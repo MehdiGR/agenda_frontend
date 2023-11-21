@@ -30,8 +30,6 @@ import { useStore } from "@/app/store/store";
 import { saveReservation } from "@/app/lib/reservatActions";
 
 export default function CreateEventSection({
-  active,
-  setActive,
   clients,
   villes,
   collaborateurs,
@@ -51,7 +49,8 @@ export default function CreateEventSection({
     totalPrice,
     totalDuration,
     updateEventsTime,
-    dateEventDates,
+    updateEventDates,
+    activeEventSection,
   } = useStore();
 
   const [clientIsRef, setIsRef] = useState(true);
@@ -204,18 +203,20 @@ export default function CreateEventSection({
   }, [events]);
   const [isPending, startTransition] = useTransition();
 
-  const saveReservat2: any = async (data) => {
-    startTransition(async () => {
-      const result = await saveReservation(data);
-      console.log(result);
-      console.log("msmsms");
+  const handleSaveReservat: any = async (data) => {
+    startTransition(() => {
+      saveReservation(data);
     });
   };
 
   return (
-    <div className={`relative   h-fit w-full ${!active ? "hidden" : ""}`}>
+    <div
+      className={`relative   h-fit w-full ${
+        !activeEventSection ? "hidden" : ""
+      }`}
+    >
       <form
-        onSubmit={handleSubmit(saveReservat2)}
+        onSubmit={handleSubmit(handleSaveReservat)}
         className=" space-y-4 h-full"
       >
         <div className="flex gap-3">
@@ -307,7 +308,7 @@ export default function CreateEventSection({
                   ...dateTime,
                   dateDB: e.target.value,
                 });
-                dateEventDates(e.target.value);
+                updateEventDates(e.target.value);
                 // setValue("dateRes", dateTime.dateDB);
               }}
               value={dateTime.dateDB}
@@ -684,10 +685,11 @@ export default function CreateEventSection({
 
         <div className="absolute bottom-3 w-full flex gap-2 justify-center">
           <button
-            className="py-1 px-4 bg-gray-800 text-white rounded-md "
-            onClick={() => cancelCreationEvent(setActive)}
+            className=" flex gap-2 py-1 px-4 bg-gray-800 text-white rounded-md "
+            onClick={cancelCreationEvent}
             type="button"
           >
+            <img src="https://circumicons.com/icon/no_waiting_sign?size=24&fill=ffffff" />
             Annuler
           </button>
 

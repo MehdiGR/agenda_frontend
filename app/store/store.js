@@ -49,14 +49,14 @@ export const useStore = create((set) => ({
     hourDB: { label: "", value: "" },
     minutesDB: { label: "", value: "" },
   },
-  refresh_data: false,
-  setRefreshData: (value) => set(() => ({ refresh_data: value })),
+  onEditingEvent: false,
+  setOnEditingEvent: (value) => set(() => ({ onEditingEvent: value })),
 
   setActiveEventSection: (value) => set(() => ({ activeEventSection: value })),
   addEvent: (newEvent) =>
     set((state) => ({ events: [...state.events, newEvent] })),
   // Function to add array of events
-  addSavedEvents: (events) => set(() => ({ events: events })),
+  setEvents: (events) => set(() => ({ events: events })),
   addSavedEvent: (newEvent) =>
     set((state) => ({ savedEvents: [...state.events, newEvent] })),
   // update function add condition if index is an array
@@ -205,7 +205,7 @@ export const useStore = create((set) => ({
     }),
 
   //update stardate and enddate for all events
-  dateEventDates: (newDate) =>
+  updateEventDates: (newDate) =>
     set((state) => {
       const updateEvents = state.events.map((event) => {
         let upEvent = { ...event };
@@ -280,5 +280,5 @@ export const useStore = create((set) => ({
 }));
 export const exposeStore = () => ({
   getTotalDuration: () => useStore.getState().totalDuration,
-  getEvents: () => useStore.getState().events,
+  // setOnEditingEvent: () => useStore.getState().setOnEditingEvent,
 });
