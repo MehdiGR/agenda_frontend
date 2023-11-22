@@ -16,24 +16,30 @@ export default function Home({
   periods,
   reservations,
 }) {
+  // const {
+  //   addEvent,
+  //   updateEvent,
+  //   events,
+  //   setAddedEventId,
+  //   setDateTime,
+  //   setEventAgenda,
+  //   addAllAgendaPres,
+  //   addDurationHour,
+  //   addDurationMinutes,
+  //   resetDurationHour,
+  //   resetDurationMinutes,
+  //   onEditingEvent,
+  //   setOnEditingEvent,
+  //   // setActiveEventSection,
+  // } = useStore();
   const {
-    addEvent,
-    updateEvent,
+    manageEvents,
+    setActiveEventSection,
+    toggleEventSelected,
     events,
-    setAddedEventId,
-    setDateTime,
-    setEventAgenda,
-    addAllAgendaPres,
-    addDurationHour,
-    addDurationMinutes,
-    resetDurationHour,
-    resetDurationMinutes,
     onEditingEvent,
     setOnEditingEvent,
-    // setActiveEventSection,
-  } = useStore();
-  const { manageEvents, setActiveEventSection, toggleEventSelected } =
-    useStore_new2();
+  } = useStore_new2();
   // const [activeEventSection, setActiveEventSection] = useState(false);
 
   useEffect(() => {
@@ -65,6 +71,7 @@ export default function Home({
       // Update the events array with the new event
       // setEvents([...events, newEvent]);
       const existTemp = events.findIndex((event: any) => event.isTemp == true);
+      console.log("existTemp", existTemp);
       // //  && event.saved == false
       if (existTemp == -1) {
         newEvent = { ...newEvent, eventIndex: lastIndex + 1 };
@@ -73,9 +80,9 @@ export default function Home({
         toggleEventSelected(lastIndex + 1);
       } else {
         const index = existTemp;
-        newEvent = { ...newEvent, eventIndex: lastIndex };
+        const updatedEvent = { ...newEvent, eventIndex: lastIndex };
         // updateEvent(newEvent, index);
-        manageEvents([{ action: "update", payload: { newEvent, index } }]);
+        manageEvents([{ action: "update", payload: { updatedEvent, index } }]);
         toggleEventSelected(lastIndex);
       }
 
@@ -102,7 +109,7 @@ export default function Home({
       hourDB: { label: hours, value: hours },
       minutesDB: { label: minutes, value: minutes },
     };
-    setDateTime(newDate);
+    // setDateTime(newDate);
   };
   const handleUpdateEvent = (info: any) => {
     // console.log(info.event.extendedProps);
