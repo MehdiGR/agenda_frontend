@@ -14,6 +14,8 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import removeIcon from "@/public/square_remove.svg";
 import Image from "next/image";
+import { selectDefaultStyle, selectHourStyles } from "./styles/select_style";
+
 import {
   openModal,
   removePrestation,
@@ -28,6 +30,7 @@ import {
 } from "@/app/js/agenda_fn";
 import { useStore } from "@/app/store/store";
 import { saveReservation } from "@/app/lib/reservatActions";
+import { useStore_new2 } from "@/app/store/store_new2";
 
 export default function CreateEventSection({
   clients,
@@ -50,8 +53,9 @@ export default function CreateEventSection({
     totalDuration,
     updateEventsTime,
     updateEventDates,
-    activeEventSection,
+    // activeEventSection,
   } = useStore();
+  const { activeEventSection } = useStore_new2();
 
   const [clientIsRef, setIsRef] = useState(true);
   const [selectedClientType, setSelectedClientType] = useState("client_ref");
@@ -65,43 +69,8 @@ export default function CreateEventSection({
       return { value: agenda.id, label: agenda.nom };
     })
   );
-  const [selectedClient, setSelectedClient] = useState(null);
+  // const [selectedClient, setSelectedClient] = useState(null);
   // const [selectedAgenda, setSelectedAgenda] = useState();
-
-  // Default style select
-  const selectDefaultStyle = {
-    control: (provided: any) => ({
-      ...provided,
-      border: "1px solid #D1D5DB",
-      borderRadius: "0.375rem",
-      fontSize: "16px",
-      width: "100%",
-    }),
-  };
-
-  const selectHourStyles = {
-    control: (provided: any) => ({
-      ...provided,
-      fontSize: "16px",
-      width: "60px",
-    }),
-    dropdownIndicator: (provided: any) => ({
-      ...provided,
-      color: "#383838",
-      width: "10px",
-      marginRight: "5px",
-      transform: "scale(1.3)",
-      padding: "0",
-    }),
-    indicatorSeparator: (provided: any) => ({
-      ...provided,
-      display: "none",
-    }),
-    menu: (provided: any) => ({
-      ...provided,
-      width: "200px",
-    }),
-  };
 
   const schema = yup.object().shape({
     client: yup

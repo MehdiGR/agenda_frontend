@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import MyCalendar from "./mycalendar";
 import CreateEventSection from "./createeventsection";
 import { useStore } from "@/app/store/store";
+import { useStore_new2 } from "@/app/store/store_new2";
 import { processReservations } from "@/app/js/agenda_fn";
 export default function Home({
   clients,
@@ -29,8 +30,10 @@ export default function Home({
     resetDurationMinutes,
     onEditingEvent,
     setOnEditingEvent,
-    setActiveEventSection,
+    // setActiveEventSection,
   } = useStore();
+  const { manageEvents, setActiveEventSection, toggleEventSelected } =
+    useStore_new2();
   // const [activeEventSection, setActiveEventSection] = useState(false);
 
   useEffect(() => {
@@ -40,9 +43,9 @@ export default function Home({
   }, [reservations]);
 
   const handleAddEvent = (arg: any) => {
-    if (arg.hasOwnProperty("resource") && onEditingEvent == false) {
+    if (arg.hasOwnProperty("resource")) {
       // update active state for showing  the create event section
-      setActiveEventSection(() => true);
+      // setActiveEventSection(() => true);
       const lastIndex = events.findLastIndex((event: any) => event);
       let newEvent = {
         start: arg.dateStr,
@@ -55,29 +58,35 @@ export default function Home({
         isTemp: true,
         eventIndex: "",
       };
-      setEventAgenda({
-        label: arg.resource.title,
-        value: parseInt(newEvent.resourceId),
-      });
+      // setEventAgenda({
+      //   label: arg.resource.title,
+      //   value: parseInt(newEvent.resourceId),
+      // });
       // Update the events array with the new event
       // setEvents([...events, newEvent]);
       const existTemp = events.findIndex((event: any) => event.isTemp == true);
       // //  && event.saved == false
       if (existTemp == -1) {
         newEvent = { ...newEvent, eventIndex: lastIndex + 1 };
-        addEvent(newEvent);
+        // addEvent(newEvent);
+        manageEvents([{ action: "add", payload: { newEvent } }]);
+        toggleEventSelected(lastIndex + 1);
       } else {
         const index = existTemp;
         newEvent = { ...newEvent, eventIndex: lastIndex };
-        updateEvent(newEvent, index);
+        // updateEvent(newEvent, index);
+        manageEvents([{ action: "update", payload: { newEvent, index } }]);
+        toggleEventSelected(lastIndex);
       }
-      setAddedEventId(newEvent.resourceId);
+
+      // setAddedEventId(newEvent.resourceId);
 
       // resetDurationHour();
       // resetDurationMinutes();
       // addAllAgendaPres([]);
       // setActiveEventSection(true);
-      setOnEditingEvent(true);
+      // setOnEditingEvent(true);
+      setActiveEventSection(true);
     }
   };
   const handleEventDrop = (arg: any) => {
@@ -100,18 +109,19 @@ export default function Home({
     // return;
     if (info.event.extendedProps.idRes && onEditingEvent == false) {
       setActiveEventSection(() => true);
-      let hours: number = 0,
-        minutes: number = 0;
+      // let hours: number = 0,
+      //   minutes: number = 0;
       // resetDurationHour();
       // resetDurationMinutes();
       // addAllAgendaPres([]);
       const eventIndex = parseInt(info.event.extendedProps.eventIndex);
+      let agendaPresIndices: any = [];
       const data = events
         .filter((res: any) => res.idRes == info.event.extendedProps.idRes)
         .map((res: any, index: number) => {
           // console.log(res);
           let rowIndex = index == 0 ? eventIndex : eventIndex + 1;
-
+          agendaPresIndices.push(res.eventIndex);
           return {
             eventIndex: res.eventIndex,
             res_id: res.idRes,
@@ -129,27 +139,45 @@ export default function Home({
           };
         });
       // console.log(data);
-      addAllAgendaPres(data);
+      // addAllAgendaPres(data);
+      // manageEvents("manageAgendaPres", { Agendas: data, action: "add_all" });
       const dateTimeString = info.event.start;
       let date = new Date(dateTimeString);
       const formatted_date = date.toISOString();
-      const dateDB = formatted_date.split("T")[0];
+      toggleEventSelected(agendaPresIndices);
+      manageEvents([
+        {
+          action: "manageAgendaPres",
+          payload: {
+            agendas: data,
+            action: "add_all",
+          },
+        },
+        {
+          action: "updateDates",
+          payload: {
+            newDate: formatted_date,
+          },
+        },
+      ]);
+
+      // const dateDB = formatted_date.split("T")[0];
       // const hourDB = formatted_date.split("T")[1].split(":")[0];
       // const minutesDB = formatted_date.split("T")[1].split(":")[1];
-      const hourDB = info.event.extendedProps.hourDB;
-      const minutesDB = info.event.extendedProps.minutesDB;
-      console.log(info.event.extendedProps);
+      // const hourDB = info.event.extendedProps.hourDB;
+      // const minutesDB = info.event.extendedProps.minutesDB;
+      // console.log(info.event.extendedProps);
       // setDateTime({date.toISOString().split("T")[0]);
-      setDateTime({
-        dateDB,
-        hourDB: { label: hourDB, value: hourDB },
-        minutesDB: { label: minutesDB, value: minutesDB },
-      });
+      // setDateTime({
+      //   dateDB,
+      //   hourDB: { label: hourDB, value: hourDB },
+      //   minutesDB: { label: minutesDB, value: minutesDB },
+      // });
       // console.log(info.event.extendedProps.hourDB);
-      hours = parseInt(info.event.extendedProps.duree) / 60;
-      minutes = parseInt(info.event.extendedProps.duree) % 60;
-      addDurationHour(Math.floor(hours));
-      addDurationMinutes(Math.floor(minutes));
+      // hours = parseInt(info.event.extendedProps.duree) / 60;
+      // minutes = parseInt(info.event.extendedProps.duree) % 60;
+      // addDurationHour(Math.floor(hours));
+      // addDurationMinutes(Math.floor(minutes));
       setOnEditingEvent(true);
     }
   };

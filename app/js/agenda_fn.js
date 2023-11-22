@@ -1,5 +1,6 @@
 // helper functions
 import { useStore } from "../store/store";
+import { useStore_new1 } from "../store/store_new1";
 export const cancelCreationEvent = () => {
   console.log("item");
   useStore.getState().setActiveEventSection(false);
@@ -174,15 +175,15 @@ export const calculateTotalPrices = () => {
   setTotalPrice(total);
 };
 export const calculateTotalDuration = () => {
-  let total = 0;
-  const setTotalDuration = useStore.getState().setTotalDuration;
-  const duration_hours = useStore.getState().duration_hours;
-  const duration_minutes = useStore.getState().duration_minutes;
-  const totalHours = duration_hours.reduce((a, b) => a + b, 0);
-  const totalMinutes = duration_minutes.reduce((a, b) => a + b, 0);
-  const totalHoursInMinutes = totalHours * 60;
-  total = totalHoursInMinutes + totalMinutes;
-  setTotalDuration(total);
+  // let total = 0;
+  // const setTotalDuration = useStore_new1.getState().setTotalDuration;
+  // const duration_hours = useStore.getState().duration_hours;
+  // const duration_minutes = useStore.getState().duration_minutes;
+  // const totalHours = duration_hours.reduce((a, b) => a + b, 0);
+  // const totalMinutes = duration_minutes.reduce((a, b) => a + b, 0);
+  // const totalHoursInMinutes = totalHours * 60;
+  // total = totalHoursInMinutes + totalMinutes;
+  // setTotalDuration(total);
 };
 export const formatDuration = (totalMinutes) => {
   const hour = Math.floor(totalMinutes / 60);

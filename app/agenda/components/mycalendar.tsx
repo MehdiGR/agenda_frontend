@@ -10,6 +10,7 @@ import resourceTimeGridPlugin from "@fullcalendar/resource-timegrid";
 import frLocale from "@fullcalendar/core/locales/fr";
 import { useEffect, useState } from "react";
 import { useStore } from "@/app/store/store";
+import { useStore_new2 } from "@/app/store/store_new2";
 
 export default function MyCalendar({
   handleAddEvent,
@@ -22,7 +23,8 @@ export default function MyCalendar({
   //   { id: "b", title: "Room B", building: "Building 2" },
   //   { id: "c", title: "Room C", building: "Building 1" },
   // ];
-  const { events, savedEvents } = useStore();
+  // const { events, savedEvents } = useStore();
+  const { events } = useStore_new2();
 
   const resources = agendas.map((agenda: any) => ({
     id: agenda.id,
