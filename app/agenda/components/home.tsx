@@ -71,7 +71,6 @@ export default function Home({
       // Update the events array with the new event
       // setEvents([...events, newEvent]);
       const existTemp = events.findIndex((event: any) => event.isTemp == true);
-      console.log("existTemp", existTemp);
       // //  && event.saved == false
       if (existTemp == -1) {
         newEvent = { ...newEvent, eventIndex: lastIndex + 1 };

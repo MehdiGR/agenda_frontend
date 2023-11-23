@@ -1,6 +1,7 @@
 // helper functions
+import { parse } from "path";
 import { useStore } from "../store/store";
-import { useStore_new1 } from "../store/store_new1";
+import { useStore_new2 } from "../store/store_new2";
 export const cancelCreationEvent = () => {
   console.log("item");
   useStore.getState().setActiveEventSection(false);
@@ -63,93 +64,175 @@ export const saveClient = async (formData) => {
   }
 };
 export const addPrestation = (data) => {
-  const {
-    addAgendaPres,
-    addDurationHour,
-    addDurationMinutes,
-    addEvent,
-    updateEvent,
-    events,
-    dateTime,
-    totalDuration,
-    addedEventId,
-    eventAgenda,
-  } = useStore.getState();
-  const hour = Math.floor(data.duree / 60);
-  addDurationHour(hour);
-  const minutes = data.duree % 60;
-  addDurationMinutes(minutes);
-
-  let timeEnd = formatDuration(
-    totalDuration +
-      ((parseInt(dateTime.hourDB.value) + parseInt(hour)) * 60 +
-        parseInt(dateTime.minutesDB.value) +
-        parseInt(minutes))
-  );
-  timeEnd = timeEnd.replace("h", ":");
-  let hourDB = dateTime.hourDB.value;
-  let minutesDB = dateTime.minutesDB.value;
-  const existeTempEvent = events.find((event) => event.isTemp);
-  const timeStart = dateTime.dateDB + "T" + hourDB + ":" + minutesDB;
-
-  let time = {
-    start: timeStart,
-    end: dateTime.dateDB + "T" + timeEnd.toString(),
-  };
-
-  if (!existeTempEvent) {
-    hourDB = parseInt(timeEnd.split(":")[0]) - Math.floor(data.duree / 60);
-    minutesDB = parseInt(timeEnd.split(":")[1]) - Math.floor(data.duree % 60);
-    time = {
-      start:
-        dateTime.dateDB +
-        "T" +
-        hourDB.toString().padStart(2, "0") +
-        ":" +
-        minutesDB.toString().padStart(2, "0"),
-      end: dateTime.dateDB + "T" + timeEnd.toString(),
-    };
-  }
-
-  // console.log("hourDB", hourDB);
+  // const {
+  //   addAgendaPres,
+  //   addDurationHour,
+  //   addDurationMinutes,
+  //   addEvent,
+  //   updateEvent,
+  //   events,
+  //   dateTime,
+  //   totalDuration,
+  //   addedEventId,
+  //   eventAgenda,
+  // } = useStore.getState();
+  const { manageEvents, events, selectedEventsIndices, toggleEventSelected } =
+    useStore_new2.getState();
+  const current_event = events.find((event) => event.isTemp);
+  // if exist a temp event
+  const EventIndices = [...selectedEventsIndices];
+  // console.log("selected events", [...selectedEventsIndices]);
   // return;
-  let newEvent = {
-    ...time,
-    title: data.intitule,
-    prestationId: data.id,
-    isTemp: false,
-    resourceId: addedEventId,
-    editable: true,
-    classNames: ["animated-event"],
-    backgroundColor: "rgb(251, 233, 131)",
-    borderColor: "rgb(251, 233, 131)",
-    textColor: "#383838",
-  };
-  const indexTemp = events.findIndex((event) => event.isTemp);
+  if (current_event) {
+    const [start_date, start_time] = current_event.start.split("T");
 
-  let lastIndex = events.findLastIndex((event) => event);
-  if (indexTemp === -1) {
-    lastIndex = lastIndex + 1;
-    newEvent = { ...newEvent, eventIndex: lastIndex };
-    console.log("add", newEvent);
-    addEvent(newEvent);
-  } else {
-    newEvent = { ...newEvent, eventIndex: lastIndex };
-    console.log("update", newEvent);
-    updateEvent(newEvent, indexTemp);
+    const [star_hour, start_minutes] = start_time.split(":");
+    const end_hour = (
+      parseInt(Math.floor(data.duree / 60)) + parseInt(star_hour)
+    )
+      .toString()
+      .padStart(2, "0");
+
+    const end_minutes = (
+      parseInt(Math.floor(data.duree % 60)) + parseInt(start_minutes)
+    )
+      .toString()
+      .padStart(2, "0");
+    const event_end = `${start_date}T${end_hour}:${end_minutes}`;
+    const event_index = current_event.eventIndex;
+    const updatedEvent = {
+      title: data.intitule,
+      prestationId: data.id,
+      isTemp: false,
+      resourceId: current_event.resourceId,
+      end: event_end,
+      editable: true,
+      classNames: ["animated-event"],
+      backgroundColor: "rgb(251, 233, 131)",
+      borderColor: "rgb(251, 233, 131)",
+      textColor: "#383838",
+    };
+    manageEvents([
+      { action: "update", payload: { updatedEvent, index: event_index } },
+    ]);
+  }
+  // if not exist a temp event
+  else {
+    const resourceId = events[EventIndices[EventIndices.length - 1]].resourceId;
+    const last_event_end = events[EventIndices[EventIndices.length - 1]].end;
+    // console.log("last_event_end", last_event_end);
+    const eventIndex = events[events.length - 1].eventIndex + 1;
+    const start = last_event_end;
+    const [end_date, end_time] = last_event_end.split("T");
+
+    let [end_hour, end_minutes] = end_time.split(":").map(Number); // Convert to numbers
+    const duration_hours = Math.floor(data.duree / 60);
+    const duration_minutes = data.duree % 60;
+
+    end_minutes += duration_minutes;
+    end_hour += duration_hours + Math.floor(end_minutes / 60); // Add extra hour if minutes exceed 59
+    end_minutes %= 60;
+
+    // Format the hours and minutes to ensure two digits
+    const formatted_end_hour = String(end_hour).padStart(2, "0");
+    const formatted_end_minutes = String(end_minutes).padStart(2, "0");
+
+    const end = `${end_date}T${formatted_end_hour}:${formatted_end_minutes}`;
+    console.log("end", end);
+    // const start_date=
+    const newEvent = {
+      eventIndex,
+      title: data.intitule,
+      prestationId: data.id,
+      resourceId,
+      isTemp: false,
+      editable: true,
+      start,
+      end,
+      classNames: ["animated-event"],
+      backgroundColor: "rgb(251, 233, 131)",
+      borderColor: "rgb(251, 233, 131)",
+      textColor: "#383838",
+    };
+    manageEvents([{ action: "add", payload: { newEvent } }]);
+    toggleEventSelected(eventIndex);
   }
 
-  const agendaData = {
-    ...data,
-    eventIndex: lastIndex,
-    hourDB: `${hourDB}:${minutesDB}`,
-    duration_hours: Math.floor(parseInt(data.duree) / 60) * 60,
-    duration_minutes: parseInt(data.duree) % 60,
-    agenda: eventAgenda,
-  };
+  // manageEvents([{ action: "update", payload: { updatedEvent, index } }]);
+  return;
+  // addDurationHour(hour);
+  // const minutes = data.duree % 60;
+  // addDurationMinutes(minutes);
+  // let timeEnd = formatDuration(
+  //   totalDuration +
+  //     ((parseInt(dateTime.hourDB.value) + parseInt(hour)) * 60 +
+  //       parseInt(dateTime.minutesDB.value) +
+  //       parseInt(minutes))
+  // );
+  // timeEnd = timeEnd.replace("h", ":");
+  // let hourDB = dateTime.hourDB.value;
+  // let minutesDB = dateTime.minutesDB.value;
+  // const existeTempEvent = events.find((event) => event.isTemp);
+  // const timeStart = dateTime.dateDB + "T" + hourDB + ":" + minutesDB;
 
-  addAgendaPres(agendaData);
-  console.log("data", agendaData);
+  // let time = {
+  //   start: timeStart,
+  //   end: dateTime.dateDB + "T" + timeEnd.toString(),
+  // };
+
+  // if (!existeTempEvent) {
+  //   hourDB = parseInt(timeEnd.split(":")[0]) - Math.floor(data.duree / 60);
+  //   minutesDB = parseInt(timeEnd.split(":")[1]) - Math.floor(data.duree % 60);
+  //   time = {
+  //     start:
+  //       dateTime.dateDB +
+  //       "T" +
+  //       hourDB.toString().padStart(2, "0") +
+  //       ":" +
+  //       minutesDB.toString().padStart(2, "0"),
+  //     end: dateTime.dateDB + "T" + timeEnd.toString(),
+  //   };
+  // }
+
+  // // console.log("hourDB", hourDB);
+  // // return;
+  // let newEvent = {
+  //   ...time,
+  //   title: data.intitule,
+  //   prestationId: data.id,
+  //   isTemp: false,
+  //   resourceId: addedEventId,
+  //   editable: true,
+  //   classNames: ["animated-event"],
+  //   backgroundColor: "rgb(251, 233, 131)",
+  //   borderColor: "rgb(251, 233, 131)",
+  //   textColor: "#383838",
+  // };
+  // const indexTemp = events.findIndex((event) => event.isTemp);
+
+  // let lastIndex = events.findLastIndex((event) => event);
+  // if (indexTemp === -1) {
+  //   lastIndex = lastIndex + 1;
+  //   newEvent = { ...newEvent, eventIndex: lastIndex };
+  //   console.log("add", newEvent);
+  //   addEvent(newEvent);
+  // } else {
+  //   newEvent = { ...newEvent, eventIndex: lastIndex };
+  //   console.log("update", newEvent);
+  //   updateEvent(newEvent, indexTemp);
+  // }
+
+  // const agendaData = {
+  //   ...data,
+  //   eventIndex: lastIndex,
+  //   hourDB: `${hourDB}:${minutesDB}`,
+  //   duration_hours: Math.floor(parseInt(data.duree) / 60) * 60,
+  //   duration_minutes: parseInt(data.duree) % 60,
+  //   agenda: eventAgenda,
+  // };
+
+  // addAgendaPres(agendaData);
+  // console.log("data", agendaData);
 };
 
 export const removePrestation = (eventIndex, rowIndex) => {
@@ -193,17 +276,17 @@ export const formatDuration = (totalMinutes) => {
     .padStart(2, "0")}`;
 };
 export const saveReservat = async (formData) => {
-  const totalDuration = useStore.getState().totalDuration;
-  const agenda_prestationArr = useStore.getState().agenda_prestationArr;
-  const { hourDB, minutesDB, ...rest } = formData;
-  const time = `${hourDB.value}:${minutesDB.value}`;
-  const updatedFormData = {
-    ...rest,
-    time,
-    duree: totalDuration,
-  };
-  // console.log("updatedFormData", updatedFormData);
-  // return;
+  // const totalDuration = useStore.getState().totalDuration;
+  // const agenda_prestationArr = useStore.getState().agenda_prestationArr;
+  // const { hourDB, minutesDB, ...rest } = formData;
+  // const time = `${hourDB.value}:${minutesDB.value}`;
+  // const updatedFormData = {
+  //   ...rest,
+  //   time,
+  //   // duree: totalDuration,
+  // };
+  console.log("formData", formData);
+  return;
   const response = await fetch("http://localhost:3000/api/reservat", {
     method: "POST",
     headers: {
@@ -241,7 +324,7 @@ export const saveReservat = async (formData) => {
 };
 
 export const processReservations = (reservations) => {
-  console.log(reservations);
+  // console.log(reservations);
   const setEvents = useStore.getState().setEvents;
 
   const events = [];

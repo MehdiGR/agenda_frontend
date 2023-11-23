@@ -35,12 +35,12 @@ export const useStore_new2 = create((set) => ({
   modalIsOpen: false,
   setOnEditingEvent: (value) => set(() => ({ onEditingEvent: value })),
   setActiveEventSection: (value) => set(() => ({ activeEventSection: value })),
-  selectedEventIndex: new Set(),
+  selectedEventsIndices: new Set(),
   manageEvents: (actions) => {
     set((state) => {
       return produce(state, (draft) => {
         draft.events = draft.events || [];
-        draft.selectedEventIndex = draft.selectedEventIndex || new Set();
+        draft.selectedEventsIndices = draft.selectedEventsIndices || new Set();
 
         actions.forEach(({ action, payload }) => {
           switch (action) {
@@ -73,11 +73,11 @@ export const useStore_new2 = create((set) => ({
               break;
             case "updateDates":
               draft.events = draft.events.map((event) => {
-                if (draft.selectedEventIndex.has(event.eventIndex)) {
+                if (draft.selectedEventsIndices.has(event.eventIndex)) {
                   return {
                     ...event,
                     start: `${payload.newDate}T${event.start.split("T")[1]}`,
-                    end: `${payload.newDate}T${event.end.split("T")[1]}`,
+                    end: `${payload.newDate}T${event.end?.split("T")[1]}`,
                   };
                 }
                 return event;
@@ -86,7 +86,7 @@ export const useStore_new2 = create((set) => ({
             case "manageAgendaPres":
               draft.events = draft.events.map((event, i) => {
                 if (
-                  draft.selectedEventIndex.has(event.eventIndex) &&
+                  draft.selectedEventsIndices.has(event.eventIndex) &&
                   i === payload.index
                 ) {
                   let agenda_prestationArr = [...event.agenda_prestationArr];
@@ -114,7 +114,7 @@ export const useStore_new2 = create((set) => ({
                 dateDB = null,
                 idRes = null,
               } = payload;
-
+              // console.log(payload, "payload");
               const modEndTimes = [];
               let prevIndex;
 
@@ -122,14 +122,11 @@ export const useStore_new2 = create((set) => ({
                 const i = event.eventIndex;
                 const existIdRes = idRes ? event.idRes === idRes : true;
 
-                if (
-                  existIdRes &&
-                  event.resourceId === idAgenda &&
-                  dateDB === event.start.split("T")[0] &&
-                  (i === index || i > index)
-                ) {
+                console.log(existIdRes);
+                if (existIdRes && (i === index || i > index)) {
+                  console.log(payload, "payload");
                   const [startD, startT] = event.start.split("T");
-                  const [endD, endT] = event.end.split("T");
+                  const [endD, endT] = event.end?.split("T") || [null, null];
 
                   let hour, minutes, EndHour, EndMinutes;
                   let newEvent = { ...event };
@@ -199,6 +196,7 @@ export const useStore_new2 = create((set) => ({
                     modEndTimes[i] = newEvent.end;
                     prevIndex = i;
                   }
+                  console.log(newEvent, "newEvent");
                   return newEvent;
                 }
                 return event;
@@ -218,18 +216,20 @@ export const useStore_new2 = create((set) => ({
       return produce(state, (draft) => {
         if (Array.isArray(eventIndices)) {
           eventIndices.forEach((index) => {
-            if (draft.selectedEventIndex.has(index)) {
-              draft.selectedEventIndex.delete(index);
+            if (draft.selectedEventsIndices.has(index)) {
+              draft.selectedEventsIndices.delete(index);
             } else {
-              draft.selectedEventIndex.add(index);
+              draft.selectedEventsIndices.add(index);
             }
           });
         } else {
-          if (draft.selectedEventIndex.has(eventIndices)) {
-            draft.selectedEventIndex.delete(eventIndices);
-          } else {
-            draft.selectedEventIndex.add(eventIndices);
-          }
+          // if (draft.selectedEventsIndices.has(eventIndices)) {
+          //   draft.selectedEventsIndices.delete(eventIndices);
+          // } else {
+          // console.log(draft.selectedEventsIndices);
+          draft.selectedEventsIndices.add(eventIndices);
+          // console.log(selectedEventsIndices);
+          // }
         }
       });
     });

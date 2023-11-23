@@ -1,26 +1,62 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState, useTransition } from "react";
 import ModalClient from "./modalclient";
-import Select from "react-select";
+import Select, { InputProps } from "react-select";
 // import { OptionsType, OptionTypeBase } from "react-select";
 import PrestationSlider from "./prestationsSlider";
-import { Controller, useForm } from "react-hook-form";
+import {
+  Controller,
+  SubmitHandler,
+  useFieldArray,
+  useForm,
+} from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import removeIcon from "../../../public/square_remove.svg";
+import removeIcon from "@/public/square_remove.svg";
 import Image from "next/image";
+import { selectDefaultStyle, selectHourStyles } from "./styles/select_style";
+
+import {
+  openModal,
+  removePrestation,
+  formatDuration,
+  handleOptionChangeAg,
+  handleOptionChangeClt,
+  handleOptionChangeTypeClt,
+  saveReservat,
+  cancelCreationEvent,
+  calculateTotalDuration,
+  calculateTotalPrices,
+} from "@/app/js/agenda_fn";
+import { useStore } from "@/app/store/store";
+import { saveReservation } from "@/app/lib/reservatActions";
+import { useStore_new2 } from "@/app/store/store_new2";
 
 export default function CreateEventSection({
-  active,
-  setActive,
   clients,
   villes,
   collaborateurs,
   prestations,
   agendas,
-  eventAgenda,
 }) {
-  const [modalIsOpen, setIsOpen] = useState(false);
+  const {
+    duration_hours,
+    updateDurationHour,
+    duration_minutes,
+    updateDurationMinutes,
+    agenda_prestationArr,
+    eventAgenda,
+    events,
+    dateTime,
+    setDateTime,
+    totalPrice,
+    totalDuration,
+    updateEventsTime,
+    updateEventDates,
+    // activeEventSection,
+  } = useStore();
+  const { activeEventSection } = useStore_new2();
+
   const [clientIsRef, setIsRef] = useState(true);
   const [selectedClientType, setSelectedClientType] = useState("client_ref");
   const [clientOptions, setClientOptions] = useState(
@@ -33,137 +69,8 @@ export default function CreateEventSection({
       return { value: agenda.id, label: agenda.nom };
     })
   );
-  const [selectedClient, setSelectedClient] = useState(null);
-  const [selectedAgenda, setSelectedAgenda] = useState();
-  const [agenda_prestationArr, setAgendaPrestationArr] = useState<any[]>([]);
-  // const [date, setDate] = useState("");
-  // const [hour, setHour] = useState();
-  // const [minutes, setMinutes] = useState();
-  // const [formData, setFormData] = useState({
-  //   client: "",
-  //   date: "",
-  //   time: "",
-  //   agenda_prestation: {},
-  // });
-
-  // Cancel creation event
-  const cancelCreationEvent = () => {
-    setActive(false);
-  };
-
-  // handle radio button (client) change
-  const handleOptionChangeTypeClt = (changeEvent: any) => {
-    let value = changeEvent.target.value;
-    value == "client_ref" ? setIsRef(true) : setIsRef(false);
-    setSelectedClientType(value);
-  };
-
-  const handleOptionChangeClt = (selectedOption: any) => {
-    setSelectedClient(selectedOption);
-  };
-
-  const handleOptionChangeAg = (selectedOption: any) => {
-    setSelectedAgenda(selectedOption);
-  };
-
-  function openModal() {
-    setIsOpen(true);
-  }
-
-  function closeModal() {
-    setIsOpen(false);
-  }
-
-  const saveClient = async (formData: any) => {
-    const response = await fetch("http://localhost:3000/api/client", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(formData),
-    });
-
-    if (response.ok) {
-      // Request was successful
-      const data = await response.json();
-      // Handle the response data
-      const newClient = { value: data.clientId, label: formData.nom };
-      // add the new client to select client element
-      setClientOptions((prevOptions: any) => [...prevOptions, newClient]);
-      // update selected client
-      setSelectedClient(newClient);
-      closeModal();
-    } else {
-      // Request failed
-      console.error("POST request failed");
-    }
-  };
-  const saveReservat = async (formData: any) => {
-    const { heurDB, minuteDB, ...rest } = formData;
-    const time = `${heurDB.value}:${minuteDB.value}`;
-    const updatedFormData = { ...rest, time };
-    // console.log(updatedFormData);
-    // return;
-    const response = await fetch("http://localhost:3000/api/reservat", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(updatedFormData),
-    });
-
-    if (response.ok) {
-    } else {
-      // Request failed
-      console.error("POST request failed");
-    }
-  };
-
-  const addPrestation = (data: any) => {
-    setAgendaPrestationArr((previousState) => {
-      return [...previousState, { ...data }];
-    });
-  };
-
-  const removePrestation = (index: any) => {
-    setAgendaPrestationArr((previousState) => {
-      return previousState.filter((_, i) => i !== index);
-    });
-  };
-
-  const selectDefaultStyle = {
-    control: (provided: any) => ({
-      ...provided,
-      border: "1px solid #D1D5DB",
-      borderRadius: "0.375rem",
-      fontSize: "16px",
-      width: "100%",
-    }),
-  };
-
-  const selectHourStyles = {
-    control: (provided: any) => ({
-      ...provided,
-      fontSize: "16px",
-      width: "60px",
-    }),
-    dropdownIndicator: (provided: any) => ({
-      ...provided,
-      color: "#383838",
-      width: "10px",
-      marginRight: "5px",
-      transform: "scale(1.3)",
-      padding: "0",
-    }),
-    indicatorSeparator: (provided: any) => ({
-      ...provided,
-      display: "none",
-    }),
-    menu: (provided: any) => ({
-      ...provided,
-      width: "200px",
-    }),
-  };
+  // const [selectedClient, setSelectedClient] = useState(null);
+  // const [selectedAgenda, setSelectedAgenda] = useState();
 
   const schema = yup.object().shape({
     client: yup
@@ -173,40 +80,114 @@ export default function CreateEventSection({
         value: yup.string().required(),
       })
       .required(),
-    dateRes: yup.string(),
-    heurDB: yup.object().shape({
+    dateRes: yup.string().required(),
+    hourDB: yup.object().shape({
       label: yup.string(),
       value: yup.string(),
     }),
-    minuteDB: yup.object().shape({
+    minutesDB: yup.object().shape({
       label: yup.string(),
       value: yup.string(),
     }),
     note: yup.string(),
-    // prestaionsIds: yup.array().of(yup.number()),
-    prestationsIds: yup.string(),
+    agenda_prestationArr: yup.array(),
+    idRes: yup.string().default(""),
   });
-
   const {
     register,
     handleSubmit,
     formState: { errors },
     control,
-  } = useForm({ resolver: yupResolver(schema) });
+    setValue,
+  } = useForm({
+    resolver: yupResolver(schema),
+  });
 
-  // const handleInputChange = (e: any) => {
-  //   setFormData({ ...formData, [e.target.name]: e.target.value });
-  // };
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "agenda_prestationArr",
+  });
 
   useEffect(() => {
-    setSelectedAgenda(eventAgenda);
-    // register form inputs
-    console.log(agenda_prestationArr);
-  }, [agenda_prestationArr, selectedAgenda]);
+    // setSelectedAgenda(eventAgenda);
+    calculateTotalDuration();
+    calculateTotalPrices();
+  }, [agenda_prestationArr, duration_hours, duration_minutes]);
+  useEffect(() => {
+    setValue("dateRes", dateTime.dateDB);
+  }, [dateTime.dateDB]);
+  useEffect(() => {
+    setValue("hourDB", dateTime.hourDB);
+  }, [dateTime.hourDB]);
+  useEffect(() => {
+    setValue("minutesDB", dateTime.minutesDB);
+  }, [dateTime.minutesDB]);
+  useEffect(() => {
+    setValue("agenda_prestationArr", agenda_prestationArr);
+    const clientData = agenda_prestationArr[0]?.client;
+    const idRes = agenda_prestationArr[0]?.res_id;
+    if (clientData) {
+      setValue("client", {
+        label: clientData.label,
+        value: clientData.value,
+      });
+    } else {
+      // setValue("client", { label: "Sélectionnez un client", value: "" });
+    }
+    if (idRes) {
+      setValue("idRes", idRes);
+    } else {
+      setValue("idRes", "");
+    }
+  }, [agenda_prestationArr]);
+  useEffect(() => {
+    if (events && events.length > 0) {
+      if (events.length > 0) {
+        // console.log("events", events);
+        const eventTemp = events.find((event: any) => event.isTemp == true);
+        // console.log("eventTemp", eventTemp);
+        if (eventTemp) {
+          // console.log("eventTemp", eventTemp);
+          const dateDB = eventTemp.start.split("T")[0];
+          const hourDB = {
+            value: (eventTemp.start.split("T")[1].split(":")[0] || "")
+              .toString()
+              .padStart(2, "0"),
+            label: (eventTemp.start.split("T")[1].split(":")[0] || "")
+              .toString()
+              .padStart(2, "0"),
+          };
+          const minutesDB = {
+            value: (eventTemp.start.split("T")[1].split(":")[1] || "")
+              .toString()
+              .padStart(2, "0"),
+            label: (eventTemp.start.split("T")[1].split(":")[1] || "")
+              .toString()
+              .padStart(2, "0"),
+          };
+          setDateTime({ dateDB, hourDB, minutesDB });
+        }
+      }
+    }
+  }, [events]);
+  const [isPending, startTransition] = useTransition();
+
+  const handleSaveReservat: any = async (data) => {
+    startTransition(() => {
+      saveReservation(data);
+    });
+  };
 
   return (
-    <div className={`relative   h-fit w-full ${!active ? "hidden" : ""}`}>
-      <form onSubmit={handleSubmit(saveReservat)} className=" space-y-4 h-full">
+    <div
+      className={`relative   h-fit w-full ${
+        !activeEventSection ? "hidden" : ""
+      }`}
+    >
+      <form
+        onSubmit={handleSubmit(handleSaveReservat)}
+        className=" space-y-4 h-full"
+      >
         <div className="flex gap-3">
           <input
             type="radio"
@@ -214,7 +195,9 @@ export default function CreateEventSection({
             id="client_ref"
             value="client_ref"
             checked={selectedClientType === "client_ref"}
-            onChange={handleOptionChangeTypeClt}
+            onChange={(event) =>
+              handleOptionChangeTypeClt(event, setIsRef, setSelectedClientType)
+            }
           />
           <label htmlFor="client_ref">client référencer</label>
           <input
@@ -223,19 +206,14 @@ export default function CreateEventSection({
             id="client_psg"
             value="client_psg"
             checked={selectedClientType === "client_psg"}
-            onChange={handleOptionChangeTypeClt}
+            onChange={(event) =>
+              handleOptionChangeTypeClt(event, setIsRef, setSelectedClientType)
+            }
           />
           <label htmlFor="client_psg">client de passage</label>
         </div>
         <div>
-          <ModalClient
-            modalIsOpen={modalIsOpen}
-            openModal={openModal}
-            closeModal={closeModal}
-            villes={villes}
-            collaborateurs={collaborateurs}
-            saveClient={saveClient}
-          />
+          <ModalClient villes={villes} collaborateurs={collaborateurs} />
         </div>
         <div className="flex flex-col gap-1">
           <label className="font-semibold">Client:</label>
@@ -248,6 +226,11 @@ export default function CreateEventSection({
                   {...field}
                   instanceId="select_client"
                   placeholder="Sélectionnez un Clients"
+                  // defaultValue={{
+                  //   label: agenda_prestationArr[0]?.client.label || "0",
+                  //   value: agenda_prestationArr[0]?.client.value || "0",
+                  // }}
+
                   options={clientOptions}
                   // value={selectedClient}
                   {...(clientIsRef == true
@@ -276,61 +259,136 @@ export default function CreateEventSection({
           </div>
           <p className="text-red-500">{errors.client?.label?.message}</p>
         </div>
-
+        <input
+          type="hidden"
+          {...register("idRes")}
+          // defaultValue={agenda_prestationArr[0]?.res_id}
+          // value={agenda_prestationArr[0]?.res_id}
+        />
         <div className="flex gap-28 ">
           <div className="flex flex-col gap-1">
             <label className="font-semibold">Date:</label>
             <input
               type="date"
               className="flex-grow border border-gray-300 rounded-md px-4 h-full"
-              // onChange={(e) => setDate(e.target.value)}
               {...register("dateRes")}
+              onChange={(e) => {
+                setDateTime({
+                  ...dateTime,
+                  dateDB: e.target.value,
+                });
+                updateEventDates(e.target.value);
+                // setValue("dateRes", dateTime.dateDB);
+              }}
+              value={dateTime.dateDB}
+
+              // value={"2023-03-11"}
             />
           </div>
           <div className="flex flex-col gap-1">
             <label className="font-semibold">Début:</label>
             <div className="flex gap-0 ">
               <Controller
-                name="heurDB"
+                name="hourDB"
                 control={control}
                 render={({ field }) => (
                   <Select
                     {...field}
                     instanceId="select_hour"
                     placeholder=""
-                    options={Array.from({ length: 24 }, (_, i) => ({
-                      value: i.toString().padStart(2, "0"),
-                      label: i.toString().padStart(2, "0"),
+                    options={Array.from({ length: 15 }, (_, i) => ({
+                      value: (i + 9).toString().padStart(2, "0"),
+                      label: (i + 9).toString().padStart(2, "0"),
                     }))} // Convert to readonly array
+                    value={dateTime.hourDB}
                     styles={{ ...selectHourStyles }}
+                    onChange={(selectedOption) => {
+                      setDateTime({
+                        ...dateTime,
+                        hourDB: {
+                          label: selectedOption?.value
+                            .toString()
+                            .padStart(2, "0") as string,
+                          value: selectedOption?.value
+                            .toString()
+                            .padStart(2, "0") as string,
+                        },
+                      });
+                      const new_hours = parseInt(selectedOption!.value); //example:2 * 60 = 120(new duration) = 2h
+                      const duration_hours =
+                        (new_hours - parseInt(dateTime.hourDB.value)) * 60;
+
+                      duration_hours &&
+                        updateEventsTime({
+                          index: 0,
+                          duration: duration_hours,
+                          select_type: "select_hour",
+                          globalChange: true,
+                        });
+                    }}
                   />
                 )}
               />
-              {errors.heurDB?.message}
+              {errors.hourDB?.message}
               <span className="font-medium m-2">h</span>
+              {/* {"sss " + dateTime.minutesDB.label} */}
               <Controller
-                name="minuteDB"
+                name="minutesDB"
                 control={control}
                 render={({ field }) => (
                   <Select
                     {...field}
-                    instanceId="select_hour"
+                    instanceId="select_minutes"
                     placeholder=""
                     options={Array.from({ length: 60 }, (_, i) => ({
                       value: i.toString().padStart(2, "0"),
                       label: i.toString().padStart(2, "0"),
                     }))}
+                    value={dateTime.minutesDB}
                     styles={{ ...selectHourStyles }}
+                    onChange={(selectedOption) => {
+                      setDateTime({
+                        ...dateTime,
+                        minutesDB: {
+                          label: selectedOption?.value
+                            .toString()
+                            .padStart(2, "0") as string,
+                          value: selectedOption?.value
+                            .toString()
+                            .padStart(2, "0") as string,
+                        },
+                      });
+                      const new_minutes = parseInt(selectedOption!.value); //example:2 * 60 = 120(new duration) = 2h
+                      const duration_minutes =
+                        new_minutes - parseInt(dateTime.minutesDB.value);
+
+                      // duration_minutes always > 0
+
+                      duration_minutes &&
+                        updateEventsTime({
+                          index: 0,
+                          duration: duration_minutes,
+                          select_type: "select_minutes",
+                          globalChange: true,
+                        });
+                    }}
                   />
                 )}
               />
             </div>
-          </div>{" "}
+          </div>
           <div>
             <label className="font-semibold">Fin:</label>
             <div className="flex items-center mt-2 ">
-              {" "}
-              <p>09 h 20</p>
+              <p className="hour_fn">
+                {totalDuration != 0
+                  ? formatDuration(
+                      totalDuration +
+                        (parseInt(dateTime.hourDB.value) * 60 +
+                          parseInt(dateTime.minutesDB.value))
+                    )
+                  : ""}
+              </p>
             </div>
           </div>
         </div>
@@ -354,70 +412,214 @@ export default function CreateEventSection({
                   </td>
                 </tr>
               ) : (
-                agenda_prestationArr.map((ag_pr: any, index) => {
+                // agenda_prestationArr.map((ag_pr: any, index: any) => {
+                //   let hours = Math.floor(ag_pr.duree / 60);
+                //   let minutes = ag_pr.duree % 60;
+                fields.map((item, index) => {
+                  // console.log(item);
                   return (
                     <tr key={index}>
-                      <td className="text-center py-4">{ag_pr.intitule}</td>
+                      <input
+                        type="hidden"
+                        name={`agenda_prestationArr[${index}].ligne_id`}
+                        value={agenda_prestationArr[index]?.ligne_id || ""}
+                      />
+                      <td className="text-center py-4">{item.intitule}</td>
                       <td className="py-4">
-                        <Select
-                          className="m-auto"
-                          instanceId="select_Agenda"
-                          placeholder="Sélectionnez un Agendas"
-                          options={agendaOptions}
-                          value={selectedAgenda}
-                          styles={{
-                            ...selectDefaultStyle,
-                            container: (provided) => ({
-                              ...provided,
-                              width: "300px",
-                            }),
+                        <Controller
+                          name={`agenda_prestationArr[${index}].agenda`}
+                          control={control}
+                          render={({ field }) => {
+                            useEffect(() => {
+                              // Set the initial value when the component mounts
+                              const initialValue = agendaOptions.find(
+                                (option) => option.value === item.agenda.value
+                              );
+                              setValue(
+                                `agenda_prestationArr[${index}].agenda`,
+                                initialValue
+                              );
+                            }, [item.agenda]); // Use item.agenda as a dependency
+
+                            return (
+                              <Select
+                                {...field}
+                                name={`agenda_prestationArr[${index}].agenda`}
+                                instanceId={`select_Agenda_${index}`}
+                                placeholder="Sélectionnez un Agendas"
+                                options={agendaOptions}
+                                value={field.value} // Use field.value
+                                styles={{
+                                  ...selectDefaultStyle,
+                                  container: (provided) => ({
+                                    ...provided,
+                                    width: "300px",
+                                  }),
+                                }}
+                                onChange={(selectedOption) => {
+                                  setValue(
+                                    `agenda_prestationArr[${index}].agenda`,
+                                    selectedOption
+                                  );
+                                }}
+                              />
+                            );
                           }}
-                          onChange={handleOptionChangeAg}
                         />
                       </td>
                       <td className="text-center py-4 flex justify-center ">
-                        <Select
-                          name="duree_hour"
-                          instanceId="select_hour_tb"
-                          placeholder=""
-                          options={Array.from({ length: 24 }, (_, i) => ({
-                            value: i.toString().padStart(2, "0"),
-                            label: i.toString().padStart(2, "0"),
-                          }))}
-                          styles={{
-                            ...selectHourStyles,
-                            container: (provided) => ({
-                              ...provided,
-                              width: "fit-content",
-                            }),
+                        <Controller
+                          name={
+                            `agenda_prestationArr[${index}].duration_hoursDB` as any
+                          }
+                          control={control}
+                          render={({ field }) => {
+                            useEffect(() => {
+                              // Set the initial value when the component mounts
+                              const initialHour = Math.floor(item.duree / 60)
+                                .toString()
+                                .padStart(2, "0");
+                              setValue(
+                                `agenda_prestationArr[${index}].duration_hoursDB` as any,
+                                {
+                                  label: initialHour,
+                                  value: initialHour,
+                                }
+                              );
+                              console.log("duree", item.duration_hours);
+                            }, [item.duration_hours]); // Use item.duree as a dependency
+
+                            return (
+                              <Select
+                                {...field}
+                                instanceId="select_hour_tb"
+                                placeholder=""
+                                options={Array.from({ length: 24 }, (_, i) => ({
+                                  value: i.toString().padStart(2, "0"),
+                                  label: i.toString().padStart(2, "0"),
+                                }))}
+                                value={field.value} // Use field.value
+                                styles={{
+                                  ...selectHourStyles,
+                                  container: (provided) => ({
+                                    ...provided,
+                                    width: "fit-content",
+                                  }),
+                                }}
+                                onChange={(selectedOption) => {
+                                  const newDurationHours = parseInt(
+                                    selectedOption!.value
+                                  );
+                                  updateDurationHour(newDurationHours, index);
+
+                                  setValue(
+                                    `agenda_prestationArr[${index}].duration_hoursDB` as any,
+                                    selectedOption
+                                  );
+
+                                  setValue(
+                                    `agenda_prestationArr[${index}].duration_hours` as any,
+                                    newDurationHours * 60
+                                  );
+                                  updateEventsTime({
+                                    index: item.eventIndex,
+                                    duration: newDurationHours * 60,
+                                    select_type: "select_hour",
+                                    idAgenda:
+                                      agenda_prestationArr[index].agenda.value,
+                                    dateDB: dateTime.dateDB,
+                                    idRes: item.res_id || "",
+                                  });
+                                }}
+                              />
+                            );
                           }}
                         />
+
                         <span className="font-medium m-2">h</span>
-                        <Select
-                          name="duree_minutes"
-                          instanceId="select_minutes_tb"
-                          placeholder=""
-                          options={Array.from({ length: 60 }, (_, i) => ({
-                            value: i.toString().padStart(2, "0"),
-                            label: i.toString().padStart(2, "0"),
-                          }))}
-                          styles={{
-                            ...selectHourStyles,
-                            container: (provided) => ({
-                              ...provided,
-                              width: "fit-content",
-                            }),
+                        <Controller
+                          name={`agenda_prestationArr[${index}].duration_minutesDB`}
+                          control={control}
+                          render={({ field }) => {
+                            useEffect(() => {
+                              // Set the initial value when the component mounts
+                              const initialMinutes = (item.duree % 60)
+                                .toString()
+                                .padStart(2, "0");
+                              setValue(
+                                `agenda_prestationArr[${index}].duration_minutesDB` as any,
+                                {
+                                  label: initialMinutes,
+                                  value: initialMinutes,
+                                }
+                              );
+                            }, [item.duree]); // Use item.duree as a dependency
+
+                            return (
+                              <Select
+                                {...field}
+                                options={Array.from({ length: 60 }, (_, i) => ({
+                                  value: i.toString().padStart(2, "0"),
+                                  label: i.toString().padStart(2, "0"),
+                                }))}
+                                value={field.value} // Use field.value
+                                styles={{
+                                  ...selectHourStyles,
+                                  container: (provided) => ({
+                                    ...provided,
+                                    width: "fit-content",
+                                  }),
+                                }}
+                                onChange={(selectedOption) => {
+                                  const newDurationMinutes = parseInt(
+                                    selectedOption!.value
+                                  );
+                                  updateDurationMinutes(
+                                    newDurationMinutes,
+                                    index
+                                  );
+
+                                  // setValue(
+                                  //   `agenda_prestationArr[${index}].minutesDB` as any,
+                                  //   selectedOption
+                                  // );
+
+                                  setValue(
+                                    `agenda_prestationArr[${index}].duration_minutes` as any,
+                                    newDurationMinutes
+                                  );
+
+                                  updateEventsTime({
+                                    index: item.eventIndex,
+                                    duration: newDurationMinutes,
+                                    select_type: "select_minutes",
+
+                                    idAgenda:
+                                      agenda_prestationArr[index].agenda.value,
+                                    dateDB: dateTime.dateDB,
+                                  });
+                                }}
+                              />
+                            );
                           }}
                         />
                       </td>
-                      <td className="text-center py-4">{ag_pr.prixTTC}</td>
+                      <td className="text-center py-4">{item.prixTTC}</td>
                       <td className="text-center py-4 cursor-pointer ">
                         <Image
                           className="text-red-600 m-auto"
                           priority
                           alt="supprimer"
                           src={removeIcon}
-                          onClick={() => removePrestation(index)}
+                          onClick={() =>
+                            removePrestation(item.eventIndex, index)
+                          }
+                        />
+                        {/* {agenda_prestationArr[index].res_id} */}
+                        <input
+                          name="eventIndex"
+                          type="hidden"
+                          value={item.eventIndex}
                         />
                       </td>
                     </tr>
@@ -428,17 +630,18 @@ export default function CreateEventSection({
             <tfoot>
               <tr>
                 <th colSpan={2} className="border-r-2 bg-slate-800"></th>
-                <th className="border-r-2 bg-slate-800 text-white">00h00</th>
-                <th className="border-r-2 bg-slate-800 text-white">0 DH</th>
+                <th className="border-r-2 bg-slate-800 text-white">
+                  {formatDuration(totalDuration) || "00h00"}
+                </th>
+                <th className="border-r-2 bg-slate-800 text-white">
+                  {totalPrice.toFixed(2)} DH
+                </th>
                 <th className="border-r-2 bg-slate-800"></th>
               </tr>
             </tfoot>
           </table>
         </div>
-        <PrestationSlider
-          prestations={prestations}
-          addPrestation={addPrestation}
-        />
+        <PrestationSlider prestations={prestations} />
         <div>
           <label className="font-semibold">Notes:</label>
           <textarea
@@ -448,19 +651,17 @@ export default function CreateEventSection({
             {...register("note")}
           ></textarea>
         </div>
-        <input
-          type="hidden"
-          {...register("prestationsIds")}
-          value={agenda_prestationArr.map((p: any) => p.id_art).join(",")}
-        />
+
         <div className="absolute bottom-3 w-full flex gap-2 justify-center">
           <button
-            className="py-1 px-4 bg-gray-800 text-white rounded-md "
+            className=" flex gap-2 py-1 px-4 bg-gray-800 text-white rounded-md "
             onClick={cancelCreationEvent}
             type="button"
           >
+            <img src="https://circumicons.com/icon/no_waiting_sign?size=24&fill=ffffff" />
             Annuler
           </button>
+
           <button
             className="py-1 px-4 bg-[#fc8f3e] text-white rounded-md "
             type="submit"

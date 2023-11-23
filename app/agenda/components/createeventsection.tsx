@@ -46,7 +46,7 @@ export default function CreateEventSection({
     updateDurationMinutes,
     agenda_prestationArr,
     eventAgenda,
-    events,
+
     dateTime,
     setDateTime,
     totalPrice,
@@ -55,8 +55,18 @@ export default function CreateEventSection({
     updateEventDates,
     // activeEventSection,
   } = useStore();
-  const { activeEventSection } = useStore_new2();
+  const { activeEventSection, events, manageEvents, selectedEventsIndices } =
+    useStore_new2();
+  const EventsIndices = [...selectedEventsIndices];
+  const selectedEventFirst =
+    EventsIndices.length > 0 ? events[EventsIndices[0]] : null;
 
+  const selectedEventDate = selectedEventFirst?.start.split("T")[0];
+  const [selectedHourDB, selectedMinutesDB] =
+    selectedEventFirst?.start.split("T")[1]?.split(":") || [];
+
+  const [modalIsOpen, setIsOpen] = useState(false);
+  ("");
   const [clientIsRef, setIsRef] = useState(true);
   const [selectedClientType, setSelectedClientType] = useState("client_ref");
   const [clientOptions, setClientOptions] = useState(
@@ -108,17 +118,20 @@ export default function CreateEventSection({
     name: "agenda_prestationArr",
   });
 
-  useEffect(() => {
-    // setSelectedAgenda(eventAgenda);
-    calculateTotalDuration();
-    calculateTotalPrices();
-  }, [agenda_prestationArr, duration_hours, duration_minutes]);
-  useEffect(() => {
-    setValue("dateRes", dateTime.dateDB);
-  }, [dateTime.dateDB]);
-  useEffect(() => {
-    setValue("hourDB", dateTime.hourDB);
-  }, [dateTime.hourDB]);
+  // useEffect(() => {
+  //   setValue("dateRes", dateTime.dateDB);
+  // }, [dateTime.dateDB]);
+  // useEffect(() => {
+  //   setValue("hourDB", dateTime.hourDB);
+  // }, [dateTime.hourDB]);
+  // useEffect(() => {
+  //   setValue("hourDB", {
+  //     label: selectedHourDB,
+  //     value: selectedHourDB,
+  //   });
+  //   setValue("dateRes", selectedEventDate);
+  //   console.log("selectedEventsIndices", selectedEventsIndices);
+  // }, [selectedEventsIndices]);
   useEffect(() => {
     setValue("minutesDB", dateTime.minutesDB);
   }, [dateTime.minutesDB]);
@@ -173,6 +186,8 @@ export default function CreateEventSection({
   const [isPending, startTransition] = useTransition();
 
   const handleSaveReservat: any = async (data) => {
+    console.log(data);
+    return;
     startTransition(() => {
       saveReservation(data);
     });
@@ -272,17 +287,17 @@ export default function CreateEventSection({
               type="date"
               className="flex-grow border border-gray-300 rounded-md px-4 h-full"
               {...register("dateRes")}
+              value={selectedEventDate}
+              // value={agenda_prestationArr[0]?.dateDB}
               onChange={(e) => {
-                setDateTime({
-                  ...dateTime,
-                  dateDB: e.target.value,
-                });
-                updateEventDates(e.target.value);
-                // setValue("dateRes", dateTime.dateDB);
+                setValue("dateRes", e.target.value);
+                manageEvents([
+                  {
+                    action: "updateDates",
+                    payload: { newDate: e.target.value },
+                  },
+                ]);
               }}
-              value={dateTime.dateDB}
-
-              // value={"2023-03-11"}
             />
           </div>
           <div className="flex flex-col gap-1">
@@ -300,31 +315,49 @@ export default function CreateEventSection({
                       value: (i + 9).toString().padStart(2, "0"),
                       label: (i + 9).toString().padStart(2, "0"),
                     }))} // Convert to readonly array
-                    value={dateTime.hourDB}
+                    // value={dateTime.hourDB}
+                    value={{
+                      label: selectedHourDB?.toString().padStart(2, "0"),
+                      value: selectedHourDB?.toString().padStart(2, "0"),
+                    }}
                     styles={{ ...selectHourStyles }}
                     onChange={(selectedOption) => {
-                      setDateTime({
-                        ...dateTime,
-                        hourDB: {
-                          label: selectedOption?.value
-                            .toString()
-                            .padStart(2, "0") as string,
-                          value: selectedOption?.value
-                            .toString()
-                            .padStart(2, "0") as string,
-                        },
-                      });
                       const new_hours = parseInt(selectedOption!.value); //example:2 * 60 = 120(new duration) = 2h
-                      const duration_hours =
-                        (new_hours - parseInt(dateTime.hourDB.value)) * 60;
 
-                      duration_hours &&
-                        updateEventsTime({
-                          index: 0,
-                          duration: duration_hours,
-                          select_type: "select_hour",
-                          globalChange: true,
-                        });
+                      const duration =
+                        (new_hours - parseInt(selectedHourDB)) * 60;
+                      manageEvents([
+                        {
+                          action: "updateEventsTime",
+                          payload: {
+                            index: 0,
+                            duration,
+                            select_type: "select_hour",
+                            globalChange: true,
+                          },
+                        },
+                      ]);
+                      // setDateTime({
+                      //   ...dateTime,
+                      //   hourDB: {
+                      //     label: selectedOption?.value
+                      //       .toString()
+                      //       .padStart(2, "0") as string,
+                      //     value: selectedOption?.value
+                      //       .toString()
+                      //       .padStart(2, "0") as string,
+                      //   },
+                      // });
+                      // const new_hours = parseInt(selectedOption!.value); //example:2 * 60 = 120(new duration) = 2h
+                      // const duration_hours =
+                      //   (new_hours - parseInt(dateTime.hourDB.value)) * 60;
+                      // duration_hours &&
+                      //   updateEventsTime({
+                      //     index: 0,
+                      //     duration: duration_hours,
+                      //     select_type: "select_hour",
+                      //     globalChange: true,
+                      //   });
                     }}
                   />
                 )}
