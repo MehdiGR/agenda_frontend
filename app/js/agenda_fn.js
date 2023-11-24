@@ -114,14 +114,31 @@ export const addPrestation = (data) => {
     };
     manageEvents([
       { action: "update", payload: { updatedEvent, index: event_index } },
+      {
+        action: "manageAgendaPres",
+        payload: {
+          action: "add",
+          newAgenda: {
+            ...data,
+            eventIndex: current_event.eventIndex,
+            // hourDB: `${hourDB}:${minutesDB}`,
+            duration_hours: Math.floor(parseInt(data.duree) / 60),
+            duration_minutes: parseInt(data.duree) % 60,
+            agendaId: current_event.resourceId,
+            agendaTitle: current_event.resourceTitle,
+          },
+        },
+      },
     ]);
   }
   // if not exist a temp event
   else {
     const resourceId = events[EventIndices[EventIndices.length - 1]].resourceId;
+    const resourceTitle = events[events.length - 1].resourceTitle;
+    const eventIndex = events[events.length - 1].eventIndex + 1;
+
     const last_event_end = events[EventIndices[EventIndices.length - 1]].end;
     // console.log("last_event_end", last_event_end);
-    const eventIndex = events[events.length - 1].eventIndex + 1;
     const start = last_event_end;
     const [end_date, end_time] = last_event_end.split("T");
 
@@ -154,7 +171,25 @@ export const addPrestation = (data) => {
       borderColor: "rgb(251, 233, 131)",
       textColor: "#383838",
     };
-    manageEvents([{ action: "add", payload: { newEvent } }]);
+    manageEvents([
+      { action: "add", payload: { newEvent } },
+      {
+        action: "manageAgendaPres",
+        payload: {
+          action: "add",
+          newAgenda: {
+            ...data,
+            eventIndex,
+            // hourDB: `${hourDB}:${minutesDB}`,
+            duration_hours: Math.floor(parseInt(data.duree) / 60),
+            duration_minutes: parseInt(data.duree) % 60,
+            agendaId: resourceId,
+            agendaTitle: resourceTitle,
+          },
+        },
+      },
+    ]);
+
     toggleEventSelected(eventIndex);
   }
 

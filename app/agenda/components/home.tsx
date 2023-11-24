@@ -56,6 +56,7 @@ export default function Home({
       let newEvent = {
         start: arg.dateStr,
         resourceId: arg.resource.id,
+        resourceTitle: arg.resource.title,
         editable: true,
         backgroundColor: "#6FA5C0",
         borderColor: "#6FA5C0",

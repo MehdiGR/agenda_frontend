@@ -86,20 +86,44 @@ export const useStore_new2 = create((set) => ({
             case "manageAgendaPres":
               draft.events = draft.events.map((event, i) => {
                 if (
-                  draft.selectedEventsIndices.has(event.eventIndex) &&
-                  i === payload.index
+                  draft.selectedEventsIndices.has(event.eventIndex)
+                  //  &&
+                  // i === payload.index
                 ) {
                   let agenda_prestationArr = [...event.agenda_prestationArr];
-                  if (payload.action === "add") {
-                    agenda_prestationArr.push(payload.newAgenda);
-                  } else if (payload.action === "remove") {
-                    agenda_prestationArr = agenda_prestationArr.filter(
-                      (_, idx) => idx !== payload.agendaIndex
-                    );
-                  } else if (payload.action === "add_all") {
-                    agenda_prestationArr = payload.agendas;
+                  // let agenda_prestationArr = JSON.parse(
+                  //   JSON.stringify(event.agenda_prestationArr)
+                  // );
+                  let otherProps = {};
+                  console.log(payload);
+                  switch (payload.action) {
+                    case "add":
+                      console.log(agenda_prestationArr);
+                      agenda_prestationArr.push(payload.newAgenda);
+                      break;
+                    case "add_all":
+                      agenda_prestationArr = payload.agendas;
+                      break;
+                    case "updateAgenda":
+                      const { agendaId, agendaTitle } = payload.updatedAgenda;
+                      agenda_prestationArr[payload.agendaIndex].agendaId =
+                        agendaId;
+                      agenda_prestationArr[payload.agendaIndex].agendaTitle =
+                        agendaTitle;
+                      otherProps = { resourceId: agendaId };
+                      break;
+                    case "remove":
+                      agenda_prestationArr = agenda_prestationArr.filter(
+                        (_, idx) => idx !== payload.agendaIndex
+                      );
+                      break;
                   }
-                  return { ...event, agenda_prestationArr };
+                  // console.log(agenda_prestationArr);
+                  return {
+                    ...event,
+                    ...otherProps,
+                    agenda_prestationArr,
+                  };
                 }
                 return event;
               });
@@ -114,35 +138,44 @@ export const useStore_new2 = create((set) => ({
                 dateDB = null,
                 idRes = null,
               } = payload;
-              // console.log(payload, "payload");
-              const modEndTimes = [];
+
               let prevIndex;
+              const modEndTimes = [];
 
               draft.events = draft.events.map((event) => {
                 const i = event.eventIndex;
-                const existIdRes = idRes ? event.idRes === idRes : true;
+                const isSelected = draft.selectedEventsIndices.has(i);
+                let existIdRes = true;
+                if (idRes) {
+                  existIdRes = event.idRes === idRes;
+                }
 
-                console.log(existIdRes);
-                if (existIdRes && (i === index || i > index)) {
-                  console.log(payload, "payload");
+                if (
+                  isSelected &&
+                  existIdRes &&
+                  // event.resourceId === idAgenda &&
+                  // dateDB === event.start.split("T")[0] &&
+                  (i === index || i > index)
+                ) {
                   const [startD, startT] = event.start.split("T");
-                  const [endD, endT] = event.end?.split("T") || [null, null];
+                  const [endD, endT] = event.end.split("T");
 
-                  let hour, minutes, EndHour, EndMinutes;
+                  let hour, minutes;
                   let newEvent = { ...event };
+                  let EndHour, EndMinutes;
 
                   if (i === index) {
                     EndHour = globalChange ? endT.split(":")[0] : "";
                     EndMinutes = globalChange ? endT.split(":")[1] : "";
-                    hour =
-                      select_type === "select_hour"
+                    if (select_type === "select_hour") {
+                      hour = startT.split(":")[0];
+                      minutes = endT.split(":")[1];
+                    } else if (select_type === "select_minutes") {
+                      minutes = startT.split(":")[1];
+                      hour = globalChange
                         ? startT.split(":")[0]
                         : endT.split(":")[0];
-                    minutes =
-                      select_type === "select_minutes"
-                        ? startT.split(":")[1]
-                        : endT.split(":")[1];
-
+                    }
                     const newTime = updateTime({
                       select_type,
                       duration,
@@ -166,43 +199,44 @@ export const useStore_new2 = create((set) => ({
                         updateMinutes: true,
                       });
                       newEvent.start = `${startD}T${newTime}`;
-                      newEvent.end = `${endD}T${newEndTime}`;
+                      newEvent.end = `${startD}T${newEndTime}`;
                     }
                     prevIndex = i;
                     modEndTimes[i] = newEvent.end;
-                  } else if (i > index) {
-                    const [curStartD] = event.start.split("T");
-                    const timeDiff =
-                      (parseInt(endT.split(":")[0]) -
-                        parseInt(startT.split(":")[0])) *
-                        60 +
-                      (parseInt(endT.split(":")[1]) -
-                        parseInt(startT.split(":")[1]));
-
-                    const [nextEndH, nextEndM] = modEndTimes[prevIndex]
-                      .split("T")[1]
-                      .split(":");
-                    const nextEndTime = updateTime({
-                      select_type,
-                      duration: timeDiff,
-                      hour: nextEndH,
-                      minutes: nextEndM,
-                      updateHour: true,
-                      updateMinutes: true,
-                    });
-
-                    newEvent.start = modEndTimes[prevIndex];
-                    newEvent.end = `${curStartD}T${nextEndTime}`;
-                    modEndTimes[i] = newEvent.end;
+                  } else if (i > index && existIdRes) {
+                    const prevEventEnd = modEndTimes[prevIndex];
+                    if (prevEventEnd) {
+                      const [prevEndD, prevEndT] = prevEventEnd.split("T");
+                      const [prevEndH, prevEndM] = prevEndT.split(":");
+                      const timeDiff =
+                        (parseInt(endT.split(":")[0]) -
+                          parseInt(startT.split(":")[0])) *
+                          60 +
+                        (parseInt(endT.split(":")[1]) -
+                          parseInt(startT.split(":")[1]));
+                      const nextEndTime = updateTime({
+                        select_type,
+                        duration: timeDiff,
+                        hour: prevEndH,
+                        minutes: prevEndM,
+                        updateHour: true,
+                        updateMinutes: true,
+                      });
+                      newEvent.start = prevEventEnd;
+                      newEvent.end = `${startD}T${nextEndTime}`;
+                      modEndTimes[i] = newEvent.end;
+                    }
                     prevIndex = i;
                   }
-                  console.log(newEvent, "newEvent");
                   return newEvent;
                 }
                 return event;
               });
               break;
             }
+
+            // ... (rest of the switch statement)
+
             default:
               break;
           }
