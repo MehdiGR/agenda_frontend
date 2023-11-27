@@ -1,5 +1,5 @@
 import Link from "next/link";
-import Home from "./components/home";
+import Home from "./home";
 import { revalidatePath } from "next/cache";
 
 export default async function CalendarPage() {

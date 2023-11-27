@@ -118,6 +118,7 @@ export const addPrestation = (data) => {
         action: "manageAgendaPres",
         payload: {
           action: "add",
+          index: current_event.eventIndex,
           newAgenda: {
             ...data,
             eventIndex: current_event.eventIndex,
@@ -133,11 +134,14 @@ export const addPrestation = (data) => {
   }
   // if not exist a temp event
   else {
-    const resourceId = events[EventIndices[EventIndices.length - 1]].resourceId;
+    // console.log("index", events.at(-1));
+    // console.log("index", events.at(-1));
+    // return;
+    const resourceId = events.at(-1).resourceId;
     const resourceTitle = events[events.length - 1].resourceTitle;
     const eventIndex = events[events.length - 1].eventIndex + 1;
 
-    const last_event_end = events[EventIndices[EventIndices.length - 1]].end;
+    const last_event_end = events.at(-1).end;
     // console.log("last_event_end", last_event_end);
     const start = last_event_end;
     const [end_date, end_time] = last_event_end.split("T");
@@ -155,28 +159,29 @@ export const addPrestation = (data) => {
     const formatted_end_minutes = String(end_minutes).padStart(2, "0");
 
     const end = `${end_date}T${formatted_end_hour}:${formatted_end_minutes}`;
-    console.log("end", end);
     // const start_date=
     const newEvent = {
+      start,
+      resourceId,
+      prestationId: data.id,
       eventIndex,
       title: data.intitule,
-      prestationId: data.id,
-      resourceId,
       isTemp: false,
       editable: true,
-      start,
       end,
       classNames: ["animated-event"],
       backgroundColor: "rgb(251, 233, 131)",
       borderColor: "rgb(251, 233, 131)",
       textColor: "#383838",
     };
+    toggleEventSelected(eventIndex);
     manageEvents([
       { action: "add", payload: { newEvent } },
       {
         action: "manageAgendaPres",
         payload: {
           action: "add",
+          index: eventIndex,
           newAgenda: {
             ...data,
             eventIndex,
@@ -189,8 +194,6 @@ export const addPrestation = (data) => {
         },
       },
     ]);
-
-    toggleEventSelected(eventIndex);
   }
 
   // manageEvents([{ action: "update", payload: { updatedEvent, index } }]);

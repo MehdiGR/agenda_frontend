@@ -69,7 +69,9 @@ export const useStore_new2 = create((set) => ({
               });
               break;
             case "remove":
-              draft.events = draft.events.filter((_, i) => i !== payload.index);
+              draft.events = draft.events.filter(
+                (event) => event.eventIndex !== payload.index
+              );
               break;
             case "updateDates":
               draft.events = draft.events.map((event) => {
@@ -86,19 +88,17 @@ export const useStore_new2 = create((set) => ({
             case "manageAgendaPres":
               draft.events = draft.events.map((event, i) => {
                 if (
-                  draft.selectedEventsIndices.has(event.eventIndex)
-                  //  &&
-                  // i === payload.index
+                  draft.selectedEventsIndices.has(event.eventIndex) &&
+                  event.eventIndex === payload.index
                 ) {
                   let agenda_prestationArr = [...event.agenda_prestationArr];
                   // let agenda_prestationArr = JSON.parse(
                   //   JSON.stringify(event.agenda_prestationArr)
                   // );
                   let otherProps = {};
-                  console.log(payload);
                   switch (payload.action) {
                     case "add":
-                      console.log(agenda_prestationArr);
+                      // console.log(agenda_prestationArr);
                       agenda_prestationArr.push(payload.newAgenda);
                       break;
                     case "add_all":
@@ -111,6 +111,16 @@ export const useStore_new2 = create((set) => ({
                       agenda_prestationArr[payload.agendaIndex].agendaTitle =
                         agendaTitle;
                       otherProps = { resourceId: agendaId };
+                      break;
+                    case "updateDurationHours":
+                      agenda_prestationArr[payload.agendaIndex].duration_hours =
+                        payload.duration_hours;
+                      console.log(payload.duration_hours);
+                      break;
+                    case "updateDurationMinutes":
+                      agenda_prestationArr[
+                        payload.agendaIndex
+                      ].duration_minutes = payload.duration_minutes;
                       break;
                     case "remove":
                       agenda_prestationArr = agenda_prestationArr.filter(
@@ -149,7 +159,6 @@ export const useStore_new2 = create((set) => ({
                 if (idRes) {
                   existIdRes = event.idRes === idRes;
                 }
-
                 if (
                   isSelected &&
                   existIdRes &&
@@ -257,13 +266,13 @@ export const useStore_new2 = create((set) => ({
             }
           });
         } else {
-          // if (draft.selectedEventsIndices.has(eventIndices)) {
-          //   draft.selectedEventsIndices.delete(eventIndices);
-          // } else {
-          // console.log(draft.selectedEventsIndices);
-          draft.selectedEventsIndices.add(eventIndices);
-          // console.log(selectedEventsIndices);
-          // }
+          if (draft.selectedEventsIndices.has(eventIndices)) {
+            draft.selectedEventsIndices.delete(eventIndices);
+          } else {
+            // console.log(draft.selectedEventsIndices);
+            draft.selectedEventsIndices.add(eventIndices);
+            // console.log(selectedEventsIndices);
+          }
         }
       });
     });

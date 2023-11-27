@@ -1,9 +1,9 @@
 "use client";
 import React, { useEffect, useRef, useState, useTransition } from "react";
-import ModalClient from "./modalclient";
+import ModalClient from "./components/modalclient";
 import Select, { InputProps } from "react-select";
 // import { OptionsType, OptionTypeBase } from "react-select";
-import PrestationSlider from "./prestationsSlider";
+import PrestationSlider from "./components/prestationsSlider";
 import {
   Controller,
   SubmitHandler,
@@ -14,7 +14,10 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import removeIcon from "@/public/square_remove.svg";
 import Image from "next/image";
-import { selectDefaultStyle, selectHourStyles } from "./styles/select_style";
+import {
+  selectDefaultStyle,
+  selectHourStyles,
+} from "@/app/styles/select_style";
 
 import {
   openModal,
@@ -31,6 +34,7 @@ import {
 import { useStore } from "@/app/store/store";
 import { saveReservation } from "@/app/lib/reservatActions";
 import { useStore_new2 } from "@/app/store/store_new2";
+import Link from "next/link";
 
 export default function CreateEventSection({
   clients,
@@ -55,8 +59,14 @@ export default function CreateEventSection({
     updateEventDates,
     // activeEventSection,
   } = useStore();
-  const { activeEventSection, events, manageEvents, selectedEventsIndices } =
-    useStore_new2();
+  const {
+    activeEventSection,
+    setActiveEventSection,
+    events,
+    manageEvents,
+    selectedEventsIndices,
+    toggleEventSelected,
+  } = useStore_new2();
   const EventsIndices = [...selectedEventsIndices];
   const selectedEventFirst =
     EventsIndices.length > 0 ? events[EventsIndices[0]] : null;
@@ -67,9 +77,9 @@ export default function CreateEventSection({
   const selectedEventAgendaPrestationArr = events
     .filter((event: any) => EventsIndices.includes(event.eventIndex))
     .flatMap((event: any) => event.agenda_prestationArr);
-  // console.log(EventsIndices);
+  console.log("EventsIndices", EventsIndices);
   //return agenda_prestationArr from selectedEventAgendaPrestationArr
-  const selectedEventDate = selectedEventFirst?.start.split("T")[0];
+  const selectedEventDate: string = selectedEventFirst?.start.split("T")[0];
   const [selectedHourDB, selectedMinutesDB] =
     selectedEventFirst?.start.split("T")[1]?.split(":") || [];
 
@@ -119,78 +129,27 @@ export default function CreateEventSection({
     setValue,
   } = useForm({
     resolver: yupResolver(schema),
+    defaultValues: {
+      minutesDB: {
+        label: selectedMinutesDB?.toString().padStart(2, "0"),
+        value: selectedMinutesDB?.toString().padStart(2, "0"),
+      },
+      hourDB: {
+        label: selectedHourDB?.toString().padStart(2, "0"),
+        value: selectedHourDB?.toString().padStart(2, "0"),
+      },
+      dateRes: selectedEventDate,
+    },
   });
 
   const { fields, append, remove } = useFieldArray({
     control,
     name: "agenda_prestationArr",
   });
+  if (EventsIndices.length == -1) {
+    setActiveEventSection(false);
+  }
 
-  // useEffect(() => {
-  //   setValue("dateRes", dateTime.dateDB);
-  // }, [dateTime.dateDB]);
-  // useEffect(() => {
-  //   setValue("hourDB", dateTime.hourDB);
-  // }, [dateTime.hourDB]);
-  // useEffect(() => {
-  //   setValue("hourDB", {
-  //     label: selectedHourDB,
-  //     value: selectedHourDB,
-  //   });
-  //   setValue("dateRes", selectedEventDate);
-  //   console.log("selectedEventsIndices", selectedEventsIndices);
-  // }, [selectedEventsIndices]);
-  // useEffect(() => {
-  //   setValue("minutesDB", dateTime.minutesDB);
-  // }, [dateTime.minutesDB]);
-  // useEffect(() => {
-  //   setValue("agenda_prestationArr", agenda_prestationArr);
-  //   const clientData = agenda_prestationArr[0]?.client;
-  //   const idRes = agenda_prestationArr[0]?.res_id;
-  //   if (clientData) {
-  //     setValue("client", {
-  //       label: clientData.label,
-  //       value: clientData.value,
-  //     });
-  //   } else {
-  //     // setValue("client", { label: "Sélectionnez un client", value: "" });
-  //   }
-  //   if (idRes) {
-  //     setValue("idRes", idRes);
-  //   } else {
-  //     setValue("idRes", "");
-  //   }
-  // }, [agenda_prestationArr]);
-  // useEffect(() => {
-  //   if (events && events.length > 0) {
-  //     if (events.length > 0) {
-  //       // console.log("events", events);
-  //       const eventTemp = events.find((event: any) => event.isTemp == true);
-  //       // console.log("eventTemp", eventTemp);
-  //       if (eventTemp) {
-  //         // console.log("eventTemp", eventTemp);
-  //         const dateDB = eventTemp.start.split("T")[0];
-  //         const hourDB = {
-  //           value: (eventTemp.start.split("T")[1].split(":")[0] || "")
-  //             .toString()
-  //             .padStart(2, "0"),
-  //           label: (eventTemp.start.split("T")[1].split(":")[0] || "")
-  //             .toString()
-  //             .padStart(2, "0"),
-  //         };
-  //         const minutesDB = {
-  //           value: (eventTemp.start.split("T")[1].split(":")[1] || "")
-  //             .toString()
-  //             .padStart(2, "0"),
-  //           label: (eventTemp.start.split("T")[1].split(":")[1] || "")
-  //             .toString()
-  //             .padStart(2, "0"),
-  //         };
-  //         setDateTime({ dateDB, hourDB, minutesDB });
-  //       }
-  //     }
-  //   }
-  // }, [events]);
   const [isPending, startTransition] = useTransition();
 
   const handleSaveReservat: any = async (data) => {
@@ -298,7 +257,7 @@ export default function CreateEventSection({
               value={selectedEventDate}
               // value={agenda_prestationArr[0]?.dateDB}
               onChange={(e) => {
-                setValue("dateRes", e.target.value);
+                // setValue("dateRes", e.target.value);
                 manageEvents([
                   {
                     action: "updateDates",
@@ -330,8 +289,15 @@ export default function CreateEventSection({
                     }}
                     styles={{ ...selectHourStyles }}
                     onChange={(selectedOption) => {
+                      // setValue("hourDB", {
+                      //   label: selectedOption!.value
+                      //     ?.toString()
+                      //     .padStart(2, "0"),
+                      //   value: selectedOption!.value
+                      //     ?.toString()
+                      //     .padStart(2, "0"),
+                      // });
                       const new_hours = parseInt(selectedOption!.value); //example:2 * 60 = 120(new duration) = 2h
-
                       const duration =
                         (new_hours - parseInt(selectedHourDB)) * 60;
                       manageEvents([
@@ -370,10 +336,17 @@ export default function CreateEventSection({
                     }}
                     styles={{ ...selectHourStyles }}
                     onChange={(selectedOption) => {
+                      setValue("minutesDB", {
+                        label: selectedOption!.value
+                          ?.toString()
+                          .padStart(2, "0"),
+                        value: selectedOption!.value
+                          ?.toString()
+                          .padStart(2, "0"),
+                      });
                       const new_minutes = parseInt(selectedOption!.value); //example:2 * 60 = 120(new duration) = 2h
                       const duration =
                         new_minutes - parseInt(selectedMinutesDB);
-
                       manageEvents([
                         {
                           action: "updateEventsTime",
@@ -464,7 +437,8 @@ export default function CreateEventSection({
                                         action: "manageAgendaPres",
                                         payload: {
                                           action: "updateAgenda",
-                                          agendaIndex: index,
+                                          index: item.eventIndex,
+                                          agendaIndex: 0,
                                           updatedAgenda: {
                                             agendaId: selectedOption?.value,
                                             agendaTitle: selectedOption?.label,
@@ -513,9 +487,9 @@ export default function CreateEventSection({
                                     }),
                                   }}
                                   onChange={(selectedOption) => {
-                                    // const newDurationHours = parseInt(
-                                    //   selectedOption!.value
-                                    // );
+                                    const newDurationHours = parseInt(
+                                      selectedOption!.value
+                                    );
                                     // updateDurationHour(newDurationHours, index);
                                     // setValue(
                                     //   `agenda_prestationArr[${index}].duration_hoursDB` as any,
@@ -525,16 +499,34 @@ export default function CreateEventSection({
                                     //   `agenda_prestationArr[${index}].duration_hours` as any,
                                     //   newDurationHours * 60
                                     // );
+
                                     // updateEventsTime({
                                     //   index: item.eventIndex,
                                     //   duration: newDurationHours * 60,
                                     //   select_type: "select_hour",
-                                    //   idAgenda:
-                                    //     agenda_prestationArr[index].agenda
-                                    //       .value,
-                                    //   dateDB: dateTime.dateDB,
                                     //   idRes: item.res_id || "",
                                     // });
+                                    const duration = newDurationHours * 60;
+                                    manageEvents([
+                                      {
+                                        action: "updateEventsTime",
+                                        payload: {
+                                          index: item.eventIndex,
+                                          duration,
+                                          select_type: "select_hour",
+                                          idRes: item.res_id || "",
+                                        },
+                                      },
+                                      {
+                                        action: "manageAgendaPres",
+                                        payload: {
+                                          action: "updateDurationHours",
+                                          index: item.eventIndex,
+                                          agendaIndex: 0,
+                                          duration_hours: newDurationHours,
+                                        },
+                                      },
+                                    ]);
                                   }}
                                 />
                               );
@@ -571,9 +563,9 @@ export default function CreateEventSection({
                                     }),
                                   }}
                                   onChange={(selectedOption) => {
-                                    // const newDurationMinutes = parseInt(
-                                    //   selectedOption!.value
-                                    // );
+                                    const newDurationMinutes = parseInt(
+                                      selectedOption!.value
+                                    );
                                     // updateDurationMinutes(
                                     //   newDurationMinutes,
                                     //   index
@@ -595,6 +587,27 @@ export default function CreateEventSection({
                                     //       .value,
                                     //   dateDB: dateTime.dateDB,
                                     // });
+                                    const duration = newDurationMinutes;
+                                    manageEvents([
+                                      {
+                                        action: "updateEventsTime",
+                                        payload: {
+                                          index: item.eventIndex,
+                                          duration,
+                                          select_type: "select_minutes",
+                                          idRes: item.res_id || "",
+                                        },
+                                      },
+                                      {
+                                        action: "manageAgendaPres",
+                                        payload: {
+                                          action: "updateDurationMinutes",
+                                          index: item.eventIndex,
+                                          agendaIndex: 0,
+                                          duration_minutes: newDurationMinutes,
+                                        },
+                                      },
+                                    ]);
                                   }}
                                 />
                               );
@@ -608,9 +621,21 @@ export default function CreateEventSection({
                             priority
                             alt="supprimer"
                             src={removeIcon}
-                            onClick={() =>
-                              removePrestation(item.eventIndex, index)
-                            }
+                            onClick={() => {
+                              // removePrestation(item.eventIndex, index);
+                              manageEvents([
+                                {
+                                  action: "remove",
+                                  payload: {
+                                    index: item.eventIndex,
+                                  },
+                                },
+                              ]);
+                              toggleEventSelected(item.eventIndex);
+                              if (EventsIndices.length == 1) {
+                                setActiveEventSection(false);
+                              }
+                            }}
                           />
                           {/* {agenda_prestationArr[index].res_id} */}
                           <input
@@ -666,12 +691,14 @@ export default function CreateEventSection({
           >
             Enregistrer
           </button>
-          <button
-            className="py-1 px-4 bg-[#199821] text-white rounded-md "
-            type="button"
-          >
-            Encaisser
-          </button>
+          <Link href="/caisse">
+            <button
+              className="py-1 px-4 bg-[#199821] text-white rounded-md "
+              type="button"
+            >
+              Encaisser <span className="text-lg font-extrabold">+</span>
+            </button>
+          </Link>
         </div>
       </form>
     </div>

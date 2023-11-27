@@ -34,6 +34,7 @@ export default function Home({
   // } = useStore();
   const {
     manageEvents,
+    activeEventSection,
     setActiveEventSection,
     toggleEventSelected,
     events,
@@ -190,13 +191,15 @@ export default function Home({
   };
   return (
     <div className="flex  gap-10  h-full   ">
-      <CreateEventSection
-        clients={clients}
-        villes={villes}
-        collaborateurs={collaborateurs}
-        prestations={prestations}
-        agendas={agendas}
-      />
+      {activeEventSection && (
+        <CreateEventSection
+          clients={clients}
+          villes={villes}
+          collaborateurs={collaborateurs}
+          prestations={prestations}
+          agendas={agendas}
+        />
+      )}
       <MyCalendar
         handleAddEvent={handleAddEvent}
         handleEventDrop={handleEventDrop}
