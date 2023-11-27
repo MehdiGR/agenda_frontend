@@ -14,6 +14,7 @@ import {
   selectDefaultStyle,
   selectHourStyles,
 } from "@/app/styles/select_style";
+import Calculator from "./calculator";
 export default function CaisseForm({ clients }) {
   const [clientIsRef, setIsRef] = useState(true);
   const [selectedClientType, setSelectedClientType] = useState("client_ref");
@@ -109,22 +110,21 @@ export default function CaisseForm({ clients }) {
           </div>
           <p className="text-red-500">{errors.client?.label?.message}</p>
         </div>
-
-        <table className="border border-gray-400 w-full">
+        <table className="w-full border border-gray-400">
           <thead className=" bg-slate-800 text-white  ">
             <tr>
-              <th className="border-r-2 px-4 py-2  ">Designation</th>
-              <th className="border-r-2 px-4 py-2  ">Vendeur</th>
-              <th className="border-r-2 px-4 py-2  ">Qte</th>
-              <th className="border-r-2 px-4 py-2  ">-%</th>
-              <th className="border-r-2 px-4 py-2  ">Total</th>
-              <th className="border-r-2 px-4 py-2  "></th>
+              <th className="border-r-2 py-1 text-sm">Designation</th>
+              <th className="border-r-2 py-1 text-sm">Vendeur</th>
+              <th className="border-r-2 py-1 text-sm">Qte</th>
+              <th className="border-r-2 py-1 text-sm">-%</th>
+              <th className="border-r-2 py-1 text-sm">Total</th>
+              <th className="border-r-2 py-1 text-sm"></th>
             </tr>
           </thead>
           <tbody>
             <tr className="">
               <td className="pl-3 ">Maquillage soir</td>
-              <td className=" w-20 p-2">
+              <td className=" w-20 p-1">
                 <Select
                   styles={{
                     ...selectDefaultStyle,
@@ -132,26 +132,26 @@ export default function CaisseForm({ clients }) {
                       ...provided,
                       borderTopRightRadius: "0px !important",
                       borderBottomRightRadius: "0px !important",
-                      width: "300px",
+                      width: "200px",
                     }),
                   }}
                 />
               </td>
-              <td className=" p-2">
+              <td className=" p-1">
                 <input
-                  className="w-20 p-2 border border-gray-400 rounded-md"
+                  className="w-20 p-1 border border-gray-400 rounded-md"
                   type="number"
                 />
               </td>
-              <td className=" p-2">
+              <td className=" p-1">
                 <input
-                  className="w-20 p-2 border border-gray-400 rounded-md"
+                  className="w-20 p-1 border border-gray-400 rounded-md"
                   type="text"
                 />
               </td>
-              <td className=" p-2">
+              <td className=" p-1">
                 <input
-                  className="w-20 p-2 border border-gray-400 rounded-md"
+                  className="w-20 p-1 border border-gray-400 rounded-md"
                   type="text"
                   pattern="[0-9.]*"
                   onInput={(event) => {
@@ -162,6 +162,7 @@ export default function CaisseForm({ clients }) {
                   }}
                 />
               </td>
+              <td className="text-red-500 p-1 text-lg font-semibold">X</td>
             </tr>
           </tbody>
         </table>
@@ -197,21 +198,35 @@ export default function CaisseForm({ clients }) {
             }}
           />
         </div>
-        <div>
-          <div className="flex gap-4">
-            <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-              Carte bancaire
-            </button>
-            <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-              chèque
-            </button>
-            <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-              espace
-            </button>
-            <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-              chèque cadeau
-            </button>
-          </div>
+        <div className="flex gap-4">
+          <button
+            type="button"
+            className="bg-orange-500 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded"
+          >
+            Carte bancaire
+          </button>
+          <button
+            type="button"
+            className="bg-orange-500 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded"
+          >
+            chèque
+          </button>
+          <button
+            type="button"
+            className="bg-orange-500 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded"
+          >
+            espace
+          </button>
+          <button
+            type="button"
+            className="bg-slate-800 hover:bg-slate-900 text-white font-bold py-2 px-4 rounded"
+            slate-800
+          >
+            chèque cadeau / Avoir
+          </button>
+        </div>
+        <div className="flex justify-end ml-auto gap-6 w-full ">
+          <Calculator />
         </div>
       </form>
     </div>
