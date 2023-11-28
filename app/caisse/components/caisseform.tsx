@@ -53,7 +53,7 @@ export default function CaisseForm({ clients }) {
   };
 
   return (
-    <div className="">
+    <div className=" ">
       <form
         className="space-y-4 h-full"
         onSubmit={handleSubmit(handleCaisseForm)}
@@ -132,7 +132,7 @@ export default function CaisseForm({ clients }) {
                       ...provided,
                       borderTopRightRadius: "0px !important",
                       borderBottomRightRadius: "0px !important",
-                      width: "200px",
+                      width: "150px",
                     }),
                   }}
                 />
@@ -225,7 +225,88 @@ export default function CaisseForm({ clients }) {
             chèque cadeau / Avoir
           </button>
         </div>
-        <div className="flex justify-end ml-auto gap-6 w-full ">
+        <div>
+          {/* create table with 4 columns and 3 rows */}
+          <table className="border w-full">
+            <thead>
+              <tr>
+                <th className="border-r-2 py-1 text-sm">Date</th>
+                <th className="border-r-2 py-1 text-sm">Mode</th>
+                <th className="border-r-2 py-1 text-sm w-2/3">Montant</th>
+              </tr>
+            </thead>
+            <tbody>
+              {1 == 0 ? (
+                <tr>
+                  <td className="border bg-orange-300 text-center py-2 px-4">
+                    €
+                  </td>
+                  <td className="border bg-orange-300 text-center py-2 px-4">
+                    €
+                  </td>
+                  <td className="border bg-orange-300 text-center py-2 px-4">
+                    €
+                  </td>
+                </tr>
+              ) : (
+                <tr className="border">
+                  {" "}
+                  <td colSpan={5} className="text-center py-4">
+                    Aucun paiement
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+        <div className="flex flex-col gap-2">
+          <div>
+            <label className="text-red-500 font-bold">
+              Reste à payer : <span>50 €</span>
+            </label>
+          </div>
+          <div className=" flex gap-2">
+            <label className=" flex items-center font-bold">
+              Responsable :{" "}
+            </label>
+            <Controller
+              name="client"
+              control={control}
+              render={({ field }) => (
+                <Select
+                  {...field}
+                  instanceId="sélectionnez collaborateur"
+                  placeholder="Sélectionnez Collaborateur"
+                  options={clientOptions}
+                  // value={selectedClient}
+                  {...(clientIsRef == true
+                    ? { disabled: false }
+                    : { disabled: true })}
+                  styles={{
+                    ...selectDefaultStyle,
+                    container: (provided) => ({
+                      ...provided,
+                      borderTopRightRadius: "0px !important",
+                      borderBottomRightRadius: "0px !important",
+                      width: "300px",
+                    }),
+                  }}
+                />
+              )}
+            />
+          </div>
+        </div>
+        <div>
+          <label htmlFor="note">Notes à l'attention du client :</label>
+          <textarea
+            name="note"
+            id="note"
+            cols={10}
+            rows={3}
+            className="border border-gray-400 rounded-md p-2 w-full"
+          ></textarea>
+        </div>
+        <div className=" ">
           <Calculator />
         </div>
       </form>

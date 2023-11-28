@@ -41,6 +41,9 @@
     "zustand": "^4.4.3"
   },
   "devDependencies": {
-    "@types/react-modal": "^3.16.0"
+    "@klarr-agency/circum-icons-react": "^2.0.2",
+    "@types/react-modal": "^3.16.0",
+    "i": "^0.3.7",
+    "npm": "^10.2.4"
   }
 }
