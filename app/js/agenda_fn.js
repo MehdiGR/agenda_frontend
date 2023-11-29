@@ -413,7 +413,7 @@ export const processReservations = (reservations) => {
     });
   });
 
-  manageEvents({ action: "add_all", payload: { events } }); // setEvents(events);
+  manageEvents([{ action: "add_all", payload: { events } }]); // setEvents(events);
 };
 // create function that update agenda_prestation hourDB and duration_hour or duration_minutes by index with params (index,property,value)
 // transform agenda  to rdv and send it to prest_heurDB

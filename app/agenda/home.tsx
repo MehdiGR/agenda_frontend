@@ -146,7 +146,8 @@ export default function Home({
             client: { label: res.client.label, value: res.client.value },
           };
         });
-      // console.log(data);
+      console.log(data);
+      return;
       // addAllAgendaPres(data);
       // manageEvents("manageAgendaPres", { Agendas: data, action: "add_all" });
       const dateTimeString = info.event.start;
