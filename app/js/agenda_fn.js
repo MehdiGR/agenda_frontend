@@ -1,7 +1,7 @@
 // helper functions
 import { parse } from "path";
 import { useStore } from "../store/store";
-import { useStore_new2 } from "../store/store_new2";
+import { exportStore, useStore_new2 } from "../store/store_new2";
 export const cancelCreationEvent = () => {
   console.log("item");
   useStore.getState().setActiveEventSection(false);
@@ -314,6 +314,8 @@ export const formatDuration = (totalMinutes) => {
     .padStart(2, "0")}`;
 };
 export const saveReservat = async (formData) => {
+  console.log("d", d);
+  return;
   // const totalDuration = useStore.getState().totalDuration;
   // const agenda_prestationArr = useStore.getState().agenda_prestationArr;
   // const { hourDB, minutesDB, ...rest } = formData;
@@ -363,8 +365,8 @@ export const saveReservat = async (formData) => {
 
 export const processReservations = (reservations) => {
   // console.log(reservations);
-  const setEvents = useStore.getState().setEvents;
-
+  // const setEvents = useStore.getState().setEvents;
+  const manageEvents = useStore_new2.getState().manageEvents;
   const events = [];
   reservations.map((res, index) => {
     const startDate = res.dateRes.split("T")[0];
@@ -411,7 +413,7 @@ export const processReservations = (reservations) => {
     });
   });
 
-  setEvents(events);
+  manageEvents({ action: "add_all", payload: { events } }); // setEvents(events);
 };
 // create function that update agenda_prestation hourDB and duration_hour or duration_minutes by index with params (index,property,value)
 // transform agenda  to rdv and send it to prest_heurDB

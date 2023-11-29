@@ -285,24 +285,21 @@ export const useStore_new2 = create((set) => ({
 
 export const exportStore = () => {
   const TotalDuration = () => {
+    let totalDuration = 0;
     const events = useStore_new2.getState().events;
     const selectedEventsIndices =
       useStore_new2.getState().selectedEventsIndices;
 
-    let totalDuration = events.reduce((total, event, index) => {
+    events.forEach((event, index) => {
       if (selectedEventsIndices.has(index)) {
-        return (
-          total +
-          event.agenda_prestationArr.reduce(
-            (sum, prestation) => sum + prestation.duree,
-            0
-          )
+        totalDuration += event.agenda_prestationArr.reduce(
+          (sum, prestation) => sum + prestation.duration,
+          0
         );
       }
-      return total;
-    }, 0);
+    });
 
-    return totalDuration || 0;
+    return totalDuration;
   };
 
   return {

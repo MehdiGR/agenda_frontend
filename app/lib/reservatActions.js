@@ -1,5 +1,5 @@
 "use server";
-import { exposeStore } from "@/app/store/store";
+import { exportStore } from "@/app/store/store_new2";
 
 import { revalidatePath } from "next/cache";
 
@@ -47,11 +47,11 @@ export async function get_resavations() {
   }
 }
 export async function saveReservation(data) {
-  const { getTotalDuration } = exposeStore();
-
   const time = `${data.hourDB.value}:${data.minutesDB.value}`;
-  const duree = getTotalDuration();
+  // console.log(data);
+  // // console.log(time);
 
+  // return;
   let insertedId_res = data.idRes;
   if (insertedId_res === "" || insertedId_res === null) {
     // Your SQL query with parameters
@@ -61,11 +61,12 @@ export async function saveReservation(data) {
       data.client.value,
       data.dateRes,
       time,
-      duree,
+      data.duree,
       data?.note,
     ];
     // Execute the reservation query with parameters
     insertedId_res = await executeQuery(reservationSQL, reservationValues);
+    console.log("inserted id is ", insertedId_res);
   } else {
     console.log("update existing", insertedId_res);
     // Update existing reservation
@@ -82,17 +83,24 @@ export async function saveReservation(data) {
 
     await executeQuery(updateReservationSQL, updateReservationValues);
   }
-
   // Update or insert agenda_prestationArr
   await Promise.all(
     data.agenda_prestationArr.map(async (agenda_prest) => {
-      // console.log("agenda_prest", agenda_prest);
+      console.log("agenda_prest", agenda_prest);
 
-      const duration_hours = parseInt(agenda_prest.duration_hours);
-      const duration_minutes = parseInt(agenda_prest.duration_minutes);
-      const duree = duration_hours + duration_minutes;
-
+      const duration_hours = parseInt(agenda_prest.duration_hours.value);
+      const duration_minutes = parseInt(agenda_prest.duration_minutes.value);
+      const duree_ligne = duration_hours * 60 + duration_minutes;
+      const hourDB_ligne =
+        parseInt(data.hourDB.value) +
+        duration_hours +
+        ":" +
+        parseInt(data.minutesDB.value) +
+        duration_minutes;
       // Check if a record with the given criteria already exists
+      // console.log(duree_ligne, "duree_ligne");
+      // console.log(hourDB_ligne, "hourDB_ligne");
+      // return;
       const existingRecord = await checkExistingRecord(agenda_prest.ligne_id);
 
       if (existingRecord) {
@@ -100,10 +108,10 @@ export async function saveReservation(data) {
         const updateRecordSQL =
           "UPDATE ligne_res SET duree=?, idPrest=? , idAgenda=? , heurDB=?  WHERE id=?";
         const updateRecordValues = [
-          duree,
+          duree_ligne,
           agenda_prest.id_art,
           agenda_prest.agenda.value,
-          agenda_prest.hourDB,
+          hourDB_ligne,
           agenda_prest.ligne_id,
         ];
 
@@ -115,9 +123,9 @@ export async function saveReservation(data) {
         const insertRecordValues = [
           insertedId_res,
           agenda_prest.id_art,
-          duree,
+          duree_ligne,
           agenda_prest.agenda.value,
-          agenda_prest.hourDB,
+          hourDB_ligne,
         ];
 
         await executeQuery(insertRecordSQL, insertRecordValues);

@@ -33,7 +33,7 @@ import {
 } from "@/app/js/agenda_fn";
 import { useStore } from "@/app/store/store";
 import { saveReservation } from "@/app/lib/reservatActions";
-import { useStore_new2 } from "@/app/store/store_new2";
+import { exportStore, useStore_new2 } from "@/app/store/store_new2";
 import Link from "next/link";
 
 export default function CreateEventSection({
@@ -77,7 +77,7 @@ export default function CreateEventSection({
   const selectedEventAgendaPrestationArr = events
     .filter((event: any) => EventsIndices.includes(event.eventIndex))
     .flatMap((event: any) => event.agenda_prestationArr);
-  console.log("EventsIndices", EventsIndices);
+  // console.log("EventsIndices", EventsIndices);
   //return agenda_prestationArr from selectedEventAgendaPrestationArr
   const selectedEventDate: string = selectedEventFirst?.start.split("T")[0];
   const [selectedHourDB, selectedMinutesDB] =
@@ -146,6 +146,7 @@ export default function CreateEventSection({
     control,
     name: "agenda_prestationArr",
   });
+
   if (EventsIndices.length == -1) {
     setActiveEventSection(false);
   }
@@ -153,10 +154,13 @@ export default function CreateEventSection({
   const [isPending, startTransition] = useTransition();
 
   const handleSaveReservat: any = async (data) => {
-    console.log(data);
-    return;
+    // console.log(data);
+    // return;
+    // saveReservat(data);
+    const { TotalDuration } = exportStore();
+    const duree = TotalDuration();
     startTransition(() => {
-      saveReservation(data);
+      saveReservation({ ...data, duree });
     });
   };
 
@@ -403,12 +407,45 @@ export default function CreateEventSection({
                           name={`agenda_prestationArr[${index}].ligne_id`}
                           value={agenda_prestationArr[index]?.ligne_id || ""}
                         />
+                        <Controller
+                          name={`agenda_prestationArr[${index}].id_art`}
+                          control={control}
+                          defaultValue={
+                            agenda_prestationArr[index]?.id_art || item.id_art
+                          }
+                          render={({ field }) => {
+                            useEffect(() => {
+                              setValue(
+                                `agenda_prestationArr[${index}].id_art` as any,
+                                item.id_art
+                              );
+                              // Cleanup function (optional)
+                              return () => {
+                                // Code to run on component unmount or dependency change (if specified)
+                              };
+                            }, []);
+                            return <input type="hidden" {...field} />;
+                          }}
+                        />
                         <td className="text-center py-4">{item.intitule}</td>
                         <td className="py-4">
                           <Controller
                             name={`agenda_prestationArr[${index}].agenda`}
                             control={control}
                             render={({ field }) => {
+                              useEffect(() => {
+                                setValue(
+                                  `agenda_prestationArr[${index}].agenda` as any,
+                                  {
+                                    label: item.agendaTitle,
+                                    value: item.agendaId,
+                                  }
+                                );
+                                // Cleanup function (optional)
+                                return () => {
+                                  // Code to run on component unmount or dependency change (if specified)
+                                };
+                              }, []);
                               return (
                                 <Select
                                   {...field}
@@ -455,10 +492,27 @@ export default function CreateEventSection({
                         <td className="text-center py-4 flex justify-center ">
                           <Controller
                             name={
-                              `agenda_prestationArr[${index}].duration_hoursDB` as any
+                              `agenda_prestationArr[${index}].duration_hours` as any
                             }
                             control={control}
                             render={({ field }) => {
+                              useEffect(() => {
+                                setValue(
+                                  `agenda_prestationArr[${index}].duration_hours` as any,
+                                  {
+                                    label: item.duration_hours
+                                      .toString()
+                                      .padStart(2, "0"),
+                                    value: item.duration_hours
+                                      .toString()
+                                      .padStart(2, "0"),
+                                  }
+                                );
+                                // Cleanup function (optional)
+                                return () => {
+                                  // Code to run on component unmount or dependency change (if specified)
+                                };
+                              }, []);
                               return (
                                 <Select
                                   {...field}
@@ -534,9 +588,26 @@ export default function CreateEventSection({
                           />
                           <span className="font-medium m-2">h</span>
                           <Controller
-                            name={`agenda_prestationArr[${index}].duration_minutesDB`}
+                            name={`agenda_prestationArr[${index}].duration_minutes`}
                             control={control}
                             render={({ field }) => {
+                              useEffect(() => {
+                                setValue(
+                                  `agenda_prestationArr[${index}].duration_minutes` as any,
+                                  {
+                                    label: item.duration_minutes
+                                      .toString()
+                                      .padStart(2, "0"),
+                                    value: item.duration_minutes
+                                      .toString()
+                                      .padStart(2, "0"),
+                                  }
+                                );
+                                // Cleanup function (optional)
+                                return () => {
+                                  // Code to run on component unmount or dependency change (if specified)
+                                };
+                              }, []);
                               return (
                                 <Select
                                   {...field}
