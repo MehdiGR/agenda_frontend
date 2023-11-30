@@ -50,6 +50,7 @@ export default function CreateEventSection({
     manageEvents,
     selectedEventsIndices,
     toggleEventSelected,
+    setOnEditingEvent,
   } = useStore_new2();
   // Copy the selectedEventsIndices array
   const EventsIndices = [...selectedEventsIndices];
@@ -153,6 +154,9 @@ export default function CreateEventSection({
     // saveReservat(data);
     startTransition(() => {
       saveReservation({ ...data, duree: totalDuration });
+
+      setOnEditingEvent(true);
+      toggleEventSelected(null);
     });
   };
 

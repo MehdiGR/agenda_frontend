@@ -15,7 +15,7 @@ export const cancelCreationEvent = ({ activeSection }) => {
   const manageEvents = useStore_new2.getState().manageEvents;
   const updatedEvent = events.filter((event) => event.saved == true);
   manageEvents([{ action: "add_all", payload: { events: updatedEvent } }]);
-  // useStore_new2.getState().toggleEventSelected(null);
+  useStore_new2.getState().toggleEventSelected(null);
 };
 
 export const handleOptionChangeTypeClt = (
@@ -375,12 +375,13 @@ export const saveReservat = async (formData) => {
 };
 
 export const processReservations = (reservations) => {
-  // console.log(reservations);
   // const setEvents = useStore.getState().setEvents;
   const manageEvents = useStore_new2.getState().manageEvents;
   const toggleEventSelected = useStore_new2.getState().toggleEventSelected;
   const events = [];
   reservations.map((res, index) => {
+    console.log(res.nomClient);
+
     const startDate = res.dateRes.split("T")[0];
     const startTime = res.prest_heurDB;
 
@@ -402,6 +403,7 @@ export const processReservations = (reservations) => {
     events.push({
       eventIndex: index,
       idRes: res.id,
+      te: res.nomClient,
       client: { label: res.nomClient, value: res.idClient },
       prixTTC: res.prest_prix,
       title: res.prest_title,

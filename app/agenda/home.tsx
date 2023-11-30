@@ -1,6 +1,6 @@
 // pages/calendar.js
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import MyCalendar from "./mycalendar";
 import CreateEventSection from "./createeventsection";
 import { useStore } from "@/app/store/store";
@@ -44,6 +44,7 @@ export default function Home({
     onEditingEvent,
     setOnEditingEvent,
     setIdRes,
+    selectedEventsIndices,
   } = useStore_new2();
   // const [activeCreateSection, setActiveCreateSection] = useState(false);
 
@@ -116,93 +117,32 @@ export default function Home({
     };
     // setDateTime(newDate);
   };
+  const updatedIndices = useRef(false);
   const handleUpdateEvent = (info: any) => {
-    // return;
-    if (info.event.extendedProps.idRes && onEditingEvent == false) {
-      console.log(info.event.extendedProps);
-
-      setOnEditingEvent(true);
-      // setIdRes(info.event.extendedProps.idRes);
+    console.log("newxd ", onEditingEvent);
+    if (info.event.extendedProps.idRes && !onEditingEvent) {
       const idRes = info.event.extendedProps.idRes;
       const Indices = events
         .filter((res: any) => res.idRes == idRes)
         .map((res: any) => res.eventIndex);
       toggleEventSelected(Indices);
-      setActiveUpdateSection(() => true);
-      return;
-      // let hours: number = 0,
-      //   minutes: number = 0;
-      // resetDurationHour();
-      // resetDurationMinutes();
-      // addAllAgendaPres([]);
-      // const eventIndex = parseInt(info.event.extendedProps.eventIndex);
-      // let agendaPresIndices: any = [];
-      // const data = events
-      //   .filter((res: any) => res.idRes == info.event.extendedProps.idRes)
-      //   .map((res: any, index: number) => {
-      //     // console.log(res);
-      //     let rowIndex = index == 0 ? eventIndex : eventIndex + 1;
-      //     agendaPresIndices.push(res.eventIndex);
-      //     return {
-      //       eventIndex: res.eventIndex,
-      //       res_id: res.idRes,
-      //       id_art: res.id_art,
-      //       ligne_id: res.ligne_id,
-      //       intitule: res.title,
-      //       dateDB: res.start.split("T")[0],
-      //       prixTTC: res.prixTTC,
-      //       hourDB: `${res.hourDB}:${res.minutesDB}`,
-      //       duree: res.duree,
-      //       duration_hours: Math.floor(res.duree / 60) * 60,
-      //       duration_minutes: Math.floor(res.duree % 60),
-      //       agenda: { label: res.agenda.label, value: res.agenda.value },
-      //       client: { label: res.client.label, value: res.client.value },
-      //     };
-      //   });
-      // console.log(data);
-      return;
-      // addAllAgendaPres(data);
-      // manageEvents("manageAgendaPres", { Agendas: data, action: "add_all" });
-      const dateTimeString = info.event.start;
-      let date = new Date(dateTimeString);
-      const formatted_date = date.toISOString();
-      toggleEventSelected(agendaPresIndices);
-      manageEvents([
-        {
-          action: "manageAgendaPres",
-          payload: {
-            agendas: data,
-            action: "add_all",
-          },
-        },
-        {
-          action: "updateDates",
-          payload: {
-            newDate: formatted_date,
-          },
-        },
-      ]);
-
-      // const dateDB = formatted_date.split("T")[0];
-      // const hourDB = formatted_date.split("T")[1].split(":")[0];
-      // const minutesDB = formatted_date.split("T")[1].split(":")[1];
-      // const hourDB = info.event.extendedProps.hourDB;
-      // const minutesDB = info.event.extendedProps.minutesDB;
-      // console.log(info.event.extendedProps);
-      // setDateTime({date.toISOString().split("T")[0]);
-      // setDateTime({
-      //   dateDB,
-      //   hourDB: { label: hourDB, value: hourDB },
-      //   minutesDB: { label: minutesDB, value: minutesDB },
-      // });
-      // console.log(info.event.extendedProps.hourDB);
-      // hours = parseInt(info.event.extendedProps.duree) / 60;
-      // minutes = parseInt(info.event.extendedProps.duree) % 60;
-      // addDurationHour(Math.floor(hours));
-      // addDurationMinutes(Math.floor(minutes));
+      setActiveUpdateSection(true);
+      updatedIndices.current = true;
       setOnEditingEvent(true);
+
+      return;
     }
   };
+  // useEffect(() => {
+  //   if (updatedIndices.current) {
+  //     console.log("first");
+  //     setActiveUpdateSection(true);
+  //     console.log("ss");
+  //   }
+  //   return () => {
+  //     updatedIndices.current = false;
+  //   };
+  // }, [selectedEventsIndices]);
   return (
     <div className="flex  gap-10  h-full   ">
       {activeCreateSection && (
@@ -214,7 +154,7 @@ export default function Home({
           agendas={agendas}
         />
       )}
-      {activeUpdateSection && (
+      {activeUpdateSection && selectedEventsIndices.size > 0 && (
         <UpdateEventSection
           clients={clients}
           villes={villes}

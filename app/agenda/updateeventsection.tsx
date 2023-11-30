@@ -51,9 +51,11 @@ export default function UpdateEventSection({
     selectedEventsIndices,
     toggleEventSelected,
   } = useStore_new2();
-
-  // Copy the selectedEventsIndices array
+  // useEffect(() => {
+  //   console.log("ud");
+  // }, [selectedEventsIndices]);
   const EventsIndices = [...selectedEventsIndices];
+  // Copy the selectedEventsIndices array
 
   // Get the first selected event or null if there are no selected events
   const selectedEventFirst =
@@ -135,7 +137,6 @@ export default function UpdateEventSection({
       },
     },
   });
-  console.log("client", selectedEventFirst);
 
   const { fields, append, remove } = useFieldArray({
     control,
@@ -394,7 +395,6 @@ export default function UpdateEventSection({
                 //   let minutes = ag_pr.duree % 60;
                 selectedEventAgendaPrestationArr.map(
                   (item: any, index: number) => {
-                    console.log(item, "item");
                     return (
                       <tr key={index}>
                         <Controller
