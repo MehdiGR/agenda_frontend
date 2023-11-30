@@ -31,9 +31,9 @@ export default function MyCalendar({
     title: agenda.nom,
     building: agenda.nom,
   }));
-  // useEffect(() => {
-  //   console.log("events", events);
-  // }, [events]);
+  useEffect(() => {
+    console.log("events", events);
+  }, [events]);
   return (
     <div className="w-full" style={{ zIndex: 0 }}>
       <FullCalendar

@@ -34,7 +34,8 @@ export const useStore_new = create((set) => ({
   events: [],
   onEditingEvent: false,
   setOnEditingEvent: (value) => set(() => ({ onEditingEvent: value })),
-  setActiveEventSection: (value) => set(() => ({ activeEventSection: value })),
+  setActiveCreateSection: (value) =>
+    set(() => ({ activeCreateSection: value })),
   manageEvents: (action, payload) => {
     set((state) => {
       let events = [...state.events];

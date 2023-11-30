@@ -44,7 +44,6 @@ export default async function CalendarPage() {
     // cache: "no-store",
   });
   const reservations = await resReservat.json();
-  console.log("reservations", reservations);
 
   return (
     <div className="h-full  p-6">

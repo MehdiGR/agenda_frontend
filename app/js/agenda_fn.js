@@ -2,14 +2,20 @@
 import { parse } from "path";
 import { useStore } from "../store/store";
 import { exportStore, useStore_new2 } from "../store/store_new2";
-export const cancelCreationEvent = () => {
-  console.log("item");
-  useStore.getState().setActiveEventSection(false);
-  useStore.getState().setOnEditingEvent(false);
-  const events = useStore.getState().events;
-  const setEvents = useStore.getState().setEvents;
+export const cancelCreationEvent = ({ activeSection }) => {
+  if (activeSection == "create") {
+    useStore_new2.getState().setActiveCreateSection(false);
+  }
+  if (activeSection == "edit") {
+    useStore_new2.getState().setActiveUpdateSection(false);
+  }
+
+  useStore_new2.getState().setOnEditingEvent(false);
+  const events = useStore_new2.getState().events;
+  const manageEvents = useStore_new2.getState().manageEvents;
   const updatedEvent = events.filter((event) => event.saved == true);
-  setEvents(updatedEvent);
+  manageEvents([{ action: "add_all", payload: { events: updatedEvent } }]);
+  // useStore_new2.getState().toggleEventSelected(null);
 };
 
 export const handleOptionChangeTypeClt = (
@@ -127,6 +133,8 @@ export const addPrestation = (data) => {
             duration_minutes: parseInt(data.duree) % 60,
             agendaId: current_event.resourceId,
             agendaTitle: current_event.resourceTitle,
+            start_time: current_event.start.split("T")[1],
+            // prixTTC: data.prixTTC,
           },
         },
       },
@@ -138,9 +146,9 @@ export const addPrestation = (data) => {
     // console.log("index", events.at(-1));
     // return;
     const resourceId = events.at(-1).resourceId;
-    const resourceTitle = events[events.length - 1].resourceTitle;
-    const eventIndex = events[events.length - 1].eventIndex + 1;
-
+    const resourceTitle = events.at(-1).resourceTitle;
+    const eventIndex = events.at(-1).eventIndex + 1;
+    console.log(events.at(-1), "last event");
     const last_event_end = events.at(-1).end;
     // console.log("last_event_end", last_event_end);
     const start = last_event_end;
@@ -163,6 +171,7 @@ export const addPrestation = (data) => {
     const newEvent = {
       start,
       resourceId,
+      resourceTitle,
       prestationId: data.id,
       eventIndex,
       title: data.intitule,
@@ -190,6 +199,8 @@ export const addPrestation = (data) => {
             duration_minutes: parseInt(data.duree) % 60,
             agendaId: resourceId,
             agendaTitle: resourceTitle,
+            start_time: start.split("T")[1],
+            // prixTTC: data.prixTTC,
           },
         },
       },
@@ -367,6 +378,7 @@ export const processReservations = (reservations) => {
   // console.log(reservations);
   // const setEvents = useStore.getState().setEvents;
   const manageEvents = useStore_new2.getState().manageEvents;
+  const toggleEventSelected = useStore_new2.getState().toggleEventSelected;
   const events = [];
   reservations.map((res, index) => {
     const startDate = res.dateRes.split("T")[0];
@@ -390,23 +402,34 @@ export const processReservations = (reservations) => {
     events.push({
       eventIndex: index,
       idRes: res.id,
-      ligne_id: res.ligne_id,
-      id_art: res.prest_id,
+      client: { label: res.nomClient, value: res.idClient },
       prixTTC: res.prest_prix,
       title: res.prest_title,
       start: `${startDate}T${startTime}`,
       end: `${endDate}T${endTime}`,
       resourceId: res.prest_idAgenda,
+      resourceTitle: res.prest_agenda,
       saved: true,
       textColor: "black",
       backgroundColor: "rgb(251, 233, 131)",
       borderColor: "rgb(251, 233, 131)",
-      // classNames: ["added-event", "animated-event"],
       duree: res.prest_duree,
-      hourDB: res.heurDB.split(":")[0],
-      minutesDB: res.heurDB.split(":")[1],
       isTemp: false,
-      agenda: { label: res.agenda, value: res.prest_idAgenda },
+      agenda_prestationArr: [
+        {
+          eventIndex: index,
+          intitule: res.prest_title,
+          id_art: res.prest_id,
+          ligne_id: res.ligne_id,
+          duration_hours: Math.floor(parseInt(res.prest_duree) / 60),
+          duration_minutes: parseInt(res.prest_duree) % 60,
+          duree: res.prest_duree,
+          agendaId: res.prest_idAgenda,
+          agendaTitle: res.prest_agenda,
+          start_time: `${startTime}`,
+          prixTTC: res.prest_prix,
+        },
+      ],
 
       client: { label: res.client, value: res.idClient },
       // editable: false,

@@ -28,7 +28,7 @@ const updateTime = ({
 };
 
 export const useStore = create((set) => ({
-  activeEventSection: false,
+  activeCreateSection: false,
   events: [],
   savedEvents: [],
   eventAgenda: {},
@@ -52,7 +52,8 @@ export const useStore = create((set) => ({
   onEditingEvent: false,
   setOnEditingEvent: (value) => set(() => ({ onEditingEvent: value })),
 
-  setActiveEventSection: (value) => set(() => ({ activeEventSection: value })),
+  setActiveCreateSection: (value) =>
+    set(() => ({ activeCreateSection: value })),
   addEvent: (newEvent) =>
     set((state) => ({ events: [...state.events, newEvent] })),
   // Function to add array of events

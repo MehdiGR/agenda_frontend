@@ -4,7 +4,7 @@ import CircumIcon from "@klarr-agency/circum-icons-react";
 import Prestation from "./prestation";
 
 export default function Prestations({ prestations }) {
-  const [showSubfolders, setShowSubfolders] = useState(true);
+  const [showSubfolders, setShowSubfolders] = useState(false);
 
   const toggleSubfolders = () => {
     setShowSubfolders(!showSubfolders);

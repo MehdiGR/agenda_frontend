@@ -53,9 +53,9 @@ export default function CreateEventSection({
     totalDuration,
     updateEventsTime,
     updateEventDates,
-    // activeEventSection,
+    // activeCreateSection,
   } = useStore();
-  const { activeEventSection } = useStore_new2();
+  const { activeCreateSection } = useStore_new2();
 
   const [clientIsRef, setIsRef] = useState(true);
   const [selectedClientType, setSelectedClientType] = useState("client_ref");
@@ -181,7 +181,7 @@ export default function CreateEventSection({
   return (
     <div
       className={`relative   h-fit w-full ${
-        !activeEventSection ? "hidden" : ""
+        !activeCreateSection ? "hidden" : ""
       }`}
     >
       <form

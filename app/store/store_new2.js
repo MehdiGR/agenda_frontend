@@ -32,11 +32,25 @@ const updateTime = ({
 export const useStore_new2 = create((set) => ({
   events: [],
   onEditingEvent: false,
-  activeEventSection: null,
+  activeCreateSection: null,
+  activeUpdateSection: null,
   modalIsOpen: false,
-  setOnEditingEvent: (value) => set(() => ({ onEditingEvent: value })),
-  setActiveEventSection: (value) => set(() => ({ activeEventSection: value })),
+  idRes: null,
   selectedEventsIndices: new Set(),
+
+  // Setters
+  setModalIsOpen: (value) => set(() => ({ modalIsOpen: value })),
+
+  setOnEditingEvent: (value) => set(() => ({ onEditingEvent: value })),
+
+  setActiveCreateSection: (value) =>
+    set(() => ({ activeCreateSection: value })),
+
+  setActiveUpdateSection: (value) =>
+    set(() => ({ activeUpdateSection: value })),
+
+  setIdRes: (value) => set(() => ({ idRes: value })),
+
   manageEvents: (actions) => {
     set((state) => {
       return produce(state, (draft) => {
@@ -209,6 +223,7 @@ export const useStore_new2 = create((set) => ({
                         updateMinutes: true,
                       });
                       newEvent.start = `${startD}T${newTime}`;
+                      newEvent.agenda_prestationArr[0].start_time = `${newTime}`;
                       newEvent.end = `${startD}T${newEndTime}`;
                     }
                     prevIndex = i;
@@ -233,6 +248,7 @@ export const useStore_new2 = create((set) => ({
                         updateMinutes: true,
                       });
                       newEvent.start = prevEventEnd;
+                      newEvent.agenda_prestationArr[0].start_time = `${prevEndT}`;
                       newEvent.end = `${startD}T${nextEndTime}`;
                       modEndTimes[i] = newEvent.end;
                     }
@@ -257,7 +273,6 @@ export const useStore_new2 = create((set) => ({
   setIsOpen: (value) => set(() => ({ modalIsOpen: value })),
   // create getEvents
   getEvents: () => this.events,
-
   toggleEventSelected: (eventIndices) => {
     set((state) => {
       return produce(state, (draft) => {
@@ -270,12 +285,16 @@ export const useStore_new2 = create((set) => ({
             }
           });
         } else {
-          if (draft.selectedEventsIndices.has(eventIndices)) {
+          if (
+            eventIndices === null ||
+            eventIndices === undefined ||
+            eventIndices === ""
+          ) {
+            draft.selectedEventsIndices.clear();
+          } else if (draft.selectedEventsIndices.has(eventIndices)) {
             draft.selectedEventsIndices.delete(eventIndices);
           } else {
-            // console.log(draft.selectedEventsIndices);
             draft.selectedEventsIndices.add(eventIndices);
-            // console.log(selectedEventsIndices);
           }
         }
       });
@@ -304,9 +323,30 @@ export const exportStore = () => {
 
     return totalDuration || 0;
   };
+  const TotalPrice = () => {
+    const events = useStore_new2.getState().events;
+    const selectedEventsIndices =
+      useStore_new2.getState().selectedEventsIndices;
+
+    let totalPrice = events.reduce((total, event, index) => {
+      if (selectedEventsIndices.has(index)) {
+        return (
+          total +
+          event.agenda_prestationArr.reduce(
+            (sum, prestation) => sum + prestation.prixTTC,
+            0
+          )
+        );
+      }
+      return total;
+    }, 0);
+
+    return totalPrice || 0;
+  };
 
   return {
     useStore_new2,
     TotalDuration,
+    TotalPrice,
   };
 };

@@ -32,10 +32,11 @@ const updateTime = ({
 export const useStore_new2 = create((set) => ({
   events: [],
   onEditingEvent: false,
-  activeEventSection: null,
+  activeCreateSection: null,
   modalIsOpen: false,
   setOnEditingEvent: (value) => set(() => ({ onEditingEvent: value })),
-  setActiveEventSection: (value) => set(() => ({ activeEventSection: value })),
+  setActiveCreateSection: (value) =>
+    set(() => ({ activeCreateSection: value })),
   selectedEventsIndices: new Set(),
   manageEvents: (actions) => {
     set((state) => {

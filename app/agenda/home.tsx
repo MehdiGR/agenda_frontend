@@ -6,6 +6,7 @@ import CreateEventSection from "./createeventsection";
 import { useStore } from "@/app/store/store";
 import { useStore_new2 } from "@/app/store/store_new2";
 import { processReservations } from "@/app/js/agenda_fn";
+import UpdateEventSection from "./updateeventsection";
 export default function Home({
   clients,
   villes,
@@ -30,29 +31,32 @@ export default function Home({
   //   resetDurationMinutes,
   //   onEditingEvent,
   //   setOnEditingEvent,
-  //   // setActiveEventSection,
+  //   // setActiveCreateSection,
   // } = useStore();
   const {
     manageEvents,
-    activeEventSection,
-    setActiveEventSection,
+    activeCreateSection,
+    activeUpdateSection,
+    setActiveCreateSection,
+    setActiveUpdateSection,
     toggleEventSelected,
     events,
     onEditingEvent,
     setOnEditingEvent,
+    setIdRes,
   } = useStore_new2();
-  // const [activeEventSection, setActiveEventSection] = useState(false);
+  // const [activeCreateSection, setActiveCreateSection] = useState(false);
 
   useEffect(() => {
     processReservations(reservations);
-    setActiveEventSection(false);
+    setActiveCreateSection(false);
     setOnEditingEvent(false);
   }, [reservations]);
 
   const handleAddEvent = (arg: any) => {
-    if (arg.hasOwnProperty("resource")) {
+    if (arg.hasOwnProperty("resource") && onEditingEvent == false) {
       // update active state for showing  the create event section
-      // setActiveEventSection(() => true);
+      // setActiveCreateSection(() => true);
       const lastIndex = events.findLastIndex((event: any) => event);
       let newEvent = {
         start: arg.dateStr,
@@ -83,8 +87,8 @@ export default function Home({
         const index = existTemp;
         const updatedEvent = { ...newEvent, eventIndex: lastIndex };
         // updateEvent(newEvent, index);
+        // toggleEventSelected(lastIndex);
         manageEvents([{ action: "update", payload: { updatedEvent, index } }]);
-        toggleEventSelected(lastIndex);
       }
 
       // setAddedEventId(newEvent.resourceId);
@@ -92,9 +96,9 @@ export default function Home({
       // resetDurationHour();
       // resetDurationMinutes();
       // addAllAgendaPres([]);
-      // setActiveEventSection(true);
-      // setOnEditingEvent(true);
-      setActiveEventSection(true);
+      // setActiveCreateSection(true);
+      setOnEditingEvent(true);
+      setActiveCreateSection(true);
     }
   };
   const handleEventDrop = (arg: any) => {
@@ -113,40 +117,49 @@ export default function Home({
     // setDateTime(newDate);
   };
   const handleUpdateEvent = (info: any) => {
-    // console.log(info.event.extendedProps);
     // return;
     if (info.event.extendedProps.idRes && onEditingEvent == false) {
-      setActiveEventSection(() => true);
+      console.log(info.event.extendedProps);
+
+      setOnEditingEvent(true);
+      // setIdRes(info.event.extendedProps.idRes);
+      const idRes = info.event.extendedProps.idRes;
+      const Indices = events
+        .filter((res: any) => res.idRes == idRes)
+        .map((res: any) => res.eventIndex);
+      toggleEventSelected(Indices);
+      setActiveUpdateSection(() => true);
+      return;
       // let hours: number = 0,
       //   minutes: number = 0;
       // resetDurationHour();
       // resetDurationMinutes();
       // addAllAgendaPres([]);
-      const eventIndex = parseInt(info.event.extendedProps.eventIndex);
-      let agendaPresIndices: any = [];
-      const data = events
-        .filter((res: any) => res.idRes == info.event.extendedProps.idRes)
-        .map((res: any, index: number) => {
-          // console.log(res);
-          let rowIndex = index == 0 ? eventIndex : eventIndex + 1;
-          agendaPresIndices.push(res.eventIndex);
-          return {
-            eventIndex: res.eventIndex,
-            res_id: res.idRes,
-            id_art: res.id_art,
-            ligne_id: res.ligne_id,
-            intitule: res.title,
-            dateDB: res.start.split("T")[0],
-            prixTTC: res.prixTTC,
-            hourDB: `${res.hourDB}:${res.minutesDB}`,
-            duree: res.duree,
-            duration_hours: Math.floor(res.duree / 60) * 60,
-            duration_minutes: Math.floor(res.duree % 60),
-            agenda: { label: res.agenda.label, value: res.agenda.value },
-            client: { label: res.client.label, value: res.client.value },
-          };
-        });
-      console.log(data);
+      // const eventIndex = parseInt(info.event.extendedProps.eventIndex);
+      // let agendaPresIndices: any = [];
+      // const data = events
+      //   .filter((res: any) => res.idRes == info.event.extendedProps.idRes)
+      //   .map((res: any, index: number) => {
+      //     // console.log(res);
+      //     let rowIndex = index == 0 ? eventIndex : eventIndex + 1;
+      //     agendaPresIndices.push(res.eventIndex);
+      //     return {
+      //       eventIndex: res.eventIndex,
+      //       res_id: res.idRes,
+      //       id_art: res.id_art,
+      //       ligne_id: res.ligne_id,
+      //       intitule: res.title,
+      //       dateDB: res.start.split("T")[0],
+      //       prixTTC: res.prixTTC,
+      //       hourDB: `${res.hourDB}:${res.minutesDB}`,
+      //       duree: res.duree,
+      //       duration_hours: Math.floor(res.duree / 60) * 60,
+      //       duration_minutes: Math.floor(res.duree % 60),
+      //       agenda: { label: res.agenda.label, value: res.agenda.value },
+      //       client: { label: res.client.label, value: res.client.value },
+      //     };
+      //   });
+      // console.log(data);
       return;
       // addAllAgendaPres(data);
       // manageEvents("manageAgendaPres", { Agendas: data, action: "add_all" });
@@ -192,8 +205,17 @@ export default function Home({
   };
   return (
     <div className="flex  gap-10  h-full   ">
-      {activeEventSection && (
+      {activeCreateSection && (
         <CreateEventSection
+          clients={clients}
+          villes={villes}
+          collaborateurs={collaborateurs}
+          prestations={prestations}
+          agendas={agendas}
+        />
+      )}
+      {activeUpdateSection && (
+        <UpdateEventSection
           clients={clients}
           villes={villes}
           collaborateurs={collaborateurs}

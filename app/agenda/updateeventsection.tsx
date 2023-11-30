@@ -36,7 +36,7 @@ import { saveReservation } from "@/app/lib/reservatActions";
 import { exportStore, useStore_new2 } from "@/app/store/store_new2";
 import Link from "next/link";
 
-export default function CreateEventSection({
+export default function UpdateEventSection({
   clients,
   villes,
   collaborateurs,
@@ -44,13 +44,14 @@ export default function CreateEventSection({
   agendas,
 }) {
   const {
-    activeCreateSection,
-    setActiveCreateSection,
+    activeUpdateSection,
+    setActiveUpdateSection,
     events,
     manageEvents,
     selectedEventsIndices,
     toggleEventSelected,
   } = useStore_new2();
+
   // Copy the selectedEventsIndices array
   const EventsIndices = [...selectedEventsIndices];
 
@@ -70,10 +71,9 @@ export default function CreateEventSection({
     .filter((event: any) => EventsIndices.includes(event.eventIndex))
     .flatMap((event: any) => event.agenda_prestationArr);
 
-  console.log("EventsIndices", EventsIndices);
+  // console.log("EventsIndices", EventsIndices);
   //return agenda_prestationArr from selectedEventAgendaPrestationArr
   const selectedEventDate: string = selectedEventFirst?.start.split("T")[0];
-
   const [selectedHourDB, selectedMinutesDB] =
     selectedEventFirst?.start.split("T")[1]?.split(":") || [];
 
@@ -89,8 +89,6 @@ export default function CreateEventSection({
       return { value: agenda.id, label: agenda.nom };
     })
   );
-  // const [selectedClient, setSelectedClient] = useState(null);
-  // const [selectedAgenda, setSelectedAgenda] = useState();
 
   const schema = yup.object().shape({
     client: yup
@@ -131,8 +129,13 @@ export default function CreateEventSection({
         value: selectedHourDB?.toString().padStart(2, "0"),
       },
       dateRes: selectedEventDate,
+      client: {
+        label: selectedEventFirst?.client?.label,
+        value: selectedEventFirst?.client?.value,
+      },
     },
   });
+  console.log("client", selectedEventFirst);
 
   const { fields, append, remove } = useFieldArray({
     control,
@@ -140,7 +143,7 @@ export default function CreateEventSection({
   });
 
   if (EventsIndices.length == -1) {
-    setActiveCreateSection(false);
+    setActiveUpdateSection(false);
   }
 
   const [isPending, startTransition] = useTransition();
@@ -159,7 +162,7 @@ export default function CreateEventSection({
   return (
     <div
       className={`relative   h-fit w-full ${
-        !activeCreateSection ? "hidden" : ""
+        !activeUpdateSection ? "hidden" : ""
       }`}
     >
       <form
@@ -204,11 +207,10 @@ export default function CreateEventSection({
                   {...field}
                   instanceId="select_client"
                   placeholder="Sélectionnez un Client"
-                  // defaultValue={{
-                  //   label: agenda_prestationArr[0]?.client.label || "0",
-                  //   value: agenda_prestationArr[0]?.client.value || "0",
-                  // }}
-
+                  defaultValue={{
+                    label: selectedEventFirst?.client.label,
+                    value: selectedEventFirst?.client.value,
+                  }}
                   options={clientOptions}
                   // value={selectedClient}
                   {...(clientIsRef == true
@@ -727,7 +729,7 @@ export default function CreateEventSection({
                               ]);
                               toggleEventSelected(item.eventIndex);
                               if (EventsIndices.length == 1) {
-                                setActiveCreateSection(false);
+                                setActiveUpdateSection(false);
                               }
                             }}
                           />
@@ -772,7 +774,7 @@ export default function CreateEventSection({
         <div className="absolute bottom-3 w-full flex gap-2 justify-center">
           <button
             className=" flex gap-2 py-1 px-4 bg-gray-800 text-white rounded-md "
-            onClick={() => cancelCreationEvent({ activeSection: "create" })}
+            onClick={() => cancelCreationEvent({ activeSection: "edit" })}
             type="button"
           >
             <img src="https://circumicons.com/icon/no_waiting_sign?size=24&fill=ffffff" />

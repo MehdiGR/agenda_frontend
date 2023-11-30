@@ -85,22 +85,13 @@ export async function saveReservation(data) {
   }
   // Update or insert agenda_prestationArr
   await Promise.all(
-    data.agenda_prestationArr.map(async (agenda_prest) => {
+    data.agenda_prestationArr.map(async (agenda_prest, index) => {
       console.log("agenda_prest", agenda_prest);
 
       const duration_hours = parseInt(agenda_prest.duration_hours.value);
       const duration_minutes = parseInt(agenda_prest.duration_minutes.value);
       const duree_ligne = duration_hours * 60 + duration_minutes;
-      const hourDB_ligne =
-        parseInt(data.hourDB.value) +
-        duration_hours +
-        ":" +
-        parseInt(data.minutesDB.value) +
-        duration_minutes;
-      // Check if a record with the given criteria already exists
-      // console.log(duree_ligne, "duree_ligne");
-      // console.log(hourDB_ligne, "hourDB_ligne");
-      // return;
+
       const existingRecord = await checkExistingRecord(agenda_prest.ligne_id);
 
       if (existingRecord) {
@@ -111,7 +102,7 @@ export async function saveReservation(data) {
           duree_ligne,
           agenda_prest.id_art,
           agenda_prest.agenda.value,
-          hourDB_ligne,
+          agenda_prest.start_time,
           agenda_prest.ligne_id,
         ];
 
@@ -125,7 +116,7 @@ export async function saveReservation(data) {
           agenda_prest.id_art,
           duree_ligne,
           agenda_prest.agenda.value,
-          hourDB_ligne,
+          agenda_prest.start_time,
         ];
 
         await executeQuery(insertRecordSQL, insertRecordValues);

@@ -17,7 +17,7 @@ export async function GET(req: Request) {
               lr.idAgenda AS prest_idAgenda,
               lr.id AS ligne_id,
               ag.nom AS prest_agenda,
-              clt.nom as client
+              clt.nom as nomClient
           FROM
               reservat AS rsv
           JOIN ligne_res AS lr
