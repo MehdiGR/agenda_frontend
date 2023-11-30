@@ -773,6 +773,14 @@ export default function UpdateEventSection({
 
         <div className="absolute bottom-3 w-full flex gap-2 justify-center">
           <button
+            className=" flex gap-2 py-1 px-4 bg-orange-400 text-white rounded-md "
+            // onClick={}
+            type="button"
+          >
+            {/* <img src="https://circumicons.com/icon/no_waiting_sign?size=24&fill=ffffff" /> */}
+            Supprimer
+          </button>
+          <button
             className=" flex gap-2 py-1 px-4 bg-gray-800 text-white rounded-md "
             onClick={() => cancelCreationEvent({ activeSection: "edit" })}
             type="button"

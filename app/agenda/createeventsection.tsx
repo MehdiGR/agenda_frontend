@@ -154,7 +154,6 @@ export default function CreateEventSection({
     // saveReservat(data);
     startTransition(() => {
       saveReservation({ ...data, duree: totalDuration });
-
       setOnEditingEvent(true);
       toggleEventSelected(null);
     });
