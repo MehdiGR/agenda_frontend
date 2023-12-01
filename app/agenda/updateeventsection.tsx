@@ -63,9 +63,8 @@ export default function UpdateEventSection({
 
   // Get the last selected event or null if there are no selected events
   const selectedEventLast =
-    EventsIndices.length > 0
-      ? events[EventsIndices[EventsIndices.length - 1]]
-      : null;
+    EventsIndices.length > 0 ? events[EventsIndices.at(-1)] : null;
+  // console.log("last event", selectedEventLast);
 
   // Filter the events array to only include events with indices present in EventsIndices
   // Then, flatten the agenda_prestationArr arrays of the selected events into a single array
@@ -73,7 +72,7 @@ export default function UpdateEventSection({
     .filter((event: any) => EventsIndices.includes(event.eventIndex))
     .flatMap((event: any) => event.agenda_prestationArr);
 
-  // console.log("EventsIndices", EventsIndices);
+  // return;
   //return agenda_prestationArr from selectedEventAgendaPrestationArr
   const selectedEventDate: string = selectedEventFirst?.start.split("T")[0];
   const [selectedHourDB, selectedMinutesDB] =
@@ -135,6 +134,8 @@ export default function UpdateEventSection({
         label: selectedEventFirst?.client?.label,
         value: selectedEventFirst?.client?.value,
       },
+      idRes: selectedEventFirst?.idRes,
+      // agenda_prestationArr: selectedEventAgendaPrestationArr,
     },
   });
 
@@ -143,9 +144,9 @@ export default function UpdateEventSection({
     name: "agenda_prestationArr",
   });
 
-  if (EventsIndices.length == -1) {
-    setActiveUpdateSection(false);
-  }
+  // if (EventsIndices.length == -1) {
+  //   setActiveUpdateSection(false);
+  // }
 
   const [isPending, startTransition] = useTransition();
   const { TotalDuration, TotalPrice } = exportStore();
@@ -299,11 +300,12 @@ export default function UpdateEventSection({
                       const new_hours = parseInt(selectedOption!.value); //example:2 * 60 = 120(new duration) = 2h
                       const duration =
                         (new_hours - parseInt(selectedHourDB)) * 60;
+                      console.log(duration);
                       manageEvents([
                         {
                           action: "updateEventsTime",
                           payload: {
-                            index: 0,
+                            index: selectedEventFirst?.eventIndex,
                             duration,
                             select_type: "select_hour",
                             globalChange: true,
@@ -350,7 +352,7 @@ export default function UpdateEventSection({
                         {
                           action: "updateEventsTime",
                           payload: {
-                            index: 0,
+                            index: selectedEventFirst?.eventIndex,
                             duration,
                             select_type: "select_minutes",
                             globalChange: true,
@@ -711,6 +713,12 @@ export default function UpdateEventSection({
                         </td>
                         <td className="text-center py-4">{item.prixTTC}</td>
                         <td className="text-center py-4 cursor-pointer ">
+                          <input
+                            type="hidden"
+                            {...register(
+                              `agenda_prestationArr[${index}].removedRow` as any
+                            )}
+                          />
                           <Image
                             className="text-red-600 m-auto"
                             priority
@@ -718,7 +726,10 @@ export default function UpdateEventSection({
                             src={removeIcon}
                             onClick={() => {
                               // remove from Form values (function remove is in useFieldArray)
-                              remove(item.index);
+                              setValue(
+                                `agenda_prestationArr[${index}].removedRow` as any,
+                                true
+                              );
                               manageEvents([
                                 {
                                   action: "remove",
@@ -728,9 +739,9 @@ export default function UpdateEventSection({
                                 },
                               ]);
                               toggleEventSelected(item.eventIndex);
-                              if (EventsIndices.length == 1) {
-                                setActiveUpdateSection(false);
-                              }
+                              // if (EventsIndices.length == 1) {
+                              //   setActiveUpdateSection(false);
+                              // }
                             }}
                           />
                           {/* {agenda_prestationArr[index].res_id} */}

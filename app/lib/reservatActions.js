@@ -66,16 +66,15 @@ export async function saveReservation(data) {
     ];
     // Execute the reservation query with parameters
     insertedId_res = await executeQuery(reservationSQL, reservationValues);
-    console.log("inserted id is ", insertedId_res);
   } else {
-    console.log("update existing", insertedId_res);
+    // console.log("update existing", insertedId_res);
     // Update existing reservation
     const updateReservationSQL =
       "UPDATE reservat SET idClient=?, dateRes=?, heurDB=?, duree=?, note=? WHERE id=?";
     const updateReservationValues = [
       data.client.value,
       data.dateRes,
-      data?.time,
+      time,
       data?.duree,
       data?.note,
       insertedId_res,
@@ -86,8 +85,6 @@ export async function saveReservation(data) {
   // Update or insert agenda_prestationArr
   await Promise.all(
     data.agenda_prestationArr.map(async (agenda_prest, index) => {
-      console.log("agenda_prest", agenda_prest);
-
       const duration_hours = parseInt(agenda_prest.duration_hours.value);
       const duration_minutes = parseInt(agenda_prest.duration_minutes.value);
       const duree_ligne = duration_hours * 60 + duration_minutes;
@@ -95,18 +92,35 @@ export async function saveReservation(data) {
       const existingRecord = await checkExistingRecord(agenda_prest.ligne_id);
 
       if (existingRecord) {
-        // Update existing record
-        const updateRecordSQL =
-          "UPDATE ligne_res SET duree=?, idPrest=? , idAgenda=? , heurDB=?  WHERE id=?";
-        const updateRecordValues = [
-          duree_ligne,
-          agenda_prest.id_art,
-          agenda_prest.agenda.value,
-          agenda_prest.start_time,
-          agenda_prest.ligne_id,
-        ];
+        const removedRecord = agenda_prest?.removedRow;
+        if (removedRecord) {
+          // Delete existing record
+          const deleteRecordSQL = "DELETE FROM ligne_res WHERE id=?";
+          const deleteRecordValues = [agenda_prest.ligne_id];
+          await executeQuery(deleteRecordSQL, deleteRecordValues);
+          if (data.agenda_prestationArr.length === 1) {
+            const deleteRes = `DELETE FROM reservat  WHERE id=?`;
+            console.log("deleteRes", deleteRes);
+            const deleteResValues = [insertedId_res];
+            await executeQuery(deleteRes, deleteResValues);
+          }
+          // const updateDuration = `UPDATE reservat SET duree=duree-${duree_ligne} WHERE id=?`;
+          // const updateDurationValues = [insertedId_res];
+          // await executeQuery(updateDuration, updateDurationValues);
+        } else {
+          // Update existing record
+          const updateRecordSQL =
+            "UPDATE ligne_res SET duree=?, idPrest=? , idAgenda=? , heurDB=?  WHERE id=?";
+          const updateRecordValues = [
+            duree_ligne,
+            agenda_prest.id_art,
+            agenda_prest.agenda.value,
+            agenda_prest.start_time,
+            agenda_prest.ligne_id,
+          ];
 
-        await executeQuery(updateRecordSQL, updateRecordValues);
+          await executeQuery(updateRecordSQL, updateRecordValues);
+        }
       } else {
         // Insert new record
         const insertRecordSQL =

@@ -303,7 +303,7 @@ export default function CreateEventSection({
                         {
                           action: "updateEventsTime",
                           payload: {
-                            index: 0,
+                            index: selectedEventFirst?.eventIndex,
                             duration,
                             select_type: "select_hour",
                             globalChange: true,
@@ -350,7 +350,7 @@ export default function CreateEventSection({
                         {
                           action: "updateEventsTime",
                           payload: {
-                            index: 0,
+                            index: selectedEventFirst?.eventIndex,
                             duration,
                             select_type: "select_minutes",
                             globalChange: true,

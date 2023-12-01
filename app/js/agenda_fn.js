@@ -69,7 +69,7 @@ export const saveClient = async (formData) => {
     console.error("POST request failed");
   }
 };
-export const addPrestation = (data) => {
+export const addPrestation = async (data) => {
   // const {
   //   addAgendaPres,
   //   addDurationHour,
@@ -87,31 +87,37 @@ export const addPrestation = (data) => {
   const current_event = events.find((event) => event.isTemp);
   // if exist a temp event
   const EventIndices = [...selectedEventsIndices];
+
   // console.log("selected events", [...selectedEventsIndices]);
   // return;
   if (current_event) {
+    console.log(current_event, "current_event");
     const [start_date, start_time] = current_event.start.split("T");
 
     const [star_hour, start_minutes] = start_time.split(":");
-    const end_hour = (
-      parseInt(Math.floor(data.duree / 60)) + parseInt(star_hour)
-    )
-      .toString()
-      .padStart(2, "0");
 
-    const end_minutes = (
-      parseInt(Math.floor(data.duree % 60)) + parseInt(start_minutes)
-    )
-      .toString()
-      .padStart(2, "0");
-    const event_end = `${start_date}T${end_hour}:${end_minutes}`;
+    const duration_hours = Math.floor(data.duree / 60);
+    const duration_minutes = data.duree % 60;
+    console.log("star_hour", star_hour);
+    console.log("duration_hours", duration_hours);
+    let end_minutes = parseInt(start_minutes) + duration_minutes;
+    const end_hour =
+      parseInt(star_hour) + duration_hours + Math.floor(end_minutes / 60); // Add extra hour if minutes exceed 59
+    end_minutes %= 60;
+
+    // Format the hours and minutes to ensure two digits
+    const formatted_end_hour = String(end_hour).padStart(2, "0");
+    const formatted_end_minutes = String(end_minutes).padStart(2, "0");
+
+    const end = `${start_date}T${formatted_end_hour}:${formatted_end_minutes}`;
+
     const event_index = current_event.eventIndex;
     const updatedEvent = {
       title: data.intitule,
       prestationId: data.id,
       isTemp: false,
       resourceId: current_event.resourceId,
-      end: event_end,
+      end,
       editable: true,
       classNames: ["animated-event"],
       backgroundColor: "rgb(251, 233, 131)",
@@ -124,10 +130,10 @@ export const addPrestation = (data) => {
         action: "manageAgendaPres",
         payload: {
           action: "add",
-          index: current_event.eventIndex,
+          index: event_index,
           newAgenda: {
             ...data,
-            eventIndex: current_event.eventIndex,
+            eventIndex: event_index,
             // hourDB: `${hourDB}:${minutesDB}`,
             duration_hours: Math.floor(parseInt(data.duree) / 60),
             duration_minutes: parseInt(data.duree) % 60,
@@ -145,11 +151,19 @@ export const addPrestation = (data) => {
     // console.log("index", events.at(-1));
     // console.log("index", events.at(-1));
     // return;
-    const resourceId = events.at(-1).resourceId;
-    const resourceTitle = events.at(-1).resourceTitle;
-    const eventIndex = events.at(-1).eventIndex + 1;
-    console.log(events.at(-1), "last event");
-    const last_event_end = events.at(-1).end;
+    // const lastEventIndex = EventIndices.length - 1;
+    // last slected event in EventIndices array
+    const lastSelectedEventIndex = EventIndices.at(-1);
+    // last event in events array
+    const lastEvent = events.at(-1);
+    // console.log(lastEvent, "lastEventIndex");
+    // return;
+    const resourceId = events[lastSelectedEventIndex].resourceId;
+    const resourceTitle = events[lastSelectedEventIndex].resourceTitle;
+    const eventIndex = lastEvent.eventIndex + 1;
+    const last_event_end = events[lastSelectedEventIndex].end;
+    const idRes = events[lastSelectedEventIndex]?.idRes || "";
+    // return;
     // console.log("last_event_end", last_event_end);
     const start = last_event_end;
     const [end_date, end_time] = last_event_end.split("T");
@@ -171,6 +185,7 @@ export const addPrestation = (data) => {
     const newEvent = {
       start,
       resourceId,
+      idRes,
       resourceTitle,
       prestationId: data.id,
       eventIndex,
@@ -183,6 +198,7 @@ export const addPrestation = (data) => {
       borderColor: "rgb(251, 233, 131)",
       textColor: "#383838",
     };
+    //
     toggleEventSelected(eventIndex);
     manageEvents([
       { action: "add", payload: { newEvent } },
@@ -205,6 +221,8 @@ export const addPrestation = (data) => {
         },
       },
     ]);
+    // const newData = useStore_new2.getState().selectedEventsIndices;
+    // console.log("EventIndices", newData);
   }
 
   // manageEvents([{ action: "update", payload: { updatedEvent, index } }]);
@@ -380,8 +398,6 @@ export const processReservations = (reservations) => {
   const toggleEventSelected = useStore_new2.getState().toggleEventSelected;
   const events = [];
   reservations.map((res, index) => {
-    console.log(res.nomClient);
-
     const startDate = res.dateRes.split("T")[0];
     const startTime = res.prest_heurDB;
 
@@ -391,15 +407,16 @@ export const processReservations = (reservations) => {
     const durationHours = Math.floor(res.prest_duree / 60);
     const durationMinutes = parseInt(res.prest_duree) % 60;
 
-    const endHour =
-      (parseInt(durationHours) + parseInt(startHour))
-        .toString()
-        .padStart(2, "0") +
-      ":" +
-      (parseInt(durationMinutes) + startMinutes).toString().padStart(2, "0");
-
     const endDate = res.dateRes.split("T")[0];
-    const endTime = endHour;
+    let end_minutes = startMinutes + durationMinutes;
+    const end_hour =
+      parseInt(startHour) + durationHours + Math.floor(end_minutes / 60); // Add extra hour if minutes exceed 59
+    end_minutes %= 60;
+    // Format the hours and minutes to ensure two digits
+    const formatted_end_hour = String(end_hour).padStart(2, "0");
+    const formatted_end_minutes = String(end_minutes).padStart(2, "0");
+
+    const end = `${endDate}T${formatted_end_hour}:${formatted_end_minutes}`;
     events.push({
       eventIndex: index,
       idRes: res.id,
@@ -408,7 +425,7 @@ export const processReservations = (reservations) => {
       prixTTC: res.prest_prix,
       title: res.prest_title,
       start: `${startDate}T${startTime}`,
-      end: `${endDate}T${endTime}`,
+      end,
       resourceId: res.prest_idAgenda,
       resourceTitle: res.prest_agenda,
       saved: true,
@@ -433,7 +450,6 @@ export const processReservations = (reservations) => {
         },
       ],
 
-      client: { label: res.client, value: res.idClient },
       // editable: false,
     });
   });

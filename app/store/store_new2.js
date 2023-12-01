@@ -106,6 +106,14 @@ export const useStore_new2 = create((set) => ({
                   draft.selectedEventsIndices.has(event.eventIndex) &&
                   event.eventIndex === payload.index
                 ) {
+                  console.log(
+                    " payload.index",
+                    payload.index,
+                    "event.eventIndex",
+                    event.eventIndex
+                  );
+                  console.log("payload", payload);
+                  // return;
                   let agenda_prestationArr = [...event.agenda_prestationArr];
                   // let agenda_prestationArr = JSON.parse(
                   //   JSON.stringify(event.agenda_prestationArr)
@@ -113,7 +121,6 @@ export const useStore_new2 = create((set) => ({
                   let otherProps = {};
                   switch (payload.action) {
                     case "add":
-                      // console.log(agenda_prestationArr);
                       agenda_prestationArr.push(payload.newAgenda);
                       break;
                     case "add_all":
@@ -170,6 +177,8 @@ export const useStore_new2 = create((set) => ({
               draft.events = draft.events.map((event) => {
                 const i = event.eventIndex;
                 const isSelected = draft.selectedEventsIndices.has(i);
+                const eventIndices = [...draft.selectedEventsIndices];
+                console.log(eventIndices, "eventIndices");
                 let existIdRes = true;
                 if (idRes) {
                   existIdRes = event.idRes === idRes;
@@ -187,13 +196,21 @@ export const useStore_new2 = create((set) => ({
                   let hour, minutes;
                   let newEvent = { ...event };
                   let EndHour, EndMinutes;
-
+                  console.log(index, "index");
+                  console.log(i, "i");
                   if (i === index) {
                     EndHour = globalChange ? endT.split(":")[0] : "";
                     EndMinutes = globalChange ? endT.split(":")[1] : "";
+
+                    console.log("EndHour", EndHour);
+                    console.log("EndMinutes", EndMinutes);
                     if (select_type === "select_hour") {
                       hour = startT.split(":")[0];
-                      minutes = endT.split(":")[1];
+
+                      // minutes = endT.split(":")[1];
+                      minutes = globalChange
+                        ? startT.split(":")[1]
+                        : endT.split(":")[1];
                     } else if (select_type === "select_minutes") {
                       minutes = startT.split(":")[1];
                       hour = globalChange

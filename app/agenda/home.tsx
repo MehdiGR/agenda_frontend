@@ -119,7 +119,6 @@ export default function Home({
   };
   const updatedIndices = useRef(false);
   const handleUpdateEvent = (info: any) => {
-    console.log("newxd ", onEditingEvent);
     if (info.event.extendedProps.idRes && !onEditingEvent) {
       const idRes = info.event.extendedProps.idRes;
       const Indices = events
@@ -154,7 +153,8 @@ export default function Home({
           agendas={agendas}
         />
       )}
-      {activeUpdateSection && selectedEventsIndices.size > 0 && (
+      {/* selectedEventsIndices.size > 0 && */}
+      {activeUpdateSection && (
         <UpdateEventSection
           clients={clients}
           villes={villes}

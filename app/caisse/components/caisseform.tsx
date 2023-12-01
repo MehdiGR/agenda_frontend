@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import {
   Controller,
   SubmitHandler,
@@ -18,7 +18,11 @@ import Calculator from "./calculator";
 export default function CaisseForm({ clients }) {
   const [clientIsRef, setIsRef] = useState(true);
   const [selectedClientType, setSelectedClientType] = useState("client_ref");
-
+  const inputRefs = {
+    input1: useRef(),
+    input2: useRef(),
+    input3: useRef(),
+  };
   const [clientOptions, setClientOptions] = useState(
     clients.map((client: any) => {
       return { value: client.id, label: client.nom };
@@ -28,6 +32,15 @@ export default function CaisseForm({ clients }) {
     let value = changeEvent.target.value;
     value == "client_ref" ? setIsRef(true) : setIsRef(false);
     setSelectedClientType(value);
+  };
+  // handle click button in the calculator
+  const handleClickCalculator = (buttonValue) => {
+    const focusedInputRef = inputRefs[document.activeElement.id];
+    console.log(focusedInputRef);
+    return;
+    if (focusedInputRef.current) {
+      focusedInputRef.current.value += buttonValue;
+    }
   };
   const schema = yup.object().shape({
     client: yup
@@ -190,12 +203,16 @@ export default function CaisseForm({ clients }) {
             type="text"
             className="border border-gray-400 rounded-md p-2"
             pattern="[0-9.]*"
+            id="input3"
+            // name="input3"
             onInput={(event) => {
               const input = event.target as HTMLInputElement;
               input.value = input.value
                 .replace(/,/g, ".")
                 .replace(/[^0-9.]/g, "");
             }}
+            onFocus={() => inputRefs[`input3`].current.focus()}
+            ref={inputRefs[`input3`]}
           />
         </div>
         <div className="flex gap-4">
@@ -307,7 +324,7 @@ export default function CaisseForm({ clients }) {
           ></textarea>
         </div>
         <div className=" ">
-          <Calculator />
+          <Calculator handleClickCalculator={handleClickCalculator} />
         </div>
       </form>
     </div>

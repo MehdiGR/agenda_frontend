@@ -1,12 +1,13 @@
 import Image from "next/image";
 
-export function Calculator() {
+export function Calculator({ handleClickCalculator }) {
   return (
     <div className="flex flex-wrap justify-center w-64">
       {[1, 2, 3, 4, 5, 6, 7, 8, 9, 0, ".", "CL"].map((number: any) => (
         <button
           key={number}
           type="button"
+          onClick={() => handleClickCalculator(number)}
           //   transition-colors
           className={`${
             number === "CL" ? "bg-red-200 text-red-500" : "bg-white"

@@ -29,7 +29,8 @@ export async function GET(req: Request) {
                JOIN agenda AS ag
           ON
               ag.id = lr.idAgenda
-              JOIN client as clt on clt.id=rsv.idClient order by rsv.dateRes,rsv.heurDB,lr.heurDB;`,
+              JOIN client as clt on clt.id=rsv.idClient order by rsv.id`,
+        // order by rsv.dateRes,rsv.heurDB,lr.heurDB;
         (error: any, results: any) => (error ? reject(error) : resolve(results))
       )
     );
