@@ -10,12 +10,27 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import Select from "react-select";
 import { handleOptionChangeTypeClt } from "@/app/js/agenda_fn";
+import { useStore_new2 } from "../../store/store_new2";
+
 import {
   selectDefaultStyle,
   selectHourStyles,
 } from "@/app/styles/select_style";
 import Calculator from "./calculator";
-export default function CaisseForm({ clients }) {
+export default function CaisseForm({ clients, reservation }) {
+  // const { events, selectedEventsIndices } = useStore_new2();
+  // const EventsIndices = [...selectedEventsIndices];
+
+  // const selectedEventAgendaPrestationArr = events
+  //   .filter((event: any) => EventsIndices.includes(event.eventIndex))
+  //   .flatMap((event: any) => event.agenda_prestationArr);
+
+  // console.log(
+  //   "selectedEventAgendaPrestationArr",
+  //   selectedEventAgendaPrestationArr
+  // );
+  // return;
+
   const [clientIsRef, setIsRef] = useState(true);
   const [selectedClientType, setSelectedClientType] = useState("client_ref");
   const inputRefs = {
@@ -135,7 +150,27 @@ export default function CaisseForm({ clients }) {
             </tr>
           </thead>
           <tbody>
-            <tr className="">
+            {reservation.length == 0 ? (
+              <tr>
+                <td colSpan={5} className="text-center py-4">
+                  Aucune prestation
+                </td>
+              </tr>
+            ) : (
+              // agenda_prestationArr.map((ag_pr: any, index: any) => {
+              //   let hours = Math.floor(ag_pr.duree / 60);
+              //   let minutes = ag_pr.duree % 60;
+              reservation.map((item: any, index: number) => {
+                return (
+                  <tr key={index}>
+                    <td className="text-center py-4">{item.prest_prix}</td>
+                    <td className="text-center py-4">{item.prest_prix}</td>
+                    <td className="text-center py-4">{item.prest_prix}</td>
+                    <td className="text-center py-4">{item.prest_prix}</td>
+                    <td className="text-center py-4">{item.prest_prix}</td>
+                    <td className="text-center py-4">{item.prest_prix}</td>
+
+                    {/* 
               <td className="pl-3 ">Maquillage soir</td>
               <td className=" w-20 p-1">
                 <Select
@@ -175,8 +210,11 @@ export default function CaisseForm({ clients }) {
                   }}
                 />
               </td>
-              <td className="text-red-500 p-1 text-lg font-semibold">X</td>
-            </tr>
+              <td className="text-red-500 p-1 text-lg font-semibold">X</td> */}
+                  </tr>
+                );
+              })
+            )}
           </tbody>
         </table>
         <div className=" flex justify-end ml-auto gap-6 w-full ">

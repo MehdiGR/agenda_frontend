@@ -4,13 +4,14 @@ import { exportStore } from "@/app/store/store_new2";
 import { revalidatePath } from "next/cache";
 
 import connection from "./db";
+import { redirect } from "next/navigation";
+import { NextResponse } from "next/server";
 // import { NextResponse } from "next/server";
 
-export async function get_resavations() {
+export async function get_resavations({ id = 0 }) {
+  const where = id != 0 ? " WHERE rsv.id=35" : "";
   try {
-    const reservat = await new Promise((resolve, reject) =>
-      connection.query(
-        `SELECT
+    const sql = `SELECT
               rsv.*,
               art.intitule AS prest_title,
               art.prixTTC AS prest_prix,
@@ -32,25 +33,29 @@ export async function get_resavations() {
                JOIN agenda AS ag
           ON
               ag.id = lr.idAgenda
-              JOIN client as clt on clt.id=rsv.idClient order by rsv.dateRes,rsv.heurDB,lr.heurDB;`,
-        (error, results) => (error ? reject(error) : resolve(results))
+              JOIN client as clt on clt.id=rsv.idClient ${where} order by rsv.dateRes,rsv.heurDB,lr.heurDB `;
+    const values = [id];
+    console.log(sql, values);
+    const reservat = await new Promise((resolve, reject) =>
+      connection.query(sql, (error, results) =>
+        error ? reject(error) : resolve(results)
       )
     );
 
-    // return new NextResponse(JSON.stringify(reservat));
+    return JSON.stringify(reservat);
   } catch (error) {
     console.error("Could not execute query:", error);
-    // return new NextResponse(
-    //   { error: "Could not execute query" },
-    //   { status: 500 }
-    // );
+    return new NextResponse(
+      { error: "Could not execute query" },
+      { status: 500 }
+    );
   }
 }
 export async function saveReservation(data) {
   const time = `${data.hourDB.value}:${data.minutesDB.value}`;
   // console.log(data);
   // // console.log(time);
-
+  // redirect("/caisse");
   // return;
   let insertedId_res = data.idRes;
   if (insertedId_res === "" || insertedId_res === null) {
@@ -137,6 +142,7 @@ export async function saveReservation(data) {
       }
     })
   );
+
   revalidatePath("/");
 }
 

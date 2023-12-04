@@ -35,6 +35,7 @@ import { useStore } from "@/app/store/store";
 import { saveReservation } from "@/app/lib/reservatActions";
 import { exportStore, useStore_new2 } from "@/app/store/store_new2";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function CreateEventSection({
   clients,
@@ -71,7 +72,6 @@ export default function CreateEventSection({
     .filter((event: any) => EventsIndices.includes(event.eventIndex))
     .flatMap((event: any) => event.agenda_prestationArr);
 
-  console.log("EventsIndices", EventsIndices);
   //return agenda_prestationArr from selectedEventAgendaPrestationArr
   const selectedEventDate: string = selectedEventFirst?.start.split("T")[0];
 
@@ -148,14 +148,23 @@ export default function CreateEventSection({
   const { TotalDuration, TotalPrice } = exportStore();
   const totalDuration = TotalDuration();
   const totalPrice = TotalPrice();
-  const handleSaveReservat: any = async (data) => {
-    // console.log(data);
+  const submitTypeRef = useRef("");
+
+  const router = useRouter();
+  const handleSaveReservat: any = async (data: any) => {
+    console.log(data);
+    // if (submitTypeRef.current === "encaisser") {
+    //   console.log("Encaisser button was clicked");
+    // }
     // return;
     // saveReservat(data);
     startTransition(() => {
       saveReservation({ ...data, duree: totalDuration });
-      setOnEditingEvent(true);
-      toggleEventSelected(null);
+      if (submitTypeRef.current === "encaisser") {
+        router.push("/caisse");
+      }
+      // setOnEditingEvent(true);
+      // toggleEventSelected(null);
     });
   };
 
@@ -395,7 +404,6 @@ export default function CreateEventSection({
                 //   let minutes = ag_pr.duree % 60;
                 selectedEventAgendaPrestationArr.map(
                   (item: any, index: number) => {
-                    console.log(item, "item");
                     return (
                       <tr key={index}>
                         <Controller
@@ -788,14 +796,15 @@ export default function CreateEventSection({
           >
             Enregistrer
           </button>
-          <Link href="/caisse">
-            <button
-              className="py-1 px-4 bg-[#199821] text-white rounded-md "
-              type="button"
-            >
-              Encaisser <span className="text-lg font-extrabold">+</span>
-            </button>
-          </Link>
+          {/* <Link href="/caisse"> */}
+          <button
+            className="py-1 px-4 bg-[#199821] text-white rounded-md "
+            type="submit"
+            onClick={() => (submitTypeRef.current = "encaisser")}
+          >
+            Encaisser <span className="text-lg font-extrabold">+</span>
+          </button>
+          {/* </Link> */}
         </div>
       </form>
     </div>

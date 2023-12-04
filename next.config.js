@@ -3,6 +3,7 @@ const nextConfig = {
   images: {
     domains: ["picsum.photos", "localhost", "circumicons.com"],
   },
+
   // experimental: {
   //   serverActions: true,
   // },
