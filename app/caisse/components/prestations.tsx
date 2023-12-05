@@ -3,9 +3,9 @@ import React, { useState } from "react";
 import CircumIcon from "@klarr-agency/circum-icons-react";
 import Prestation from "./prestation";
 
-export default function Prestations({ prestations }) {
+export default function Prestations({ prestations, addPrestation }) {
   const [showSubfolders, setShowSubfolders] = useState(false);
-
+  console.log(prestations);
   const toggleSubfolders = () => {
     setShowSubfolders(!showSubfolders);
   };
@@ -26,7 +26,7 @@ export default function Prestations({ prestations }) {
           </div>
         </>
       ) : (
-        <>
+        <div className="flex flex-col gap-2">
           <div className="flex gap-2">
             <div className="cursor-pointer " onClick={toggleSubfolders}>
               <CircumIcon name="circle_chev_left" />
@@ -35,14 +35,18 @@ export default function Prestations({ prestations }) {
               Prestations
             </div>
           </div>
-          <div className="flex gap-2 w-fit h-fit rounded-md text-md font-bold uppercase p-16 cursor-pointer ">
+          <div className="flex gap-2 w-fit h-fit rounded-md text-md font-bold uppercase p-6 cursor-pointer  ">
             {/* Render Subfolders here */}
 
             {prestations.map((prestation: any) => (
-              <Prestation key={prestation.id} prestation={prestation} />
+              <Prestation
+                key={prestation.id}
+                prestation={prestation}
+                addPrestation={addPrestation}
+              />
             ))}
           </div>
-        </>
+        </div>
       )}
     </div>
   );

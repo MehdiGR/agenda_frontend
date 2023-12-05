@@ -9,6 +9,10 @@ export async function GET() {
             art.id AS id_art,
             art.intitule,
             art.prixTTC,
+            art.prixAchat,
+            art.prixVente,
+            art.code_tauxtvaVente,
+            art.code_tauxtvaAchat,
             art.duree,
             img_art.img AS img
           FROM

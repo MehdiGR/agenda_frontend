@@ -158,11 +158,19 @@ export default function CreateEventSection({
     // }
     // return;
     // saveReservat(data);
-    startTransition(() => {
-      saveReservation({ ...data, duree: totalDuration });
-      if (submitTypeRef.current === "encaisser") {
-        router.push("/caisse");
-      }
+    startTransition(async () => {
+      saveReservation({
+        ...data,
+        duree: totalDuration,
+        submitType: submitTypeRef.current,
+      });
+      // if (submitTypeRef.current === "encaisser" && insertedId_res) {
+      //   router.push("/caisse", {
+      //     query: {
+      //       idRes: insertedId_res,
+      //     },
+      //   });
+      // }
       // setOnEditingEvent(true);
       // toggleEventSelected(null);
     });
@@ -793,6 +801,7 @@ export default function CreateEventSection({
           <button
             className="py-1 px-4 bg-[#fc8f3e] text-white rounded-md "
             type="submit"
+            onClick={() => (submitTypeRef.current = "enregistrer")}
           >
             Enregistrer
           </button>

@@ -806,7 +806,7 @@ export default function UpdateEventSection({
           >
             Enregistrer
           </button>
-          <Link href="/caisse">
+          <Link href="/caisse?res=11">
             <button
               className="py-1 px-4 bg-[#199821] text-white rounded-md "
               type="button"

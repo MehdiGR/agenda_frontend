@@ -10,7 +10,7 @@ export async function GET(req: Request) {
         `SELECT
               rsv.*,
               art.intitule AS prest_title,
-              art.prixTTC AS prest_prix,
+              art.prixTTC AS prest_prix_ttc,
               lr.idPrest AS prest_id,
               lr.duree AS prest_duree,
               lr.heurDB AS prest_heurDB,

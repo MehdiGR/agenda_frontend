@@ -17,22 +17,26 @@ import {
   selectHourStyles,
 } from "@/app/styles/select_style";
 import Calculator from "./calculator";
-export default function CaisseForm({ clients, reservation }) {
-  // const { events, selectedEventsIndices } = useStore_new2();
-  // const EventsIndices = [...selectedEventsIndices];
-
-  // const selectedEventAgendaPrestationArr = events
-  //   .filter((event: any) => EventsIndices.includes(event.eventIndex))
-  //   .flatMap((event: any) => event.agenda_prestationArr);
-
-  // console.log(
-  //   "selectedEventAgendaPrestationArr",
-  //   selectedEventAgendaPrestationArr
-  // );
-  // return;
-
+export default function CaisseForm({
+  clients,
+  reservation,
+  agendas,
+  removePrestation,
+  totalTTC,
+  updateAgendaInTable,
+}) {
   const [clientIsRef, setIsRef] = useState(true);
+  const [selectedClient, setSelectedClient] = useState({
+    label: reservation[0]?.client,
+    value: reservation[0]?.idClient,
+  });
   const [selectedClientType, setSelectedClientType] = useState("client_ref");
+
+  const [agendaOptions, setAgendaOptions] = useState(
+    agendas.map((agenda: any) => {
+      return { value: agenda.id, label: agenda.nom };
+    })
+  );
   const inputRefs = {
     input1: useRef(),
     input2: useRef(),
@@ -80,6 +84,11 @@ export default function CaisseForm({ clients, reservation }) {
     console.log("submitted");
   };
 
+  const handleOptionChangeClt = (selected: any) => {
+    setSelectedClient(selected);
+  };
+  // add new row to reservation state given by params
+
   return (
     <div className=" ">
       <form
@@ -118,7 +127,7 @@ export default function CaisseForm({ clients, reservation }) {
                   instanceId="select_client"
                   placeholder="Sélectionnez un Clients"
                   options={clientOptions}
-                  // value={selectedClient}
+                  value={selectedClient}
                   {...(clientIsRef == true
                     ? { disabled: false }
                     : { disabled: true })}
@@ -131,7 +140,7 @@ export default function CaisseForm({ clients, reservation }) {
                       width: "100%",
                     }),
                   }}
-                  // onChange={handleOptionChangeClt}
+                  onChange={handleOptionChangeClt}
                 />
               )}
             />
@@ -142,7 +151,7 @@ export default function CaisseForm({ clients, reservation }) {
           <thead className=" bg-slate-800 text-white  ">
             <tr>
               <th className="border-r-2 py-1 text-sm">Designation</th>
-              <th className="border-r-2 py-1 text-sm">Vendeur</th>
+              <th className="border-r-2 py-1 text-sm w-[20%]">Vendeur</th>
               <th className="border-r-2 py-1 text-sm">Qte</th>
               <th className="border-r-2 py-1 text-sm">-%</th>
               <th className="border-r-2 py-1 text-sm">Total</th>
@@ -163,12 +172,83 @@ export default function CaisseForm({ clients, reservation }) {
               reservation.map((item: any, index: number) => {
                 return (
                   <tr key={index}>
-                    <td className="text-center py-4">{item.prest_prix}</td>
-                    <td className="text-center py-4">{item.prest_prix}</td>
-                    <td className="text-center py-4">{item.prest_prix}</td>
-                    <td className="text-center py-4">{item.prest_prix}</td>
-                    <td className="text-center py-4">{item.prest_prix}</td>
-                    <td className="text-center py-4">{item.prest_prix}</td>
+                    <td className="text-center py-4">{item.prest_title}</td>
+                    <td className="text-center py-4">
+                      <Controller
+                        name={`agenda_prestationArr[${index}].agenda`}
+                        control={control}
+                        render={({ field }) => {
+                          return (
+                            <Select
+                              {...field}
+                              name={`agenda_prestationArr[${index}].agenda`}
+                              instanceId={`select_Agenda_${index}`}
+                              placeholder="Sélectionnez un Agendas"
+                              options={agendaOptions}
+                              value={{
+                                label: item.prest_agenda,
+                                value: item.prest_idAgenda,
+                              }} // Use field.value
+                              styles={{
+                                ...selectDefaultStyle,
+                                container: (provided) => ({
+                                  ...provided,
+                                  width: "100%",
+                                }),
+                              }}
+                              onChange={(selectedOption) => {
+                                updateAgendaInTable(index, selectedOption);
+                              }}
+                            />
+                          );
+                        }}
+                      />
+                    </td>
+                    <td className="text-center py-4">
+                      {" "}
+                      <input
+                        className="w-20 p-1 border border-gray-400 rounded-md"
+                        type="number"
+                        value={1}
+                      />
+                    </td>
+                    <td className="text-center py-4">
+                      {" "}
+                      <input
+                        className="w-20 p-1 border border-gray-400 rounded-md"
+                        type="text"
+                        pattern="[0-9.]*"
+                        onInput={(event) => {
+                          const input = event.target as HTMLInputElement;
+                          input.value = input.value
+                            .replace(/,/g, ".")
+                            .replace(/[^0-9.]/g, "");
+                        }}
+                      />
+                    </td>
+                    <td className="text-center py-4">
+                      {" "}
+                      <input
+                        className="w-20 p-1 border border-gray-400 rounded-md"
+                        type="text"
+                        pattern="[0-9.]*"
+                        onInput={(event) => {
+                          const input = event.target as HTMLInputElement;
+                          input.value = input.value
+                            .replace(/,/g, ".")
+                            .replace(/[^0-9.]/g, "");
+                        }}
+                        value={item.prest_prix_ttc}
+                      />
+                    </td>
+                    <td className="text-center py-4">
+                      <button
+                        className="text-red-700 font-bold "
+                        onClick={() => removePrestation(index)}
+                      >
+                        X
+                      </button>
+                    </td>
 
                     {/* 
               <td className="pl-3 ">Maquillage soir</td>
@@ -251,6 +331,7 @@ export default function CaisseForm({ clients, reservation }) {
             }}
             onFocus={() => inputRefs[`input3`].current.focus()}
             ref={inputRefs[`input3`]}
+            value={totalTTC}
           />
         </div>
         <div className="flex gap-4">
@@ -275,7 +356,6 @@ export default function CaisseForm({ clients, reservation }) {
           <button
             type="button"
             className="bg-slate-800 hover:bg-slate-900 text-white font-bold py-2 px-4 rounded"
-            slate-800
           >
             chèque cadeau / Avoir
           </button>
@@ -361,7 +441,7 @@ export default function CaisseForm({ clients, reservation }) {
             className="border border-gray-400 rounded-md p-2 w-full"
           ></textarea>
         </div>
-        <div className=" ">
+        <div className="pb-4">
           <Calculator handleClickCalculator={handleClickCalculator} />
         </div>
       </form>
