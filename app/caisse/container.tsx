@@ -5,50 +5,65 @@ import Prestations from "./components/prestations";
 
 export default function Container({
   clients,
-  reservation,
+  collaborateurs,
+  ticket,
   agendas,
   prestations,
 }) {
-  const [reservationState, setReservationState] = useState(reservation);
-  const addPrestation = (newReservation: any) => {
-    setReservationState([...reservationState, newReservation]);
+  console.log("ticket", ticket);
+  const [ticketState, setTicketState] = useState(ticket);
+  const addPrestation = (newTicket: any) => {
+    setTicketState([...ticketState, newTicket]);
   };
-  // remove row from reservation state given by params
+  // remove row from ticket state given by params
   const removePrestation = (index: any) => {
-    setReservationState(
-      reservationState.filter((_: any, i: any) => i !== index)
-    );
+    setTicketState(ticketState.filter((_: any, i: any) => i !== index));
   };
   //calculate totalTTC using reduce
-  const totalTTC = reservationState.reduce(
-    (total: any, reservation: any) => total + reservation.prest_prix_ttc,
+  const totalTTC = ticketState.reduce(
+    (total: any, ticket: any) => total + ticket.total_ttc,
     0
   );
 
   //   update agenda property
   const updateAgendaInTable = (index: any, selectedOption: any) => {
-    setReservationState(() => [
-      ...reservationState.slice(0, index),
+    setTicketState(() => [
+      ...ticketState.slice(0, index),
       {
-        ...reservationState[index],
+        ...ticketState[index],
         prest_agenda: selectedOption?.label,
         prest_idAgenda: selectedOption?.value,
       },
-      ...reservationState.slice(index + 1),
+      ...ticketState.slice(index + 1),
     ]);
   };
-
+  const [collabOptions, setCollabOptions] = useState(
+    collaborateurs.map((vendeur: any) => {
+      return { value: vendeur.id, label: vendeur.nom };
+    })
+  );
+  const [selectedResponsable, setSelectedResponsable] = useState({
+    label: collabOptions[0].label,
+    value: collabOptions[0].value,
+  });
   return (
     <>
       <CaisseForm
         clients={clients}
-        reservation={reservationState}
+        collabOptions={collabOptions}
+        ticket={ticketState}
         agendas={agendas}
         removePrestation={removePrestation}
         totalTTC={totalTTC}
         updateAgendaInTable={updateAgendaInTable}
+        selectedResponsable={selectedResponsable}
+        setSelectedResponsable={setSelectedResponsable}
       />
-      <Prestations prestations={prestations} addPrestation={addPrestation} />
+      <Prestations
+        prestations={prestations}
+        addPrestation={addPrestation}
+        vendeur={selectedResponsable}
+      />
     </>
   );
 }

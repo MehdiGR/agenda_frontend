@@ -3,13 +3,13 @@ import { exportStore } from "@/app/store/store_new2";
 
 import { revalidatePath } from "next/cache";
 
-import connection from "./db";
+import connection from "../db";
 import { redirect } from "next/navigation";
 import { NextResponse } from "next/server";
 // import { NextResponse } from "next/server";
 
 export async function get_resavations({ id = 0 }) {
-  const where = id != 0 ? `WHERE rsv.id=${id} ` : "";
+  const where = id != 0 ? `WHERE rsv.id=? ` : "";
   try {
     const sql = `SELECT
               rsv.*,
@@ -39,9 +39,9 @@ export async function get_resavations({ id = 0 }) {
           ON
               ag.id = lr.idAgenda
               JOIN client as clt on clt.id=rsv.idClient ${where} order by rsv.dateRes,rsv.heurDB,lr.heurDB `;
-    // const values = [id];
+    const values = [id];
     const reservat = await new Promise((resolve, reject) =>
-      connection.query(sql, (error, results) =>
+      connection.query(sql, values, (error, results) =>
         error ? reject(error) : resolve(results)
       )
     );
@@ -74,7 +74,11 @@ export async function saveReservation(data) {
       data?.note,
     ];
     // Execute the reservation query with parameters
-    insertedId_res = await executeQuery(reservationSQL, reservationValues);
+    // insertedId_res = await executeQuery(reservationSQL, reservationValues);
+    ({ insertId: insertedId_res } = await executeQuery(
+      reservationSQL,
+      reservationValues
+    ));
   } else {
     // console.log("update existing", insertedId_res);
     // Update existing reservation
@@ -149,17 +153,30 @@ export async function saveReservation(data) {
   if (data.submitType === "enregistrer") {
     revalidatePath("/agenda");
   } else {
-    createTicket(data);
-    redirect("/caisse?res=" + insertedId_res);
+    const idRes = insertedId_res;
+    createTicket({ ...data, idRes });
+    // redirect("/caisse?res=" + insertedId_res);
+    return insertedId_res;
   }
   // revalidatePath("/");
 }
 
+// async function executeQuery(sql, values) {
+//   return new Promise((resolve, reject) => {
+//     connection.query(sql, values, function (err, result, fields) {
+//       if (err) reject(err);
+//       resolve(result.insertId || values[values.length - 1]); // Return either the insertId or the idRes for updates
+//     });
+//   });
+// }
 async function executeQuery(sql, values) {
   return new Promise((resolve, reject) => {
     connection.query(sql, values, function (err, result, fields) {
-      if (err) reject(err);
-      resolve(result.insertId || values[values.length - 1]); // Return either the insertId or the idRes for updates
+      if (err) {
+        reject(err);
+      } else {
+        resolve(result);
+      }
     });
   });
 }
@@ -176,74 +193,80 @@ async function checkExistingRecord(ligne_id) {
   });
 }
 
-//
 async function createTicket(data) {
-  const selectMaxNumDocSQL =
-    "SELECT Max(CAST(SUBSTRING(Num_doc ,4 ) as UNSIGNED)) as max FROM docentete WHERE idtypedoc=21";
-  const maxNumDocResult = await executeQuery(selectMaxNumDocSQL);
-  const rowChk = maxNumDocResult[0];
-  const max = rowChk.max !== 0 ? "tk_" + (rowChk.max + 1) : "tk_0";
+  try {
+    const selectMaxNumDocSQL =
+      "SELECT Max(CAST(SUBSTRING(Num_doc ,4 ) as UNSIGNED)) as max FROM docentete WHERE idtypedoc=21";
+    const maxNumDocResult = await executeQuery(selectMaxNumDocSQL);
+    const rowChk = maxNumDocResult[0];
+    const max = rowChk.max !== 0 ? "tk_" + (rowChk.max + 1) : "tk_0";
 
-  // Format today's date in the desired format
-  const dateDoc = new Date().toISOString().split("T")[0]; // YYYY-MM-DD format
-  const idCaisse = 1; // Assuming idCaisse will come from session or other source
+    const dateDoc = new Date().toISOString().split("T")[0];
+    const idCaisse = 1;
 
-  const insertDocenteteSQL =
-    "INSERT INTO docentete(Num_doc,idtypedoc,date_doc,tier_doc,is_prospect,mntttc,id_caisse) VALUES (?,?,?,?,?,?,?)";
-  const insertDocenteteValues = [
-    max,
-    21,
-    dateDoc,
-    data.client.value,
-    0,
-    data.totalPrice,
-    idCaisse,
-  ];
-  const iddocument = await executeQuery(
-    insertDocenteteSQL,
-    insertDocenteteValues
-  );
-
-  if (iddocument) {
-    // Use map to create an array of promises for inserting each item into docligne
-    const insertDoclignePromises = data.agenda_prestationArr.map(
-      async (item) => {
-        const insertDocligneSQL =
-          "INSERT INTO docligne(iddocument,idproduit,Designation,qte,prix,idtauxtva,pUnet,total_ttc) VALUES (?,?,?,?,?,?,?,?)";
-
-        const getTauxTvaSQL = "SELECT id FROM p_tauxtva WHERE code=?";
-        const getTauxTvaValues = [item.code_tauxtvaVente];
-
-        const getTauxTvaResult = await new Promise((resolve, reject) =>
-          connection.query(getTauxTvaSQL, getTauxTvaValues, (error, results) =>
-            error ? reject(error) : resolve(results)
-          )
-        );
-        // return only the id from the result
-        const tauxtva = getTauxTvaResult[0].id;
-
-        const insertDocligneValues = [
-          iddocument,
-          item.id_art, // Assuming each item has an idproduit field
-          item.title, // Assuming each item has a designation field
-          item?.qte || 1, // Assuming each item has a qte field
-          item.prix_vente, // Assuming each item has a prix field
-          tauxtva, // Assuming each item has a tauxtva field
-          item.prixVente, // Assuming each item has a pUnet field
-          item.prixTTC, // Assuming each item has a total_ttc field
-        ];
-        return executeQuery(insertDocligneSQL, insertDocligneValues);
-      }
+    const insertDocenteteSQL =
+      "INSERT INTO docentete(Num_doc,idtypedoc,date_doc,tier_doc,is_prospect,mntttc,id_caisse) VALUES (?,?,?,?,?,?,?)";
+    const insertDocenteteValues = [
+      max,
+      21,
+      dateDoc,
+      data.client.value,
+      0,
+      data.totalPrice,
+      idCaisse,
+    ];
+    const { insertId: iddocument } = await executeQuery(
+      insertDocenteteSQL,
+      insertDocenteteValues
     );
 
-    // Wait for all insert operations to complete
-    await Promise.all(insertDoclignePromises);
+    if (iddocument) {
+      const insertReservatDocSQL =
+        "INSERT INTO reservat_docentete(id_res,id_doc) VALUES (?,?)";
+      const insertReservatDocValues = [data.idRes, iddocument];
+      await executeQuery(insertReservatDocSQL, insertReservatDocValues);
+      // console.log(item);
+      // return;
+      const insertDoclignePromises = data.agenda_prestationArr.map(
+        async (item) => {
+          console.log(item);
+          const insertDocligneSQL =
+            "INSERT INTO docligne(iddocument,idproduit,Designation,qte,prix,idtauxtva,pUnet,total_ttc) VALUES (?,?,?,?,?,?,?,?)";
 
-    // Update montant ttc in docentete
-    // ... (existing code to update docentete)
+          // const getTauxTvaSQL = "SELECT id FROM p_tauxtva WHERE code=?";
+          // const getTauxTvaValues = [item.code_tauxtvaVente];
 
-    console.log("Document and line items inserted successfully.");
-  } else {
-    console.log("Failed to insert document.");
+          // const getTauxTvaResult = await new Promise((resolve, reject) =>
+          //   connection.query(
+          //     getTauxTvaSQL,
+          //     getTauxTvaValues,
+          //     (error, results) => (error ? reject(error) : resolve(results))
+          //   )
+          // );
+          // const tauxtva = getTauxTvaResult[0].id;
+
+          const insertDocligneValues = [
+            iddocument,
+            item.id_art,
+            item.designation,
+            item?.qte,
+            item.prixVente,
+            1,
+            item.prixVente,
+            item.prixTTC,
+          ];
+          await executeQuery(insertDocligneSQL, insertDocligneValues);
+        }
+      );
+
+      await Promise.all(insertDoclignePromises);
+
+      console.log("Document and line items inserted successfully.");
+    } else {
+      console.log("Failed to insert document.");
+    }
+  } catch (error) {
+    console.error("An error occurred:", error);
+    console.error("Stack trace:", error.stack);
   }
 }

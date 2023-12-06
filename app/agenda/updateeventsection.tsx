@@ -32,7 +32,7 @@ import {
   calculateTotalPrices,
 } from "@/app/js/agenda_fn";
 import { useStore } from "@/app/store/store";
-import { saveReservation } from "@/app/lib/reservatActions";
+import { saveReservation } from "@/app/lib/reservat/reservatActions";
 import { exportStore, useStore_new2 } from "@/app/store/store_new2";
 import Link from "next/link";
 
@@ -118,6 +118,7 @@ export default function UpdateEventSection({
     formState: { errors },
     control,
     setValue,
+    getValues,
   } = useForm({
     resolver: yupResolver(schema),
     defaultValues: {
@@ -152,15 +153,58 @@ export default function UpdateEventSection({
   const { TotalDuration, TotalPrice } = exportStore();
   const totalDuration = TotalDuration();
   const totalPrice = TotalPrice();
+  const submitTypeRef = useRef("");
+
   const handleSaveReservat: any = async (data) => {
     // console.log(data);
     // return;
     // saveReservat(data);
     startTransition(() => {
-      saveReservation({ ...data, duree: totalDuration });
+      saveReservation({
+        ...data,
+        duree: totalDuration,
+        totalPrice,
+        submitType: submitTypeRef.current,
+      });
     });
   };
+  useEffect(() => {
+    // Only update the form values if they are different from the current values
+    const currentValues = getValues("agenda_prestationArr");
+    const updatedAgendaPrestationArr = selectedEventAgendaPrestationArr.map(
+      (item) => ({
+        ligne_id: item.ligne_id || "",
+        start_time: item.start_time,
+        id_art: item.id_art,
+        qte: 1,
+        prixVente: item.prixVente,
+        prixTTC: item.prixTTC,
+        agenda: {
+          label: item.agendaTitle,
+          value: item.agendaId,
+        },
+        duration_hours: {
+          label: item.duration_hours.toString().padStart(2, "0"),
+          value: item.duration_hours.toString().padStart(2, "0"),
+        },
+        duration_minutes: {
+          label: item.duration_minutes.toString().padStart(2, "0"),
+          value: item.duration_minutes.toString().padStart(2, "0"),
+        },
+        // Add other fields as needed
+      })
+    );
 
+    // Check if the updated values are different from the current values
+    if (
+      JSON.stringify(currentValues) !==
+      JSON.stringify(updatedAgendaPrestationArr)
+    ) {
+      setValue("agenda_prestationArr", updatedAgendaPrestationArr, {
+        shouldDirty: true,
+      });
+    }
+  }, [selectedEventAgendaPrestationArr, setValue, getValues]);
   return (
     <div
       className={`relative   h-fit w-full ${
@@ -400,78 +444,41 @@ export default function UpdateEventSection({
                     return (
                       <tr key={index}>
                         <Controller
-                          name={`agenda_prestationArr[${index}].ligne_id`}
+                          name={
+                            `agenda_prestationArr[${index}].ligne_id` as any
+                          }
                           control={control}
                           defaultValue={item?.ligne_id || ""}
                           render={({ field }) => {
-                            useEffect(() => {
-                              setValue(
-                                `agenda_prestationArr[${index}].start_time` as any,
-                                item.start_time
-                              );
-                              // Cleanup function (optional)
-                              return () => {
-                                // Code to run on component unmount or dependency change (if specified)
-                              };
-                            }, []);
                             return <input type="hidden" {...field} />;
                           }}
                         />
                         <Controller
-                          name={`agenda_prestationArr[${index}].start_time`}
+                          name={
+                            `agenda_prestationArr[${index}].start_time` as any
+                          }
                           control={control}
                           defaultValue={item.start_time}
                           render={({ field }) => {
-                            useEffect(() => {
-                              setValue(
-                                `agenda_prestationArr[${index}].start_time` as any,
-                                item.start_time
-                              );
-                              // Cleanup function (optional)
-                              return () => {
-                                // Code to run on component unmount or dependency change (if specified)
-                              };
-                            }, []);
                             return <input type="hidden" {...field} />;
                           }}
                         />
                         <Controller
-                          name={`agenda_prestationArr[${index}].id_art`}
+                          name={`agenda_prestationArr[${index}].id_art` as any}
                           control={control}
                           defaultValue={"item.id_art"}
                           render={({ field }) => {
-                            useEffect(() => {
-                              setValue(
-                                `agenda_prestationArr[${index}].id_art` as any,
-                                item.id_art
-                              );
-                              // Cleanup function (optional)
-                              return () => {
-                                // Code to run on component unmount or dependency change (if specified)
-                              };
-                            }, []);
                             return <input type="hidden" {...field} />;
                           }}
                         />
                         <td className="text-center py-4">{item.intitule}</td>
                         <td className="py-4">
                           <Controller
-                            name={`agenda_prestationArr[${index}].agenda`}
+                            name={
+                              `agenda_prestationArr[${index}].agenda` as any
+                            }
                             control={control}
                             render={({ field }) => {
-                              useEffect(() => {
-                                setValue(
-                                  `agenda_prestationArr[${index}].agenda` as any,
-                                  {
-                                    label: item.agendaTitle,
-                                    value: item.agendaId,
-                                  }
-                                );
-                                // Cleanup function (optional)
-                                return () => {
-                                  // Code to run on component unmount or dependency change (if specified)
-                                };
-                              }, []);
                               return (
                                 <Select
                                   {...field}
@@ -522,23 +529,6 @@ export default function UpdateEventSection({
                             }
                             control={control}
                             render={({ field }) => {
-                              useEffect(() => {
-                                setValue(
-                                  `agenda_prestationArr[${index}].duration_hours` as any,
-                                  {
-                                    label: item.duration_hours
-                                      .toString()
-                                      .padStart(2, "0"),
-                                    value: item.duration_hours
-                                      .toString()
-                                      .padStart(2, "0"),
-                                  }
-                                );
-                                // Cleanup function (optional)
-                                return () => {
-                                  // Code to run on component unmount or dependency change (if specified)
-                                };
-                              }, []);
                               return (
                                 <Select
                                   {...field}
@@ -614,26 +604,11 @@ export default function UpdateEventSection({
                           />
                           <span className="font-medium m-2">h</span>
                           <Controller
-                            name={`agenda_prestationArr[${index}].duration_minutes`}
+                            name={
+                              `agenda_prestationArr[${index}].duration_minutes` as any
+                            }
                             control={control}
                             render={({ field }) => {
-                              useEffect(() => {
-                                setValue(
-                                  `agenda_prestationArr[${index}].duration_minutes` as any,
-                                  {
-                                    label: item.duration_minutes
-                                      .toString()
-                                      .padStart(2, "0"),
-                                    value: item.duration_minutes
-                                      .toString()
-                                      .padStart(2, "0"),
-                                  }
-                                );
-                                // Cleanup function (optional)
-                                return () => {
-                                  // Code to run on component unmount or dependency change (if specified)
-                                };
-                              }, []);
                               return (
                                 <Select
                                   {...field}
@@ -803,6 +778,7 @@ export default function UpdateEventSection({
           <button
             className="py-1 px-4 bg-[#fc8f3e] text-white rounded-md "
             type="submit"
+            onClick={() => (submitTypeRef.current = "enregistrer")}
           >
             Enregistrer
           </button>
@@ -810,6 +786,7 @@ export default function UpdateEventSection({
             <button
               className="py-1 px-4 bg-[#199821] text-white rounded-md "
               type="button"
+              onClick={() => (submitTypeRef.current = "encaisser")}
             >
               Encaisser <span className="text-lg font-extrabold">+</span>
             </button>

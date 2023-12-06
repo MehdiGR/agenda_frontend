@@ -19,24 +19,24 @@ import {
 import Calculator from "./calculator";
 export default function CaisseForm({
   clients,
-  reservation,
+  collabOptions,
+  ticket,
   agendas,
   removePrestation,
   totalTTC,
   updateAgendaInTable,
+  selectedResponsable,
+  setSelectedResponsable,
 }) {
   const [clientIsRef, setIsRef] = useState(true);
   const [selectedClient, setSelectedClient] = useState({
-    label: reservation[0]?.client,
-    value: reservation[0]?.idClient,
+    label: ticket[0]?.client,
+    value: ticket[0]?.idClient,
   });
+  //
+
   const [selectedClientType, setSelectedClientType] = useState("client_ref");
 
-  const [agendaOptions, setAgendaOptions] = useState(
-    agendas.map((agenda: any) => {
-      return { value: agenda.id, label: agenda.nom };
-    })
-  );
   const inputRefs = {
     input1: useRef(),
     input2: useRef(),
@@ -47,6 +47,7 @@ export default function CaisseForm({
       return { value: client.id, label: client.nom };
     })
   );
+
   const handleOptionChangeTypeClt = (changeEvent: any) => {
     let value = changeEvent.target.value;
     value == "client_ref" ? setIsRef(true) : setIsRef(false);
@@ -90,30 +91,38 @@ export default function CaisseForm({
   // add new row to reservation state given by params
 
   return (
-    <div className=" ">
+    <div>
       <form
         className="space-y-4 h-full"
         onSubmit={handleSubmit(handleCaisseForm)}
       >
-        <div className="flex gap-3">
-          <input
-            type="radio"
-            name="client_type"
-            id="client_ref"
-            value="client_ref"
-            checked={selectedClientType === "client_ref"}
-            onChange={(event) => handleOptionChangeTypeClt(event)}
-          />
-          <label htmlFor="client_ref">client référencer</label>
-          <input
-            type="radio"
-            name="client_type"
-            id="client_psg"
-            value="client_psg"
-            checked={selectedClientType === "client_psg"}
-            onChange={(event) => handleOptionChangeTypeClt(event)}
-          />
-          <label htmlFor="client_psg">client de passage</label>
+        {/*  ticket id*/}
+        <input name="ticketId" type="hidden" value={ticket[0]?.id} />
+        <div className="flex gap-32 ">
+          <div className="flex gap-3">
+            <input
+              type="radio"
+              name="client_type"
+              id="client_ref"
+              value="client_ref"
+              checked={selectedClientType === "client_ref"}
+              onChange={(event) => handleOptionChangeTypeClt(event)}
+            />
+            <label htmlFor="client_ref">client référencer</label>
+            <input
+              type="radio"
+              name="client_type"
+              id="client_psg"
+              value="client_psg"
+              checked={selectedClientType === "client_psg"}
+              onChange={(event) => handleOptionChangeTypeClt(event)}
+            />
+            <label htmlFor="client_psg">client de passage</label>
+          </div>
+          <div className=" font-semibold flex gap-3 text-gray-500">
+            <p>Ticket:</p>
+            <p className="font-bold text-gray-500">{ticket[0]?.Num_ticket}</p>
+          </div>
         </div>
         <div className="flex flex-col gap-1">
           <label className="font-semibold">Client:</label>
@@ -159,7 +168,7 @@ export default function CaisseForm({
             </tr>
           </thead>
           <tbody>
-            {reservation.length == 0 ? (
+            {ticket.length == 0 ? (
               <tr>
                 <td colSpan={5} className="text-center py-4">
                   Aucune prestation
@@ -169,25 +178,24 @@ export default function CaisseForm({
               // agenda_prestationArr.map((ag_pr: any, index: any) => {
               //   let hours = Math.floor(ag_pr.duree / 60);
               //   let minutes = ag_pr.duree % 60;
-              reservation.map((item: any, index: number) => {
+              ticket.map((item: any, index: number) => {
                 return (
                   <tr key={index}>
-                    <td className="text-center py-4">{item.prest_title}</td>
+                    <td className="text-center py-4">{item.Designation}</td>
                     <td className="text-center py-4">
                       <Controller
-                        name={`agenda_prestationArr[${index}].agenda`}
+                        name={`agenda_prestationArr[${index}].vendeur` as any}
                         control={control}
                         render={({ field }) => {
                           return (
                             <Select
                               {...field}
-                              name={`agenda_prestationArr[${index}].agenda`}
                               instanceId={`select_Agenda_${index}`}
-                              placeholder="Sélectionnez un Agendas"
-                              options={agendaOptions}
+                              placeholder="Sélectionnez un Vendeur"
+                              options={collabOptions}
                               value={{
-                                label: item.prest_agenda,
-                                value: item.prest_idAgenda,
+                                label: item.vendeur,
+                                value: item.vendeurId,
                               }} // Use field.value
                               styles={{
                                 ...selectDefaultStyle,
@@ -205,7 +213,6 @@ export default function CaisseForm({
                       />
                     </td>
                     <td className="text-center py-4">
-                      {" "}
                       <input
                         className="w-20 p-1 border border-gray-400 rounded-md"
                         type="number"
@@ -224,6 +231,7 @@ export default function CaisseForm({
                             .replace(/,/g, ".")
                             .replace(/[^0-9.]/g, "");
                         }}
+                        value={0}
                       />
                     </td>
                     <td className="text-center py-4">
@@ -238,7 +246,7 @@ export default function CaisseForm({
                             .replace(/,/g, ".")
                             .replace(/[^0-9.]/g, "");
                         }}
-                        value={item.prest_prix_ttc}
+                        value={item.total_ttc}
                       />
                     </td>
                     <td className="text-center py-4">
@@ -249,48 +257,6 @@ export default function CaisseForm({
                         X
                       </button>
                     </td>
-
-                    {/* 
-              <td className="pl-3 ">Maquillage soir</td>
-              <td className=" w-20 p-1">
-                <Select
-                  styles={{
-                    ...selectDefaultStyle,
-                    container: (provided) => ({
-                      ...provided,
-                      borderTopRightRadius: "0px !important",
-                      borderBottomRightRadius: "0px !important",
-                      width: "150px",
-                    }),
-                  }}
-                />
-              </td>
-              <td className=" p-1">
-                <input
-                  className="w-20 p-1 border border-gray-400 rounded-md"
-                  type="number"
-                />
-              </td>
-              <td className=" p-1">
-                <input
-                  className="w-20 p-1 border border-gray-400 rounded-md"
-                  type="text"
-                />
-              </td>
-              <td className=" p-1">
-                <input
-                  className="w-20 p-1 border border-gray-400 rounded-md"
-                  type="text"
-                  pattern="[0-9.]*"
-                  onInput={(event) => {
-                    const input = event.target as HTMLInputElement;
-                    input.value = input.value
-                      .replace(/,/g, ".")
-                      .replace(/[^0-9.]/g, "");
-                  }}
-                />
-              </td>
-              <td className="text-red-500 p-1 text-lg font-semibold">X</td> */}
                   </tr>
                 );
               })
@@ -402,21 +368,29 @@ export default function CaisseForm({
           </div>
           <div className=" flex gap-2">
             <label className=" flex items-center font-bold">
-              Responsable :{" "}
+              Responsable :
             </label>
             <Controller
-              name="client"
+              name="collborateur"
               control={control}
               render={({ field }) => (
                 <Select
                   {...field}
-                  instanceId="sélectionnez collaborateur"
-                  placeholder="Sélectionnez Collaborateur"
-                  options={clientOptions}
-                  // value={selectedClient}
-                  {...(clientIsRef == true
-                    ? { disabled: false }
-                    : { disabled: true })}
+                  options={collabOptions}
+                  value={selectedResponsable}
+                  styles={{
+                    ...selectDefaultStyle,
+                    container: (provided) => ({
+                      ...provided,
+                      borderTopLeftRadius: "0px !important",
+                      borderBottomLeftRadius: "0px !important",
+                      width: "300px",
+                    }),
+                  }}
+                  onChange={(value) => {
+                    setSelectedResponsable(value);
+                    field.onChange(value);
+                  }}
                   styles={{
                     ...selectDefaultStyle,
                     container: (provided) => ({
@@ -425,6 +399,10 @@ export default function CaisseForm({
                       borderBottomRightRadius: "0px !important",
                       width: "300px",
                     }),
+                  }}
+                  onChange={(value) => {
+                    setSelectedResponsable(value);
+                    field.onChange(value);
                   }}
                 />
               )}

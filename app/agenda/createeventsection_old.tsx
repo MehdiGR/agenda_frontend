@@ -29,7 +29,7 @@ import {
   calculateTotalPrices,
 } from "@/app/js/agenda_fn";
 import { useStore } from "@/app/store/store";
-import { saveReservation } from "@/app/lib/reservatActions";
+import { saveReservation } from "@/app/lib/reservat/reservatActions";
 import { useStore_new2 } from "@/app/store/store_new2";
 
 export default function CreateEventSection({

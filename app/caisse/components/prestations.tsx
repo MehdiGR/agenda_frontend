@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import CircumIcon from "@klarr-agency/circum-icons-react";
 import Prestation from "./prestation";
 
-export default function Prestations({ prestations, addPrestation }) {
+export default function Prestations({ prestations, addPrestation, vendeur }) {
   const [showSubfolders, setShowSubfolders] = useState(false);
   console.log(prestations);
   const toggleSubfolders = () => {
@@ -43,6 +43,7 @@ export default function Prestations({ prestations, addPrestation }) {
                 key={prestation.id}
                 prestation={prestation}
                 addPrestation={addPrestation}
+                vendeur={vendeur}
               />
             ))}
           </div>

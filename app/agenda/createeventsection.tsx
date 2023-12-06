@@ -32,7 +32,7 @@ import {
   calculateTotalPrices,
 } from "@/app/js/agenda_fn";
 import { useStore } from "@/app/store/store";
-import { saveReservation } from "@/app/lib/reservatActions";
+import { saveReservation } from "@/app/lib/reservat/reservatActions";
 import { exportStore, useStore_new2 } from "@/app/store/store_new2";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -120,6 +120,7 @@ export default function CreateEventSection({
     formState: { errors },
     control,
     setValue,
+    getValues,
   } = useForm({
     resolver: yupResolver(schema),
     defaultValues: {
@@ -152,29 +153,72 @@ export default function CreateEventSection({
 
   const router = useRouter();
   const handleSaveReservat: any = async (data: any) => {
-    console.log(data);
+    // console.log(data);
+    // return;
     // if (submitTypeRef.current === "encaisser") {
     //   console.log("Encaisser button was clicked");
     // }
     // return;
     // saveReservat(data);
     startTransition(async () => {
-      saveReservation({
+      const insertedId_res = await saveReservation({
         ...data,
         duree: totalDuration,
+        totalPrice,
         submitType: submitTypeRef.current,
       });
-      // if (submitTypeRef.current === "encaisser" && insertedId_res) {
-      //   router.push("/caisse", {
-      //     query: {
-      //       idRes: insertedId_res,
-      //     },
-      //   });
-      // }
+      // console.log(insertedId_res, "inserted_res");
+      // return;
+      if (submitTypeRef.current === "encaisser" && insertedId_res) {
+        router.push("/caisse?res=" + insertedId_res, {
+          // query: {
+          //   res: insertedId_res,
+          // },
+        });
+      }
       // setOnEditingEvent(true);
       // toggleEventSelected(null);
     });
   };
+
+  useEffect(() => {
+    // Only update the form values if they are different from the current values
+    const currentValues = getValues("agenda_prestationArr");
+    const updatedAgendaPrestationArr = selectedEventAgendaPrestationArr.map(
+      (item) => ({
+        ligne_id: item.ligne_id || "",
+        start_time: item.start_time,
+        designation: item.intitule,
+        id_art: item.id_art,
+        qte: 1,
+        prixVente: item.prixVente,
+        prixTTC: item.prixTTC,
+        agenda: {
+          label: item.agendaTitle,
+          value: item.agendaId,
+        },
+        duration_hours: {
+          label: item.duration_hours.toString().padStart(2, "0"),
+          value: item.duration_hours.toString().padStart(2, "0"),
+        },
+        duration_minutes: {
+          label: item.duration_minutes.toString().padStart(2, "0"),
+          value: item.duration_minutes.toString().padStart(2, "0"),
+        },
+        // Add other fields as needed
+      })
+    );
+
+    // Check if the updated values are different from the current values
+    if (
+      JSON.stringify(currentValues) !==
+      JSON.stringify(updatedAgendaPrestationArr)
+    ) {
+      setValue("agenda_prestationArr", updatedAgendaPrestationArr, {
+        shouldDirty: true,
+      });
+    }
+  }, [selectedEventAgendaPrestationArr, setValue, getValues]);
 
   return (
     <div
@@ -419,16 +463,6 @@ export default function CreateEventSection({
                           control={control}
                           defaultValue={item?.ligne_id || ""}
                           render={({ field }) => {
-                            useEffect(() => {
-                              setValue(
-                                `agenda_prestationArr[${index}].start_time` as any,
-                                item.start_time
-                              );
-                              // Cleanup function (optional)
-                              return () => {
-                                // Code to run on component unmount or dependency change (if specified)
-                              };
-                            }, []);
                             return <input type="hidden" {...field} />;
                           }}
                         />
@@ -437,16 +471,6 @@ export default function CreateEventSection({
                           control={control}
                           defaultValue={item.start_time}
                           render={({ field }) => {
-                            useEffect(() => {
-                              setValue(
-                                `agenda_prestationArr[${index}].start_time` as any,
-                                item.start_time
-                              );
-                              // Cleanup function (optional)
-                              return () => {
-                                // Code to run on component unmount or dependency change (if specified)
-                              };
-                            }, []);
                             return <input type="hidden" {...field} />;
                           }}
                         />
@@ -455,16 +479,6 @@ export default function CreateEventSection({
                           control={control}
                           defaultValue={"item.id_art"}
                           render={({ field }) => {
-                            useEffect(() => {
-                              setValue(
-                                `agenda_prestationArr[${index}].id_art` as any,
-                                item.id_art
-                              );
-                              // Cleanup function (optional)
-                              return () => {
-                                // Code to run on component unmount or dependency change (if specified)
-                              };
-                            }, []);
                             return <input type="hidden" {...field} />;
                           }}
                         />
@@ -474,19 +488,6 @@ export default function CreateEventSection({
                             name={`agenda_prestationArr[${index}].agenda`}
                             control={control}
                             render={({ field }) => {
-                              useEffect(() => {
-                                setValue(
-                                  `agenda_prestationArr[${index}].agenda` as any,
-                                  {
-                                    label: item.agendaTitle,
-                                    value: item.agendaId,
-                                  }
-                                );
-                                // Cleanup function (optional)
-                                return () => {
-                                  // Code to run on component unmount or dependency change (if specified)
-                                };
-                              }, []);
                               return (
                                 <Select
                                   {...field}
@@ -537,23 +538,6 @@ export default function CreateEventSection({
                             }
                             control={control}
                             render={({ field }) => {
-                              useEffect(() => {
-                                setValue(
-                                  `agenda_prestationArr[${index}].duration_hours` as any,
-                                  {
-                                    label: item.duration_hours
-                                      .toString()
-                                      .padStart(2, "0"),
-                                    value: item.duration_hours
-                                      .toString()
-                                      .padStart(2, "0"),
-                                  }
-                                );
-                                // Cleanup function (optional)
-                                return () => {
-                                  // Code to run on component unmount or dependency change (if specified)
-                                };
-                              }, []);
                               return (
                                 <Select
                                   {...field}
@@ -632,23 +616,6 @@ export default function CreateEventSection({
                             name={`agenda_prestationArr[${index}].duration_minutes`}
                             control={control}
                             render={({ field }) => {
-                              useEffect(() => {
-                                setValue(
-                                  `agenda_prestationArr[${index}].duration_minutes` as any,
-                                  {
-                                    label: item.duration_minutes
-                                      .toString()
-                                      .padStart(2, "0"),
-                                    value: item.duration_minutes
-                                      .toString()
-                                      .padStart(2, "0"),
-                                  }
-                                );
-                                // Cleanup function (optional)
-                                return () => {
-                                  // Code to run on component unmount or dependency change (if specified)
-                                };
-                              }, []);
                               return (
                                 <Select
                                   {...field}
@@ -747,6 +714,7 @@ export default function CreateEventSection({
                               toggleEventSelected(item.eventIndex);
                               if (EventsIndices.length == 1) {
                                 setActiveCreateSection(false);
+                                setOnEditingEvent(false);
                               }
                             }}
                           />

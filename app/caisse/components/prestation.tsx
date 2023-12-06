@@ -1,25 +1,19 @@
 import Image from "next/image";
 
-export default function Prestation({ prestation, addPrestation }) {
+export default function Prestation({ prestation, addPrestation, vendeur }) {
   const image = prestation.img != null ? prestation.img : "no-image-icon.png";
-
   const data = {
-    id: "",
-    idClient: "",
-    client: "",
-    dateRes: "",
-    heurDB: "",
-    note: "",
-    prest_heurDB: "",
-    prest_idAgenda: "",
-    prest_agenda: "",
-    ligne_id: "",
-    duree: prestation.duree,
-    prest_title: prestation.intitule,
-    prest_prix_ttc: prestation.prixTTC,
-    prest_id: prestation.id,
-    prest_duree: prestation.prest_duree,
+    idproduit: prestation.id_art,
+    Designation: prestation.intitule,
+    total_ttc: prestation.prixTTC,
+    prix: prestation.prixVente,
+    pUnet: prestation.prixVente,
+    qte: 1,
+    qte_retour: 0,
+    vendeur: vendeur.label,
+    vendeurId: vendeur.value,
   };
+  console.log(data, "data");
   return (
     //  addPrestation(prestation)
     <div
