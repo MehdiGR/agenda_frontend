@@ -160,25 +160,26 @@ export default function CreateEventSection({
     // }
     // return;
     // saveReservat(data);
-    startTransition(async () => {
-      const insertedId_res = await saveReservation({
-        ...data,
-        duree: totalDuration,
-        totalPrice,
-        submitType: submitTypeRef.current,
-      });
-      // console.log(insertedId_res, "inserted_res");
-      // return;
-      if (submitTypeRef.current === "encaisser" && insertedId_res) {
-        router.push("/caisse?res=" + insertedId_res, {
-          // query: {
-          //   res: insertedId_res,
-          // },
-        });
-      }
-      // setOnEditingEvent(true);
-      // toggleEventSelected(null);
+    // startTransition(async () => {
+    const insertedId_res = await saveReservation({
+      ...data,
+      duree: totalDuration,
+      totalPrice,
+      submitType: submitTypeRef.current,
     });
+    // console.log(insertedId_res, "inserted_res");
+    // return;
+    if (submitTypeRef.current === "encaisser" && insertedId_res) {
+      router.push("/caisse?res=" + insertedId_res, {
+        // query: {
+        //   res: insertedId_res,
+        // },
+      });
+    }
+    // setOnEditingEvent(true);
+    toggleEventSelected(null);
+
+    // });
   };
 
   useEffect(() => {
@@ -193,6 +194,8 @@ export default function CreateEventSection({
         qte: 1,
         prixVente: item.prixVente,
         prixTTC: item.prixTTC,
+        id_ticket: item.id_ticket,
+        id_ticket_ligne: item.id_ticket_ligne,
         agenda: {
           label: item.agendaTitle,
           value: item.agendaId,

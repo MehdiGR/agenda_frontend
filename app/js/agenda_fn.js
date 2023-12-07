@@ -421,7 +421,6 @@ export const processReservations = (reservations) => {
     events.push({
       eventIndex: index,
       idRes: res.id,
-      te: res.nomClient,
       client: { label: res.nomClient, value: res.idClient },
       prixTTC: res.prest_prix_ttc,
       title: res.prest_title,
@@ -452,6 +451,8 @@ export const processReservations = (reservations) => {
           prixVente: res.prest_prix_vente,
           code_tauxtvaVente: res.prest_code_tauxtvaVente,
           code_tauxtvaAchat: res.prest_code_tauxtvaAchat,
+          id_ticket: res.id_ticket,
+          id_ticket_ligne: res.id_ticket_ligne,
         },
       ],
 

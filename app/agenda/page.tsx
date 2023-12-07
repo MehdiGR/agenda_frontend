@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Home from "./home";
 import { revalidatePath } from "next/cache";
+import { get_resavations } from "../lib/reservat/reservatActions";
 
 export default async function CalendarPage() {
   // const clients = await fetch("http://localhost:3000/api/client", {
@@ -40,10 +41,7 @@ export default async function CalendarPage() {
     cache: "no-store",
   });
   const periods = await resPrd.json();
-  const resReservat = await fetch("http://localhost:3000/api/reservat", {
-    // cache: "no-store",
-  });
-  const reservations = await resReservat.json();
+  const reservations = await get_resavations();
 
   return (
     <div className="h-full  p-6">
@@ -55,7 +53,7 @@ export default async function CalendarPage() {
         agenda_prestation={agenda_prestation}
         agendas={agendas}
         periods={periods}
-        reservations={reservations}
+        reservations={JSON.parse(reservations as string)}
       />
     </div>
   );

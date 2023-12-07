@@ -35,6 +35,7 @@ import { useStore } from "@/app/store/store";
 import { saveReservation } from "@/app/lib/reservat/reservatActions";
 import { exportStore, useStore_new2 } from "@/app/store/store_new2";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function UpdateEventSection({
   clients,
@@ -154,19 +155,26 @@ export default function UpdateEventSection({
   const totalDuration = TotalDuration();
   const totalPrice = TotalPrice();
   const submitTypeRef = useRef("");
+  const router = useRouter();
 
   const handleSaveReservat: any = async (data) => {
     // console.log(data);
     // return;
-    // saveReservat(data);
-    startTransition(() => {
-      saveReservation({
-        ...data,
-        duree: totalDuration,
-        totalPrice,
-        submitType: submitTypeRef.current,
-      });
+    // saveReservat(data)
+    const idRes = await saveReservation({
+      ...data,
+      duree: totalDuration,
+      totalPrice,
+      submitType: submitTypeRef.current,
     });
+
+    if (submitTypeRef.current === "encaisser") {
+      router.push("/caisse?res=" + idRes, {
+        // query: {
+        //   res: insertedId_res,
+        // },
+      });
+    }
   };
   useEffect(() => {
     // Only update the form values if they are different from the current values
@@ -782,15 +790,13 @@ export default function UpdateEventSection({
           >
             Enregistrer
           </button>
-          <Link href="/caisse?res=11">
-            <button
-              className="py-1 px-4 bg-[#199821] text-white rounded-md "
-              type="button"
-              onClick={() => (submitTypeRef.current = "encaisser")}
-            >
-              Encaisser <span className="text-lg font-extrabold">+</span>
-            </button>
-          </Link>
+          <button
+            className="py-1 px-4 bg-[#199821] text-white rounded-md "
+            type="submit"
+            onClick={() => (submitTypeRef.current = "encaisser")}
+          >
+            Encaisser <span className="text-lg font-extrabold">+</span>
+          </button>
         </div>
       </form>
     </div>

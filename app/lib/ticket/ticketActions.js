@@ -42,14 +42,15 @@ export async function get_ticket_lines({ id = 0 }) {
   const where = id != 0 ? ` AND rsv_dc.id_res=? ` : "";
   try {
     const sql = `
-    SELECT
+    SELECT DISTINCT
       Num_doc as Num_ticket,
       dcl.*,
       clt.nom AS client,
       clt.id AS idClient,
       ag.id,
       clb.nom AS vendeur,
-      clb.id_collaborateur AS vendeurId
+      clb.id_collaborateur AS vendeurId,
+      rsv_dc.id_res
     FROM
         docentete AS dce
     JOIN reservat_docentete rsv_dc ON
