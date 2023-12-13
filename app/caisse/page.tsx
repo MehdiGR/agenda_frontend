@@ -31,15 +31,16 @@ export default async function Caisse({
   const collaborateurs = await resCollab.json();
   const prestations = await resPres.json();
   // const tickets = await get_tickets({ Num_ticket: Number(idRes) });
-  const ticket = await get_ticket_lines({ id: Number(idRes) });
+  const tickets = await get_ticket_lines({ id: String(idRes) });
   // console.log("ticket", JSON.parse(ticket));
 
   return (
-    <div className="h-screen  p-6 grid xl:grid-cols-2 lg:grid-cols-1  gap-16">
+    // lg:overflow-y-hidden min-w-min
+    <div className="h-screen   ">
       <Container
         clients={clients}
         collaborateurs={collaborateurs}
-        ticket={JSON.parse(ticket as string)}
+        tickets={JSON.parse(tickets as string)}
         agendas={agendas}
         prestations={prestations}
       />

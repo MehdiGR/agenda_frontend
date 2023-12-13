@@ -183,6 +183,7 @@ export async function saveReservation(data) {
     const idRes = insertedId_res;
     // check if data.idRes is not empty, indicate that it's an update click
     if (data.idRes == "") await createTicket({ ...data, idRes });
+    console.log("idRes", idRes);
     // redirect("/caisse?res=" + insertedId_res);
     return idRes;
   }

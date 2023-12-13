@@ -55,7 +55,7 @@ export default function ModalClient({ villes, collaborateurs }) {
       <Modal
         isOpen={modalIsOpen}
         onRequestClose={closeModal}
-        contentLabel="Example Modal"
+        contentLabel="Client Modal"
         ariaHideApp={false}
         style={{
           overlay: {

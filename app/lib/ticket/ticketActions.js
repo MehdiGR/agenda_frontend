@@ -4,8 +4,8 @@ import connection from "../db";
 import { NextResponse } from "next/server";
 // import { NextResponse } from "next/server";
 
-export async function get_tickets({ id = 0 }) {
-  const where = id != 0 ? ` AND rsv_dc.id_res=${id} ` : "";
+export async function get_tickets({ id = "" }) {
+  const where = id != "" ? ` AND rsv_dc.id_res=${id} ` : "";
   try {
     const sql = `
     SELECT
@@ -38,8 +38,8 @@ export async function get_tickets({ id = 0 }) {
     );
   }
 }
-export async function get_ticket_lines({ id = 0 }) {
-  const where = id != 0 ? ` AND rsv_dc.id_res=? ` : "";
+export async function get_ticket_lines({ id = "" }) {
+  const where = id != "" ? ` AND rsv_dc.id_res=? ` : "";
   try {
     const sql = `
     SELECT DISTINCT
@@ -113,69 +113,12 @@ async function checkExistingRecord(ligne_id) {
   });
 }
 
-export async function createTicket(data) {
+async function createTicket(data) {
   try {
-    const selectMaxNumDocSQL =
-      "SELECT Max(CAST(SUBSTRING(Num_doc ,4 ) as UNSIGNED)) as max FROM docentete WHERE idtypedoc=21";
-    const maxNumDocResult = await executeQuery(selectMaxNumDocSQL);
-    const rowChk = maxNumDocResult[0];
-    const max = rowChk.max !== 0 ? "tk_" + (rowChk.max + 1) : "tk_0";
-
-    const dateDoc = new Date().toISOString().split("T")[0];
-    const idCaisse = 1;
-
-    const insertDocenteteSQL =
-      "INSERT INTO docentete(Num_doc,idtypedoc,date_doc,tier_doc,is_prospect,mntttc,id_caisse) VALUES (?,?,?,?,?,?,?)";
-    const insertDocenteteValues = [
-      max,
-      21,
-      dateDoc,
-      data.client.value,
-      0,
-      data.totalPrice,
-      idCaisse,
-    ];
-    const { insertId: iddocument } = await executeQuery(
-      insertDocenteteSQL,
-      insertDocenteteValues
-    );
-
-    if (iddocument) {
-      // console.log(item);
-      // return;
-      const insertDoclignePromises = data.agenda_prestationArr.map(
-        async (item) => {
-          const insertDocligneSQL =
-            "INSERT INTO docligne(iddocument,idproduit,Designation,qte,prix,idtauxtva,pUnet,total_ttc) VALUES (?,?,?,?,?,?,?,?)";
-
-          // const getTauxTvaSQL = "SELECT id FROM p_tauxtva WHERE code=?";
-          // const getTauxTvaValues = [item.code_tauxtvaVente];
-
-          // const getTauxTvaResult = await new Promise((resolve, reject) =>
-          //   connection.query(
-          //     getTauxTvaSQL,
-          //     getTauxTvaValues,
-          //     (error, results) => (error ? reject(error) : resolve(results))
-          //   )
-          // );
-          // const tauxtva = getTauxTvaResult[0].id;
-
-          const insertDocligneValues = [
-            iddocument,
-            item.id_art,
-            item.title,
-            item?.qte,
-            item.prixVente,
-            1,
-            item.prixVente,
-            item.prixTTC,
-          ];
-          await executeQuery(insertDocligneSQL, insertDocligneValues);
-        }
-      );
-
-      await Promise.all(insertDoclignePromises);
-
+    const id_ticket = await insertTicket(data);
+    console.log("id_ticket", id_ticket);
+    if (id_ticket) {
+      await insertTicketLignes({ ...data, id_ticket });
       console.log("Document and line items inserted successfully.");
     } else {
       console.log("Failed to insert document.");
@@ -183,5 +126,183 @@ export async function createTicket(data) {
   } catch (error) {
     console.error("An error occurred:", error);
     console.error("Stack trace:", error.stack);
+  }
+}
+
+async function insertTicket(data) {
+  console.log("doc", data);
+
+  const selectMaxNumDocSQL =
+    "SELECT Max(CAST(SUBSTRING(Num_doc ,4 ) as UNSIGNED)) as max FROM docentete WHERE idtypedoc=21";
+  const maxNumDocResult = await executeQuery(selectMaxNumDocSQL);
+  const rowChk = maxNumDocResult[0];
+  const max = rowChk.max !== 0 ? "tk_" + (rowChk.max + 1) : "tk_0";
+
+  const dateDoc = new Date().toISOString().split("T")[0];
+  const idCaisse = 1;
+
+  const insertTicketSQL =
+    "INSERT INTO docentete(Num_doc,idtypedoc,date_doc,tier_doc,is_prospect,mntttc,id_caisse) VALUES (?,?,?,?,?,?,?)";
+  const insertTicketValues = [
+    max,
+    21,
+    dateDoc,
+    data.client.value,
+    0,
+    data.totalPrice,
+    idCaisse,
+  ];
+  const { insertId: id_ticket } = await executeQuery(
+    insertTicketSQL,
+    insertTicketValues
+  );
+
+  if (id_ticket) {
+    const insertReservatTicketSQL =
+      "INSERT INTO reservat_docentete(id_res,id_doc) VALUES (?,?)";
+    const insertReservatTicketValues = [data.idRes, id_ticket];
+    await executeQuery(insertReservatTicketSQL, insertReservatTicketValues);
+  }
+
+  return id_ticket;
+}
+
+async function insertTicketLignes(data) {
+  const insertTicketLignePromises = data.agenda_prestationArr.map(
+    async (item) => {
+      const insertTicketLigneSQL =
+        "INSERT INTO docligne(iddocument,idproduit,Designation,qte,prix,idtauxtva,pUnet,total_ttc) VALUES (?,?,?,?,?,?,?,?)";
+
+      const insertTicketLigneValues = [
+        data.id_ticket,
+        item.id_art,
+        item.designation,
+        item?.qte,
+        item.prixVente,
+        1,
+        item.prixVente,
+        item.prixTTC,
+      ];
+      await executeQuery(insertTicketLigneSQL, insertTicketLigneValues);
+    }
+  );
+
+  await Promise.all(insertTicketLignePromises);
+}
+async function removeTicketLigne(ticketLigneId) {
+  try {
+    const deleteTicketLigneSQL = "DELETE FROM docligne WHERE id = ?";
+    const deleteTicketLigneValues = [docligneId];
+    await executeQuery(deleteTicketLigneSQL, deleteTicketLigneValues);
+    console.log("Document line removed successfully.");
+  } catch (error) {
+    console.error("An error occurred:", error);
+    console.error("Stack trace:", error.stack);
+  }
+}
+
+export async function updateTicket({ properties, values, id }) {
+  if (properties.length !== values.length) {
+    throw new Error("Number of properties and values does not match");
+  }
+
+  const setClauses = properties
+    .map((property, index) => `${property} = ?`)
+    .join(", ");
+  const updateTicketSQL = `UPDATE docentete SET ${setClauses} WHERE id = ?`;
+  const updateTicketValues = [...values, id];
+
+  await executeQuery(updateTicketSQL, updateTicketValues);
+}
+export async function removeTicket(id) {
+  try {
+    const deleteReservatTicketSQL =
+      "DELETE FROM reservat_docentete WHERE id_doc = ?";
+    const deleteReservatTicketValues = [id];
+    await executeQuery(deleteReservatTicketSQL, deleteReservatTicketValues);
+
+    const deleteTicketLigneSQL = "DELETE FROM docligne WHERE iddocument = ?";
+    const deleteTicketLigneValues = [id];
+    await executeQuery(deleteTicketLigneSQL, deleteTicketLigneValues);
+
+    const deleteTicketSQL = "DELETE FROM docentete WHERE id = ?";
+    const deleteTicketValues = [id];
+    await executeQuery(deleteTicketSQL, deleteTicketValues);
+
+    console.log("Document removed successfully.");
+    revalidatePath("/caisse");
+  } catch (error) {
+    console.error("An error occurred:", error);
+    console.error("Stack trace:", error.stack);
+  }
+}
+
+export async function CaissePayement(PayementData, createTicketData) {
+  console.log("PayementData", PayementData);
+  console.log("createTicketData", createTicketData);
+  return;
+  const {
+    PaiementsDeCommande,
+    id_ticket,
+    resteAPayer,
+    montantRendu,
+    Num_ticket_rt,
+    id_tier,
+  } = PayementData;
+  // check if id_ticket is not defined if yes then create new ticket and the return insertedTicket affected to id_ticket
+  if (!id_ticket) {
+    const insertedTicket = await createTicket(createTicketData);
+    id_ticket = insertedTicket;
+  }
+  // console.log(data);
+  // return;
+  for (const paiement of PaiementsDeCommande) {
+    const { montant, date_paiement, mode_paiement_id, date_remise } = paiement;
+    const flag = 1;
+    const query1 = `
+      INSERT INTO paiement_tier
+      (montant, date_reg, id_method, ref, id_tier, flag, dateremise)
+      VALUES
+      (?, ?, ?, ?, ?, ?, ?)
+    `;
+    const { insertId: id_paiement_caisse } = await executeQuery(query1, [
+      montant,
+      date_paiement,
+      mode_paiement_id,
+      "",
+      id_tier,
+      flag,
+      date_remise,
+    ]);
+
+    const query2 = `
+      INSERT INTO paiement_caisse
+      (id_paiement, id_doc, montant, montant_rendu, Num_ticket_rt)
+      VALUES
+      (?, ?, ?, ?, ?)
+    `;
+    await executeQuery(query2, [
+      id_paiement_caisse,
+      id_ticket,
+      montant,
+      montantRendu,
+      Num_ticket_rt,
+    ]);
+  }
+
+  const query3 = `
+    UPDATE docentete
+    SET total_payer = total_payer + ?
+    WHERE id = ?
+  `;
+  await executeQuery(query3, [montant, id_ticket]);
+
+  if (resteAPayer === 0) {
+    const query4 = `
+      UPDATE docentete
+      SET valide = 1, mise_en_attente = 0
+      WHERE id = ?
+    `;
+    await executeQuery(query4, [id_ticket]);
   }
 }
