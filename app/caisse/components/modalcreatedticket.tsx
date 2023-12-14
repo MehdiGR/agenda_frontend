@@ -13,7 +13,7 @@ export default function ModalCreateTK({
   openModal,
   closeModal,
   modalIsOpen,
-  tickets,
+  ticketLines,
   PaiementsDeCommande,
   resteAPayer,
   client,
@@ -21,7 +21,7 @@ export default function ModalCreateTK({
   totalTTC,
 }) {
   return (
-    <div>
+    <div className="mt-10 bg-red-500">
       <Modal
         isOpen={modalIsOpen}
         // onRequestClose={closeModal}
@@ -123,7 +123,7 @@ export default function ModalCreateTK({
                 </tr>
               </thead>
               <tbody>
-                {tickets.length == 0 ? (
+                {ticketLines.length == 0 ? (
                   <tr>
                     <td colSpan={5} className="text-center py-4">
                       Aucune prestation
@@ -133,7 +133,7 @@ export default function ModalCreateTK({
                   // agenda_prestationArr.map((ag_pr: any, index: any) => {
                   //   let hours = Math.floor(ag_pr.duree / 60);
                   //   let minutes = ag_pr.duree % 60;
-                  tickets.map((item: any, index: number) => {
+                  ticketLines.map((item: any, index: number) => {
                     return (
                       <tr key={index}>
                         <td className="text-center py-4">{item.Designation}</td>

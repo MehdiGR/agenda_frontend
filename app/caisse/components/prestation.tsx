@@ -13,7 +13,6 @@ export default function Prestation({ prestation, addPrestation, vendeur }) {
     vendeur: vendeur.label,
     vendeurId: vendeur.value,
   };
-  console.log(data, "data");
   return (
     //  addPrestation(prestation)
     <div

@@ -116,13 +116,13 @@ async function checkExistingRecord(ligne_id) {
 async function createTicket(data) {
   try {
     const id_ticket = await insertTicket(data);
-    console.log("id_ticket", id_ticket);
     if (id_ticket) {
       await insertTicketLignes({ ...data, id_ticket });
       console.log("Document and line items inserted successfully.");
     } else {
       console.log("Failed to insert document.");
     }
+    return id_ticket;
   } catch (error) {
     console.error("An error occurred:", error);
     console.error("Stack trace:", error.stack);
@@ -130,8 +130,6 @@ async function createTicket(data) {
 }
 
 async function insertTicket(data) {
-  console.log("doc", data);
-
   const selectMaxNumDocSQL =
     "SELECT Max(CAST(SUBSTRING(Num_doc ,4 ) as UNSIGNED)) as max FROM docentete WHERE idtypedoc=21";
   const maxNumDocResult = await executeQuery(selectMaxNumDocSQL);
@@ -168,24 +166,22 @@ async function insertTicket(data) {
 }
 
 async function insertTicketLignes(data) {
-  const insertTicketLignePromises = data.agenda_prestationArr.map(
-    async (item) => {
-      const insertTicketLigneSQL =
-        "INSERT INTO docligne(iddocument,idproduit,Designation,qte,prix,idtauxtva,pUnet,total_ttc) VALUES (?,?,?,?,?,?,?,?)";
+  const insertTicketLignePromises = data.prestations.map(async (item) => {
+    const insertTicketLigneSQL =
+      "INSERT INTO docligne(iddocument,idproduit,Designation,qte,prix,idtauxtva,pUnet,total_ttc) VALUES (?,?,?,?,?,?,?,?)";
 
-      const insertTicketLigneValues = [
-        data.id_ticket,
-        item.id_art,
-        item.designation,
-        item?.qte,
-        item.prixVente,
-        1,
-        item.prixVente,
-        item.prixTTC,
-      ];
-      await executeQuery(insertTicketLigneSQL, insertTicketLigneValues);
-    }
-  );
+    const insertTicketLigneValues = [
+      data.id_ticket,
+      item.id_art,
+      item.designation,
+      item?.qte,
+      item.prixVente,
+      1,
+      item.prixVente,
+      item.prixTTC,
+    ];
+    await executeQuery(insertTicketLigneSQL, insertTicketLigneValues);
+  });
 
   await Promise.all(insertTicketLignePromises);
 }
@@ -238,17 +234,17 @@ export async function removeTicket(id) {
 }
 
 export async function CaissePayement(PayementData, createTicketData) {
-  console.log("PayementData", PayementData);
-  console.log("createTicketData", createTicketData);
-  return;
+  // console.log("PayementData", PayementData);
+  // console.log("createTicketData", createTicketData);
+  // return;
   const {
     PaiementsDeCommande,
-    id_ticket,
     resteAPayer,
     montantRendu,
     Num_ticket_rt,
     id_tier,
   } = PayementData;
+  let id_ticket = PayementData.id_ticket;
   // check if id_ticket is not defined if yes then create new ticket and the return insertedTicket affected to id_ticket
   if (!id_ticket) {
     const insertedTicket = await createTicket(createTicketData);

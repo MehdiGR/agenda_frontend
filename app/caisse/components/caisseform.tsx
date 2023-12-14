@@ -29,7 +29,7 @@ import ModalCreateTK from "./modalcreatedticket";
 export default function CaisseForm({
   clients,
   collabOptions,
-  tickets,
+  ticketLines,
   agendas,
   removePrestation,
   totalTTC,
@@ -39,8 +39,8 @@ export default function CaisseForm({
 }) {
   const [clientIsRef, setIsRef] = useState(true);
   const [selectedClient, setSelectedClient] = useState({
-    label: tickets[0]?.client,
-    value: tickets[0]?.idClient,
+    label: ticketLines[0]?.client,
+    value: ticketLines[0]?.idClient,
   });
   // const [PaiementsDeCommande, setPaiementsDeCommande] = useState([]);
   const [PaiementsDeCommande, setPaiementsDeCommande] = useState<
@@ -79,7 +79,6 @@ export default function CaisseForm({
   // handle click button in the calculator
   const handleClickCalculator = (buttonValue) => {
     const focusedInputRef = inputRefs[document.activeElement.id];
-    console.log(focusedInputRef);
     return;
     if (focusedInputRef.current) {
       focusedInputRef.current.value += buttonValue;
@@ -89,11 +88,11 @@ export default function CaisseForm({
     updateTicket({
       properties: ["mise_en_attente"],
       values: [1],
-      id: tickets[0]?.iddocument,
+      id: ticketLines[0]?.iddocument,
     });
   };
   const handleClickRemove = () => {
-    removeTicket(tickets[0]?.iddocument);
+    removeTicket(ticketLines[0]?.iddocument);
   };
   const schema = yup.object().shape({
     client: yup
@@ -111,12 +110,13 @@ export default function CaisseForm({
     formState: { errors },
     control,
     setValue,
+    getValues,
   } = useForm({
     resolver: yupResolver(schema),
     defaultValues: {
       client: {
-        label: tickets[0]?.client,
-        value: tickets[0]?.idClient,
+        label: ticketLines[0]?.client,
+        value: ticketLines[0]?.idClient,
       },
     },
   });
@@ -154,7 +154,6 @@ export default function CaisseForm({
   };
   const removePaiementItem = (index: number) => {
     const updatedPaiementsDeCommande = [...PaiementsDeCommande];
-    console.log("smdm", parseFloat(updatedPaiementsDeCommande[index].montant));
     const montant = parseFloat(updatedPaiementsDeCommande[index].montant);
     setResteAPayer((prev: any) => prev + montant);
     updatedPaiementsDeCommande.splice(index, 1);
@@ -194,19 +193,45 @@ export default function CaisseForm({
 
     setMontantRendu(Math.max(sumOfMontants - totalTTC, 0));
   };
+
+  // detect if a new row is added
+  useEffect(() => {
+    // Only update the form values if they are different from the current values
+    const currentValues = getValues("prestations" as any);
+    const updatedPrestationArr = ticketLines.map((item: any) => ({
+      designation: item.Designation,
+      id_art: item.id_art,
+      qte: 1,
+      prixVente: item.prix,
+      prixTTC: item.total_ttc,
+      qte_retour: 0,
+    }));
+
+    // Check if the updated values are different from the current values
+    if (
+      JSON.stringify(currentValues) !== JSON.stringify(updatedPrestationArr)
+    ) {
+      setValue("prestations" as any, updatedPrestationArr, {
+        shouldDirty: true,
+      });
+    }
+    setValue("totalPrice" as any, totalTTC);
+  }, [ticketLines, setValue, getValues]);
+
   const handleCaisseForm = (formData: any) => {
-    console.log("formData", formData);
     const createTicketData = { ...formData };
     const PayementData = {
       // ...data,
-      id_ticket: tickets[0]?.iddocument,
+      id_ticket: ticketLines[0]?.iddocument,
       PaiementsDeCommande,
       resteAPayer,
       montantRendu,
       Num_ticket_rt: "",
       id_tier: selectedClient.value,
     };
-    // console.log("data form", data);
+    console.log("PaiementsDeCommande", PaiementsDeCommande);
+    console.log("formData", formData);
+    return;
     CaissePayement(PayementData, createTicketData);
     openCreateTKModal();
   };
@@ -239,7 +264,7 @@ export default function CaisseForm({
             <div className=" font-semibold flex gap-3 text-gray-500 flex-1 xl:justify-end mr-10 ">
               <p>Ticket:</p>
               <p className="font-bold text-gray-500">
-                {tickets[0]?.Num_ticket}
+                {ticketLines[0]?.Num_ticket}
               </p>
             </div>
           </div>
@@ -287,14 +312,14 @@ export default function CaisseForm({
               </tr>
             </thead>
             <tbody>
-              {tickets.length == 0 ? (
+              {ticketLines.length == 0 ? (
                 <tr>
                   <td colSpan={5} className="text-center py-4">
                     Aucune prestation
                   </td>
                 </tr>
               ) : (
-                tickets.map((item: any, index: number) => {
+                ticketLines.map((item: any, index: number) => {
                   return (
                     <tr key={index}>
                       <td className="text-center py-4">{item.Designation}</td>
@@ -333,7 +358,7 @@ export default function CaisseForm({
                           {...register(`prestations[${index}].qte`)}
                           className="w-20 p-1 border border-gray-400 rounded-md"
                           type="number"
-                          defaultValue={10}
+                          defaultValue={1}
                         />
                       </td>
                       <td className="text-center py-4">
@@ -348,7 +373,7 @@ export default function CaisseForm({
                               .replace(/,/g, ".")
                               .replace(/[^0-9.]/g, "");
                           }}
-                          value={0}
+                          defaultValue={0}
                         />
                       </td>
                       <td className="text-center py-4">
@@ -364,7 +389,7 @@ export default function CaisseForm({
                               .replace(/,/g, ".")
                               .replace(/[^0-9.]/g, "");
                           }}
-                          value={item.total_ttc}
+                          defaultValue={item.total_ttc}
                         />
                       </td>
                       <td className="text-center py-4">
@@ -532,6 +557,7 @@ export default function CaisseForm({
                 render={({ field }) => (
                   <Select
                     {...field}
+                    instanceId="collaborateur"
                     options={collabOptions}
                     value={selectedResponsable}
                     styles={{
@@ -606,11 +632,11 @@ export default function CaisseForm({
             openModal={openCreateTKModal}
             closeModal={closeCreateTKModal}
             modalIsOpen={isCreateTKModalopen}
-            tickets={tickets}
+            ticketLines={ticketLines}
             PaiementsDeCommande={PaiementsDeCommande}
             resteAPayer={resteAPayer}
             client={selectedClient.label}
-            ticketNum={tickets[0]?.Num_ticket}
+            ticketNum={ticketLines[0]?.Num_ticket}
             totalTTC={totalTTC}
           />
         </div>

@@ -5,7 +5,6 @@ import Prestation from "./prestation";
 
 export default function Prestations({ prestations, addPrestation, vendeur }) {
   const [showSubfolders, setShowSubfolders] = useState(false);
-  console.log(prestations);
   const toggleSubfolders = () => {
     setShowSubfolders(!showSubfolders);
   };
@@ -14,13 +13,13 @@ export default function Prestations({ prestations, addPrestation, vendeur }) {
       {!showSubfolders ? (
         <>
           <div
-            className="flex flex-col items-center gap-2 w-fit h-fit  rounded-md text-md font-bold uppercase p-16 cursor-pointer hover:bg-slate-800 hover:text-white  "
+            className="flex flex-col items-center gap-2 w-fit h-fit  rounded-md text-md font-bold uppercase p-16 cursor-pointer hover:bg-slate-800 hover:text-white transition "
             onClick={toggleSubfolders}
           >
             <CiFolderOn fontSize={24} />
             <span>Prestations</span>
           </div>
-          <div className=" flex flex-col items-center gap-2 w-fit h-fit  rounded-md text-md font-bold uppercase p-16 cursor-pointer hover:bg-slate-800 hover:text-white  ">
+          <div className=" flex flex-col items-center gap-2 w-fit h-fit  rounded-md text-md font-bold uppercase p-16 cursor-pointer hover:bg-slate-800 hover:text-white transition  ">
             <CiFolderOn fontSize={24} />
             <span>Produits</span>
           </div>
@@ -38,13 +37,14 @@ export default function Prestations({ prestations, addPrestation, vendeur }) {
           <div className="flex gap-2 w-fit h-fit rounded-md text-md font-bold uppercase p-6 cursor-pointer  ">
             {/* Render Subfolders here */}
 
-            {prestations.map((prestation: any) => (
-              <Prestation
-                key={prestation.id}
-                prestation={prestation}
-                addPrestation={addPrestation}
-                vendeur={vendeur}
-              />
+            {prestations.map((prestation: any, index: number) => (
+              <div key={index}>
+                <Prestation
+                  prestation={prestation}
+                  addPrestation={addPrestation}
+                  vendeur={vendeur}
+                />
+              </div>
             ))}
           </div>
         </div>

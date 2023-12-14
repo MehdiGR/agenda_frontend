@@ -3,38 +3,41 @@ import { useState } from "react";
 import CaisseForm from "./components/caisseform";
 import Prestations from "./components/prestations";
 import Navbar from "./components/navbar";
+import { Props } from "react-select";
 
 export default function Container({
   clients,
   collaborateurs,
-  tickets,
+  ticketLines,
   agendas,
   prestations,
-}) {
-  const [ticketState, setTicketState] = useState(tickets);
-  const addPrestation = (newTicket: any) => {
-    setTicketState([...ticketState, newTicket]);
+}: any) {
+  const [ticketLinesState, setTicketLinesState] = useState(ticketLines);
+  const addPrestation = (newTicketLines: any) => {
+    setTicketLinesState([...ticketLinesState, newTicketLines]);
   };
   // remove row from ticket state given by params
   const removePrestation = (index: any) => {
-    setTicketState(ticketState.filter((_: any, i: any) => i !== index));
+    setTicketLinesState(
+      ticketLinesState.filter((_: any, i: any) => i !== index)
+    );
   };
   //calculate totalTTC using reduce
-  const totalTTC = ticketState.reduce(
+  const totalTTC = ticketLinesState.reduce(
     (total: any, ticket: any) => total + ticket.total_ttc,
     0
   );
 
   //   update agenda property
   const updateAgendaInTable = (index: any, selectedOption: any) => {
-    setTicketState(() => [
-      ...ticketState.slice(0, index),
+    setTicketLinesState(() => [
+      ...ticketLinesState.slice(0, index),
       {
-        ...ticketState[index],
+        ...ticketLinesState[index],
         prest_agenda: selectedOption?.label,
         prest_idAgenda: selectedOption?.value,
       },
-      ...ticketState.slice(index + 1),
+      ...ticketLinesState.slice(index + 1),
     ]);
   };
   const [collabOptions, setCollabOptions] = useState(
@@ -51,11 +54,11 @@ export default function Container({
   return (
     <>
       <Navbar />
-      <div className="grid md:grid-cols-2 sm:grid-cols-1 gap-1">
+      <div className="grid md:grid-cols-2 sm:grid-cols-1 gap-1 mt-10">
         <CaisseForm
           clients={clients}
           collabOptions={collabOptions}
-          tickets={ticketState}
+          ticketLines={ticketLinesState}
           agendas={agendas}
           removePrestation={removePrestation}
           totalTTC={totalTTC}

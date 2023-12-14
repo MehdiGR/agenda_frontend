@@ -40,7 +40,7 @@ export default async function Caisse({
       <Container
         clients={clients}
         collaborateurs={collaborateurs}
-        tickets={JSON.parse(tickets as string)}
+        ticketLines={JSON.parse(tickets as string)}
         agendas={agendas}
         prestations={prestations}
       />

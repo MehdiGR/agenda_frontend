@@ -9,37 +9,39 @@ const Navbar = () => {
 
   return (
     <>
-      <nav className="bg-gray-800 p-4">
+      <nav className="bg-gray-300 h-[50px] fixed w-full z-10 top-0">
         <div className="container mx-auto">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-center">
             <div className="space-x-4">
-              <Link href="/" className="text-white ">
-                Caisse
-              </Link>
+              <div className="inline-block px-6 text-slate-900 font-semibold h-[50px] leading-[50px] hover:bg-slate-900 hover:text-white transition cursor-pointer">
+                <Link href="/">Caisse</Link>
+              </div>
+
               <div
-                className="relative text-white inline-block h-full bg-red-300  "
+                className="relative inline-block px-6 text-slate-900 font-semibold h-[50px] leading-[50px] hover:bg-slate-900 hover:text-white transition cursor-pointer"
                 onMouseEnter={() => setIsTicketEnAttenteHovered(true)}
                 onMouseLeave={() => setIsTicketEnAttenteHovered(false)}
               >
-                <Link href="javascript:void(0)">Tickets en attente</Link>
+                <span className=" ">Tickets en attente</span>
                 {/* Hidden content for TicketsEnAttente */}
                 <div
                   className={`${
                     isTicketEnAttenteHovered
                       ? "block opacity-100 pointer-events-auto"
                       : "hidden opacity-0 pointer-events-none"
-                  } absolute top-full left-0 bg-red-500 p-4 w-64 z-10 rounded-lg transition-opacity duration-300`}
+                  }  `}
                 >
                   <TicketsEnAttente />
                 </div>
               </div>
-
-              <Link href="/tickets_journee" className="text-white">
-                Journées et tickets de caisse
-              </Link>
-              <Link href="/synthese_ventes" className="text-white">
-                Synthèse des ventes
-              </Link>
+              <div className="inline-block px-6 text-slate-900 font-semibold h-[50px] leading-[50px] hover:bg-slate-900 hover:text-white transition cursor-pointer">
+                <Link href="/tickets_journee">
+                  Journées et tickets de caisse
+                </Link>
+              </div>
+              <div className="inline-block px-6 text-slate-900 font-semibold h-[50px] leading-[50px] hover:bg-slate-900 hover:text-white transition cursor-pointer">
+                <Link href="/synthese_ventes">Synthèse des ventes</Link>
+              </div>
             </div>
           </div>
         </div>
