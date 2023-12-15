@@ -52,6 +52,20 @@ export default function CaisseForm({
       date_remise?: string;
     }>
   >([]);
+  useEffect(() => {
+    // Calculate the sum of montant of all existing items
+    const sumOfMontants = PaiementsDeCommande.reduce(
+      (sum, item) => sum + parseFloat(item.montant || "0"),
+      0
+    );
+
+    // Calculate the remaining amount to be paid
+    const newResteAPayer = totalTTC - sumOfMontants;
+
+    // Update the resteAPayer state
+    setResteAPayer(newResteAPayer);
+  }, [totalTTC, PaiementsDeCommande]);
+
   const [resteAPayer, setResteAPayer] = useState(totalTTC);
   const [montantRendu, setMontantRendu] = useState(0);
   const [paye, setPaye] = useState(false);
