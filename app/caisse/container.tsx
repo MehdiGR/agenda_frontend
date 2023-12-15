@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import CaisseForm from "./components/caisseform";
 import Prestations from "./components/prestations";
 import Navbar from "./components/navbar";
@@ -13,6 +13,9 @@ export default function Container({
   prestations,
 }: any) {
   const [ticketLinesState, setTicketLinesState] = useState(ticketLines);
+  useEffect(() => {
+    setTicketLinesState(ticketLines);
+  }, [ticketLines]);
   const addPrestation = (newTicketLines: any) => {
     setTicketLinesState([...ticketLinesState, newTicketLines]);
   };
@@ -42,7 +45,8 @@ export default function Container({
   };
   const [collabOptions, setCollabOptions] = useState(
     collaborateurs.map((vendeur: any) => {
-      return { value: vendeur.id, label: vendeur.nom };
+      // console.log(vendeur);
+      return { value: vendeur.id_collaborateur, label: vendeur.nom };
     })
   );
   const [selectedResponsable, setSelectedResponsable] = useState({

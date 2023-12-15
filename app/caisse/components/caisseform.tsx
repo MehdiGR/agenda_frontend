@@ -54,6 +54,7 @@ export default function CaisseForm({
   >([]);
   const [resteAPayer, setResteAPayer] = useState(totalTTC);
   const [montantRendu, setMontantRendu] = useState(0);
+  const [paye, setPaye] = useState(false);
 
   const [selectedClientType, setSelectedClientType] = useState("client_ref");
   // modal states
@@ -198,13 +199,16 @@ export default function CaisseForm({
   useEffect(() => {
     // Only update the form values if they are different from the current values
     const currentValues = getValues("prestations" as any);
+    console.log(ticketLines, "ticketLines");
     const updatedPrestationArr = ticketLines.map((item: any) => ({
-      designation: item.Designation,
-      id_art: item.id_art,
+      line_id: item.line_id,
+      designation: item.designation,
+      id_art: item.idproduit,
       qte: 1,
-      prixVente: item.prix,
-      prixTTC: item.total_ttc,
-      qte_retour: 0,
+      prix: item.prix,
+      total_ttc: item.total_ttc,
+      qte_retour: item.qte_retour,
+      remise: item.remise,
     }));
 
     // Check if the updated values are different from the current values
@@ -218,7 +222,7 @@ export default function CaisseForm({
     setValue("totalPrice" as any, totalTTC);
   }, [ticketLines, setValue, getValues]);
 
-  const handleCaisseForm = (formData: any) => {
+  const handleCaisseForm = async (formData: any) => {
     const createTicketData = { ...formData };
     const PayementData = {
       // ...data,
@@ -229,11 +233,14 @@ export default function CaisseForm({
       Num_ticket_rt: "",
       id_tier: selectedClient.value,
     };
-    console.log("PaiementsDeCommande", PaiementsDeCommande);
-    console.log("formData", formData);
-    return;
-    CaissePayement(PayementData, createTicketData);
+    // console.log("PaiementsDeCommande", PaiementsDeCommande);
+    // console.log("formData", formData);
+    // return;
+    await CaissePayement(PayementData, createTicketData);
     openCreateTKModal();
+    if (resteAPayer == 0) {
+      setPaye(true);
+    }
   };
   return (
     <div className="relative max-h-[100vh] p-4 ">
@@ -262,10 +269,14 @@ export default function CaisseForm({
               <label htmlFor="client_psg">client de passage</label>
             </div>
             <div className=" font-semibold flex gap-3 text-gray-500 flex-1 xl:justify-end mr-10 ">
-              <p>Ticket:</p>
-              <p className="font-bold text-gray-500">
-                {ticketLines[0]?.Num_ticket}
-              </p>
+              {ticketLines[0]?.Num_ticket != null && (
+                <div>
+                  <p>Ticket:</p>
+                  <p className="font-bold text-gray-500">
+                    {ticketLines[0]?.Num_ticket}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
           <div className="flex flex-col gap-1">
@@ -322,7 +333,7 @@ export default function CaisseForm({
                 ticketLines.map((item: any, index: number) => {
                   return (
                     <tr key={index}>
-                      <td className="text-center py-4">{item.Designation}</td>
+                      <td className="text-center py-4">{item.designation}</td>
                       <td className="text-center py-4">
                         <Controller
                           name={`prestations[${index}].vendeur` as any}
@@ -355,7 +366,7 @@ export default function CaisseForm({
                       </td>
                       <td className="text-center py-4">
                         <input
-                          {...register(`prestations[${index}].qte`)}
+                          {...register(`prestations[${index}].qte` as any)}
                           className="w-20 p-1 border border-gray-400 rounded-md"
                           type="number"
                           defaultValue={1}
@@ -363,7 +374,7 @@ export default function CaisseForm({
                       </td>
                       <td className="text-center py-4">
                         <input
-                          {...register(`prestations[${index}].remise`)}
+                          {...register(`prestations[${index}].remise` as any)}
                           className="w-20 p-1 border border-gray-400 rounded-md"
                           type="text"
                           pattern="[0-9.]*"
@@ -500,6 +511,7 @@ export default function CaisseForm({
                         </td>
                         <td className="border-r-2 py-1 text-sm  p-2 ">
                           <input
+                            name="montant_p"
                             type="text"
                             value={item.montant}
                             className="border border-gray-400 rounded-md p-3 text-right"
@@ -512,10 +524,22 @@ export default function CaisseForm({
                           />
                         </td>
                         <td>
+                          <input
+                            type="hidden"
+                            {...register(
+                              `prestations[${index}].removedRow` as any
+                            )}
+                          />
                           <button
                             type="button"
                             className="text-red-500  font-bold py-2 px-4 rounded"
-                            onClick={() => removePaiementItem(index)}
+                            onClick={() => {
+                              setValue(
+                                `prestations[${index}].removedRow` as any,
+                                true
+                              );
+                              removePaiementItem(index);
+                            }}
                           >
                             X
                           </button>
@@ -605,42 +629,43 @@ export default function CaisseForm({
             <Calculator handleClickCalculator={handleClickCalculator} />
           </div>
         </div>
-        <div className="flex justify-center absolute bottom-0  gap-1  bg-white p-1 w-full ">
-          <button
-            type="button"
-            className="flex items-center justify-center gap-2  bg-slate-800 shadow-md border rounded-md font-semibold text-sm text-white min-h-[60px] min-w-[130px]  w-full "
-            onClick={handleClickPause}
-          >
-            <CiPause1 fontSize={20} className="font-bold" />
-            Mise en attente
-          </button>
-          <button
-            type="button"
-            className="flex items-center justify-center gap-2  bg-red-500 shadow-md border  rounded-md font-semibold text-sm text-white min-h-[60px] min-w-[130px]  w-full"
-            onClick={handleClickRemove}
-          >
-            <IoMdClose fontSize={20} className="font-bold" />
-            Supprimer
-          </button>
-          <button
-            type="submit"
-            className="flex items-center justify-center gap-2  bg-orange-500 border rounded-md font-semibold text-sm text-white min-h-[60px] min-w-[130px] w-full "
-          >
-            <IoTicketOutline fontSize={20} className="font-bold" /> Payer
-          </button>
-          <ModalCreateTK
-            openModal={openCreateTKModal}
-            closeModal={closeCreateTKModal}
-            modalIsOpen={isCreateTKModalopen}
-            ticketLines={ticketLines}
-            PaiementsDeCommande={PaiementsDeCommande}
-            resteAPayer={resteAPayer}
-            client={selectedClient.label}
-            ticketNum={ticketLines[0]?.Num_ticket}
-            totalTTC={totalTTC}
-          />
-        </div>
-
+        {!paye && (
+          <div className="flex justify-center absolute bottom-0  gap-1  bg-white p-1 w-full ">
+            <button
+              type="button"
+              className="flex items-center justify-center gap-2  bg-slate-800 shadow-md border rounded-md font-semibold text-sm text-white min-h-[60px] min-w-[130px]  w-full "
+              onClick={handleClickPause}
+            >
+              <CiPause1 fontSize={20} className="font-bold" />
+              Mise en attente
+            </button>
+            <button
+              type="button"
+              className="flex items-center justify-center gap-2  bg-red-500 shadow-md border  rounded-md font-semibold text-sm text-white min-h-[60px] min-w-[130px]  w-full"
+              onClick={handleClickRemove}
+            >
+              <IoMdClose fontSize={20} className="font-bold" />
+              Supprimer
+            </button>
+            <button
+              type="submit"
+              className="flex items-center justify-center gap-2  bg-orange-500 border rounded-md font-semibold text-sm text-white min-h-[60px] min-w-[130px] w-full "
+            >
+              <IoTicketOutline fontSize={20} className="font-bold" /> Payer
+            </button>
+            <ModalCreateTK
+              openModal={openCreateTKModal}
+              closeModal={closeCreateTKModal}
+              modalIsOpen={isCreateTKModalopen}
+              ticketLines={ticketLines}
+              PaiementsDeCommande={PaiementsDeCommande}
+              resteAPayer={resteAPayer}
+              client={selectedClient.label}
+              ticketNum={ticketLines[0]?.Num_ticket}
+              totalTTC={totalTTC}
+            />
+          </div>
+        )}
         {/*  ticket id*/}
       </form>
     </div>

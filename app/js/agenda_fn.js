@@ -439,7 +439,7 @@ export const processReservations = (reservations) => {
           eventIndex: index,
           intitule: res.prest_title,
           id_art: res.prest_id,
-          ligne_id: res.ligne_id,
+          line_id: res.line_id,
           duration_hours: Math.floor(parseInt(res.prest_duree) / 60),
           duration_minutes: parseInt(res.prest_duree) % 60,
           duree: res.prest_duree,
@@ -452,7 +452,7 @@ export const processReservations = (reservations) => {
           code_tauxtvaVente: res.prest_code_tauxtvaVente,
           code_tauxtvaAchat: res.prest_code_tauxtvaAchat,
           id_ticket: res.id_ticket,
-          id_ticket_ligne: res.id_ticket_ligne,
+          id_ticket_line: res.id_ticket_line,
         },
       ],
 

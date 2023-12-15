@@ -101,10 +101,10 @@ export default function ModalCreateTK({
                 </p>
               )}
             </div>
-            <button className="flex items-center justify-center gap-2 h-12 leading-[48px] bg-orange-500 hover:bg-orange-300 min-w-[200px]  text-white rounded-md ">
+            {/* <button className="flex items-center justify-center gap-2 h-12 leading-[48px] bg-orange-500 hover:bg-orange-300 min-w-[200px]  text-white rounded-md ">
               <IoMdAdd />
               Ajouter un paiement
-            </button>
+            </button> */}
           </div>
           <div>
             <h4 className="flex items-center  gap-2 text-xl font-semibold text-gray-500 ">
@@ -136,7 +136,7 @@ export default function ModalCreateTK({
                   ticketLines.map((item: any, index: number) => {
                     return (
                       <tr key={index}>
-                        <td className="text-center py-4">{item.Designation}</td>
+                        <td className="text-center py-4">{item.designation}</td>
                         <td className="text-center py-4">{item.vendeur}</td>
                         <td className="text-center py-4">{item.qte}</td>
                         <td className="text-center py-4">

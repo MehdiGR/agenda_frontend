@@ -38,13 +38,13 @@ export async function get_tickets({ id = "" }) {
     );
   }
 }
-export async function get_ticket_lines({ id = "" }) {
-  const where = id != "" ? ` AND rsv_dc.id_res=? ` : "";
+export async function get_reservat_ticket_lines({ where = "" }) {
   try {
     const sql = `
     SELECT DISTINCT
       Num_doc as Num_ticket,
       dcl.*,
+      dcl.id as line_id,
       clt.nom AS client,
       clt.id AS idClient,
       ag.id,
@@ -58,7 +58,7 @@ export async function get_ticket_lines({ id = "" }) {
     JOIN docligne AS dcl
     ON
         dcl.iddocument = dce.id
-    JOIN CLIENT clt ON
+    JOIN client clt ON
         clt.id = dce.tier_doc
     JOIN reservat AS rsv
     ON
@@ -69,12 +69,52 @@ export async function get_ticket_lines({ id = "" }) {
         ag.id = ligne_res.idAgenda
     JOIN collaborateur AS clb
     ON
-        clb.id_collaborateur = ag.idCollab
-    WHERE
-        idtypedoc = 21  ${where} `;
-    const values = [id];
+        clb.id_collaborateur = ag.idCollab 
+     ${where} `;
     const reservat = await new Promise((resolve, reject) =>
-      connection.query(sql, values, (error, results) =>
+      connection.query(sql, (error, results) =>
+        error ? reject(error) : resolve(results)
+      )
+    );
+
+    return JSON.stringify(reservat);
+  } catch (error) {
+    console.error("Could not execute query:", error);
+    return new NextResponse(
+      { error: "Could not execute query" },
+      { status: 500 }
+    );
+  }
+}
+export async function get_ticket_lines({ where = "" }) {
+  try {
+    const sql = `
+    SELECT 
+      Num_doc as Num_ticket,
+      dcl.*,
+      dcl.id as line_id,
+      clt.nom AS client,
+      clt.id AS idClient,
+      clt.id_collaborateur,
+      clb.nom AS vendeur,
+      clb.id_collaborateur AS vendeurId,
+      rsv_dc.id_res
+    FROM
+        docentete AS dce
+    JOIN reservat_docentete rsv_dc ON
+        rsv_dc.id_doc = dce.id
+    JOIN docligne AS dcl
+    ON
+        dcl.iddocument = dce.id
+    JOIN client clt ON
+        clt.id = dce.tier_doc
+   
+    JOIN collaborateur AS clb
+    ON
+        clb.id_collaborateur = clt.idCollab 
+     ${where} `;
+    const reservat = await new Promise((resolve, reject) =>
+      connection.query(sql, (error, results) =>
         error ? reject(error) : resolve(results)
       )
     );
@@ -101,9 +141,9 @@ async function executeQuery(sql, values) {
   });
 }
 
-async function checkExistingRecord(ligne_id) {
+async function checkExistingRecord(line_id) {
   const sql = "SELECT * FROM ligne_res WHERE id=?";
-  const values = [ligne_id];
+  const values = [line_id];
 
   return new Promise((resolve, reject) => {
     connection.query(sql, values, function (err, result, fields) {
@@ -117,7 +157,7 @@ async function createTicket(data) {
   try {
     const id_ticket = await insertTicket(data);
     if (id_ticket) {
-      await insertTicketLignes({ ...data, id_ticket });
+      await insertTicketLines({ ...data, id_ticket });
       console.log("Document and line items inserted successfully.");
     } else {
       console.log("Failed to insert document.");
@@ -165,31 +205,42 @@ async function insertTicket(data) {
   return id_ticket;
 }
 
-async function insertTicketLignes(data) {
-  const insertTicketLignePromises = data.prestations.map(async (item) => {
-    const insertTicketLigneSQL =
+async function insertTicketLines(data) {
+  const insertTicketLinePromises = data.prestations.map(async (item) => {
+    const insertTicketLineSQL =
       "INSERT INTO docligne(iddocument,idproduit,Designation,qte,prix,idtauxtva,pUnet,total_ttc) VALUES (?,?,?,?,?,?,?,?)";
 
-    const insertTicketLigneValues = [
+    const insertTicketLineValues = [
       data.id_ticket,
       item.id_art,
       item.designation,
       item?.qte,
-      item.prixVente,
+      item.prix,
       1,
-      item.prixVente,
-      item.prixTTC,
+      item.prix,
+      item.total_ttc,
     ];
-    await executeQuery(insertTicketLigneSQL, insertTicketLigneValues);
+    await executeQuery(insertTicketLineSQL, insertTicketLineValues);
   });
 
-  await Promise.all(insertTicketLignePromises);
+  await Promise.all(insertTicketLinePromises);
 }
-async function removeTicketLigne(ticketLigneId) {
+async function removeTicketLine(ticketLineId) {
   try {
-    const deleteTicketLigneSQL = "DELETE FROM docligne WHERE id = ?";
-    const deleteTicketLigneValues = [docligneId];
-    await executeQuery(deleteTicketLigneSQL, deleteTicketLigneValues);
+    const deleteTicketLineSQL = "DELETE FROM docligne WHERE id = ?";
+    const deleteTicketLineValues = [ticketLineId];
+    await executeQuery(deleteTicketLineSQL, deleteTicketLineValues);
+    console.log("Document line removed successfully.");
+  } catch (error) {
+    console.error("An error occurred:", error);
+    console.error("Stack trace:", error.stack);
+  }
+}
+async function removeTicketLineByIDticket(ticketId) {
+  try {
+    const deleteTicketLineSQL = "DELETE FROM docligne WHERE iddocument = ?";
+    const deleteTicketLineValues = [ticketId];
+    await executeQuery(deleteTicketLineSQL, deleteTicketLineValues);
     console.log("Document line removed successfully.");
   } catch (error) {
     console.error("An error occurred:", error);
@@ -210,6 +261,7 @@ export async function updateTicket({ properties, values, id }) {
 
   await executeQuery(updateTicketSQL, updateTicketValues);
 }
+
 export async function removeTicket(id) {
   try {
     const deleteReservatTicketSQL =
@@ -217,9 +269,9 @@ export async function removeTicket(id) {
     const deleteReservatTicketValues = [id];
     await executeQuery(deleteReservatTicketSQL, deleteReservatTicketValues);
 
-    const deleteTicketLigneSQL = "DELETE FROM docligne WHERE iddocument = ?";
-    const deleteTicketLigneValues = [id];
-    await executeQuery(deleteTicketLigneSQL, deleteTicketLigneValues);
+    const deleteTicketLineSQL = "DELETE FROM docligne WHERE iddocument = ?";
+    const deleteTicketLineValues = [id];
+    await executeQuery(deleteTicketLineSQL, deleteTicketLineValues);
 
     const deleteTicketSQL = "DELETE FROM docentete WHERE id = ?";
     const deleteTicketValues = [id];
@@ -232,8 +284,35 @@ export async function removeTicket(id) {
     console.error("Stack trace:", error.stack);
   }
 }
+async function updateTicketLine(ticketLine) {
+  const updateTicketLineSQL = "UPDATE docwater SET qte = ? WHERE id = ?";
+  const updateTicketLineValues = [ticketLine.qte, ticketLine.id];
+  await executeQuery(updateTicketLineSQL, updateTicketLineValues);
+}
+async function handleTicketLines(ticketLines) {
+  const updateTicketLinePromises = ticketLines.map(async (item) => {
+    const removedRecord = item?.removedRow;
+    // check if item.line_id exist
+    if (item.line_id && removedRecord) {
+      removeTicketLine(item.id);
+    } else if (item.line_id && !removedRecord) {
+      updateTicketLine(item);
+    }
+    const updateTicketLineSQL =
+      "UPDATE docwater SET qte = ? , Remise=?, total_ttc=? WHERE id = ?";
+    const updateTicketLineValues = [
+      item.qte,
+      item.remise,
+      item.total_ttc,
+      item.id,
+    ];
+    await executeQuery(updateTicketLineSQL, updateTicketLineValues);
+  });
+  await Promise.all(updateTicketLinePromises);
+}
 
 export async function CaissePayement(PayementData, createTicketData) {
+  //
   // console.log("PayementData", PayementData);
   // console.log("createTicketData", createTicketData);
   // return;
@@ -249,6 +328,8 @@ export async function CaissePayement(PayementData, createTicketData) {
   if (!id_ticket) {
     const insertedTicket = await createTicket(createTicketData);
     id_ticket = insertedTicket;
+  } else {
+    handleTicketLines(createTicketData.prestations);
   }
   // console.log(data);
   // return;
@@ -270,7 +351,6 @@ export async function CaissePayement(PayementData, createTicketData) {
       flag,
       date_remise,
     ]);
-
     const query2 = `
       INSERT INTO paiement_caisse
       (id_paiement, id_doc, montant, montant_rendu, Num_ticket_rt)
@@ -291,7 +371,8 @@ export async function CaissePayement(PayementData, createTicketData) {
     SET total_payer = total_payer + ?
     WHERE id = ?
   `;
-  await executeQuery(query3, [montant, id_ticket]);
+  const { total_ttc } = createTicketData;
+  await executeQuery(query3, [total_ttc, id_ticket]);
 
   if (resteAPayer === 0) {
     const query4 = `
@@ -301,4 +382,5 @@ export async function CaissePayement(PayementData, createTicketData) {
     `;
     await executeQuery(query4, [id_ticket]);
   }
+  revalidatePath("/caisse");
 }

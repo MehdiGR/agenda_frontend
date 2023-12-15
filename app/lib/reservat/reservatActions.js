@@ -23,7 +23,7 @@ export async function get_resavations(id = 0) {
                     lr.duree AS prest_duree,
                     lr.heurDB AS prest_heurDB,
                     lr.idAgenda AS prest_idAgenda,
-                    lr.id AS ligne_id,
+                    lr.id AS line_id,
                     ag.nom AS prest_agenda,
                     clt.nom AS nomClient,
                     clt.id AS idClient,
@@ -130,19 +130,19 @@ export async function saveReservation(data) {
     data.agenda_prestationArr.map(async (agenda_prest, index) => {
       const duration_hours = parseInt(agenda_prest.duration_hours.value);
       const duration_minutes = parseInt(agenda_prest.duration_minutes.value);
-      const duree_ligne = duration_hours * 60 + duration_minutes;
+      const duree_line = duration_hours * 60 + duration_minutes;
 
-      const existingRecord = await checkExistingRecord(agenda_prest.ligne_id);
+      const existingRecord = await checkExistingRecord(agenda_prest.line_id);
 
       if (existingRecord) {
         const removedRecord = agenda_prest?.removedRow;
         if (removedRecord) {
           // Delete existing record
           const deleteRecordSQL = "DELETE FROM ligne_res WHERE id=?";
-          const deleteRecordValues = [agenda_prest.ligne_id];
+          const deleteRecordValues = [agenda_prest.line_id];
           await executeQuery(deleteRecordSQL, deleteRecordValues);
-          if (data.id_ticket_ligne !== null) {
-            removeTicketLigne(data.id_ticket_ligne);
+          if (data.id_ticket_line !== null) {
+            removeTicketLigne(data.id_ticket_line);
           }
           removeTicketLigne;
         } else {
@@ -150,11 +150,11 @@ export async function saveReservation(data) {
           const updateRecordSQL =
             "UPDATE ligne_res SET duree=?, idPrest=? , idAgenda=? , heurDB=?  WHERE id=?";
           const updateRecordValues = [
-            duree_ligne,
+            duree_line,
             agenda_prest.id_art,
             agenda_prest.agenda.value,
             agenda_prest.start_time,
-            agenda_prest.ligne_id,
+            agenda_prest.line_id,
           ];
 
           await executeQuery(updateRecordSQL, updateRecordValues);
@@ -166,7 +166,7 @@ export async function saveReservation(data) {
         const insertRecordValues = [
           insertedId_res,
           agenda_prest.id_art,
-          duree_ligne,
+          duree_line,
           agenda_prest.agenda.value,
           agenda_prest.start_time,
         ];
@@ -210,9 +210,9 @@ async function executeQuery(sql, values) {
   });
 }
 
-async function checkExistingRecord(ligne_id) {
+async function checkExistingRecord(line_id) {
   const sql = "SELECT * FROM ligne_res WHERE id=?";
-  const values = [ligne_id];
+  const values = [line_id];
 
   return new Promise((resolve, reject) => {
     connection.query(sql, values, function (err, result, fields) {
@@ -301,7 +301,7 @@ async function insertTicketLignes(data) {
 async function removeTicketLigne(ticketLigneId) {
   try {
     const deleteTicketLigneSQL = "DELETE FROM docligne WHERE id = ?";
-    const deleteTicketLigneValues = [docligneId];
+    const deleteTicketLigneValues = [ticketLigneId];
     await executeQuery(deleteTicketLigneSQL, deleteTicketLigneValues);
     console.log("Document line removed successfully.");
   } catch (error) {

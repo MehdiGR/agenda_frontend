@@ -3,13 +3,15 @@ import Image from "next/image";
 export default function Prestation({ prestation, addPrestation, vendeur }) {
   const image = prestation.img != null ? prestation.img : "no-image-icon.png";
   const data = {
+    line_id: "",
     idproduit: prestation.id_art,
-    Designation: prestation.intitule,
+    designation: prestation.intitule,
     total_ttc: prestation.prixTTC,
     prix: prestation.prixVente,
     pUnet: prestation.prixVente,
     qte: 1,
     qte_retour: 0,
+    remise: 0,
     vendeur: vendeur.label,
     vendeurId: vendeur.value,
   };

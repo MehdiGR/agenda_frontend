@@ -187,7 +187,7 @@ export default function CreateEventSection({
     const currentValues = getValues("agenda_prestationArr");
     const updatedAgendaPrestationArr = selectedEventAgendaPrestationArr.map(
       (item) => ({
-        ligne_id: item.ligne_id || "",
+        line_id: item.line_id || "",
         start_time: item.start_time,
         designation: item.intitule,
         id_art: item.id_art,
@@ -195,7 +195,7 @@ export default function CreateEventSection({
         prixVente: item.prixVente,
         prixTTC: item.prixTTC,
         id_ticket: item.id_ticket,
-        id_ticket_ligne: item.id_ticket_ligne,
+        id_ticket_line: item.id_ticket_line,
         agenda: {
           label: item.agendaTitle,
           value: item.agendaId,
@@ -462,9 +462,9 @@ export default function CreateEventSection({
                     return (
                       <tr key={index}>
                         <Controller
-                          name={`agenda_prestationArr[${index}].ligne_id`}
+                          name={`agenda_prestationArr[${index}].line_id`}
                           control={control}
-                          defaultValue={item?.ligne_id || ""}
+                          defaultValue={item?.line_id || ""}
                           render={({ field }) => {
                             return <input type="hidden" {...field} />;
                           }}

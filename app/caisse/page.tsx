@@ -1,7 +1,7 @@
 // import React from "react";
 
 import Container from "./container";
-import { get_tickets, get_ticket_lines } from "@/app/lib/ticket/ticketActions";
+import { get_reservat_ticket_lines } from "@/app/lib/ticket/ticketActions";
 
 export default async function Caisse({
   params,
@@ -31,8 +31,14 @@ export default async function Caisse({
   const collaborateurs = await resCollab.json();
   const prestations = await resPres.json();
   // const tickets = await get_tickets({ Num_ticket: Number(idRes) });
-  const tickets = await get_ticket_lines({ id: String(idRes) });
-  // console.log("ticket", JSON.parse(ticket));
+  let AndCondition = "";
+  if (idRes) {
+    AndCondition = `AND rsv_dc.id_res="${String(idRes)}"`;
+  }
+  const tickets = await get_reservat_ticket_lines({
+    where: ` WHERE idtypedoc = 21  AND mise_en_attente=1 ${AndCondition}`,
+  });
+  console.log("# tickets", tickets);
 
   return (
     // lg:overflow-y-hidden min-w-min
