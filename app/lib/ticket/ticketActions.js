@@ -312,6 +312,8 @@ async function handleTicketLines(ticketLines) {
 }
 
 export async function CaissePayement(PayementData, createTicketData) {
+  revalidatePath("/caisse");
+  return;
   //
   // console.log("PayementData", PayementData);
   // console.log("createTicketData", createTicketData);
