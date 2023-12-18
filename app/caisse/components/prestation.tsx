@@ -5,7 +5,7 @@ export default function Prestation({ prestation, addPrestation, vendeur }) {
   const data = {
     line_id: "",
     idproduit: prestation.id_art,
-    designation: prestation.intitule,
+    Designation: prestation.intitule,
     total_ttc: prestation.prixTTC,
     prix: prestation.prixVente,
     pUnet: prestation.prixVente,

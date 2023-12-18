@@ -26,6 +26,7 @@ import {
   updateTicket,
 } from "@/app/lib/ticket/ticketActions";
 import ModalCreateTK from "./modalcreatedticket";
+import { useRouter } from "next/navigation";
 export default function CaisseForm({
   clients,
   collabOptions,
@@ -36,22 +37,19 @@ export default function CaisseForm({
   updateAgendaInTable,
   selectedResponsable,
   setSelectedResponsable,
-}) {
+  PaiementsDeCommande,
+  addPaiementItem,
+  removePaiementItem,
+  updatePaiementItemMontant,
+  updateTicketLine,
+}: any) {
   const [clientIsRef, setIsRef] = useState(true);
   const [selectedClient, setSelectedClient] = useState({
     label: ticketLines[0]?.client,
     value: ticketLines[0]?.idClient,
   });
   // const [PaiementsDeCommande, setPaiementsDeCommande] = useState([]);
-  const [PaiementsDeCommande, setPaiementsDeCommande] = useState<
-    Array<{
-      date_paiement: string;
-      mode_paiement: string;
-      mode_paiement_id: number;
-      montant: string;
-      date_remise?: string;
-    }>
-  >([]);
+
   useEffect(() => {
     // Calculate the sum of montant of all existing items
     const sumOfMontants = PaiementsDeCommande.reduce(
@@ -140,62 +138,7 @@ export default function CaisseForm({
     setSelectedClient(selected);
     setValue("client", selected);
   };
-  const addPaimentItem = (mode_paiement: any) => {
-    const today = new Date();
 
-    // Calculate the sum of montant of all existing items
-    const sumOfMontants = PaiementsDeCommande.reduce(
-      (sum, item) => sum + parseFloat(item.montant),
-      0
-    );
-
-    // Calculate the montant for the new item
-    let newItemMontant = totalTTC - sumOfMontants;
-
-    // Ensure that the newItemMontant is not negative
-    newItemMontant = Math.max(newItemMontant, 0);
-
-    // Add the new item to the PaiementsDeCommande array
-    setPaiementsDeCommande((prevItems) => [
-      ...prevItems,
-      {
-        date_paiement: today.toISOString().slice(0, 10),
-        mode_paiement: mode_paiement.title,
-        mode_paiement_id: mode_paiement.id,
-        montant: newItemMontant.toString(),
-      },
-    ]);
-    setResteAPayer(totalTTC - sumOfMontants - newItemMontant);
-  };
-  const removePaiementItem = (index: number) => {
-    const updatedPaiementsDeCommande = [...PaiementsDeCommande];
-    const montant = parseFloat(updatedPaiementsDeCommande[index].montant);
-    setResteAPayer((prev: any) => prev + montant);
-    updatedPaiementsDeCommande.splice(index, 1);
-    setPaiementsDeCommande(updatedPaiementsDeCommande);
-  };
-  const updatePaimentItemMontant = (index: number, montant: number) => {
-    setPaiementsDeCommande((prevPaiementsDeCommande: any) => {
-      const updatedPaiementsDeCommande = prevPaiementsDeCommande.map(
-        (item, i) => {
-          if (i === index) {
-            // montant > item.montant
-            //   ? setResteAPayer((prev: any) => prev - montant)
-            const res = totalTTC - montant;
-            setResteAPayer((prev: any) => Math.max(res, 0));
-
-            return {
-              ...item,
-              montant: montant,
-            };
-          }
-          return item;
-        }
-      );
-
-      return updatedPaiementsDeCommande;
-    });
-  };
   useEffect(() => {
     CalculateMontantRendu();
   }, [PaiementsDeCommande]);
@@ -208,6 +151,20 @@ export default function CaisseForm({
 
     setMontantRendu(Math.max(sumOfMontants - totalTTC, 0));
   };
+  const CalculateTikeLineTotal = ({ index, qte, prix, remise, tva }: any) => {
+    const item = ticketLines[index];
+    const discount = (prix * remise) / 100;
+    const total = qte * (prix - discount) * tva;
+    const updatedRow = {
+      ...item,
+      qte,
+      prix,
+      remise,
+      total_ttc: Number(total.toFixed(2)),
+    };
+
+    updateTicketLine(index, updatedRow);
+  };
 
   // detect if a new row is added
   useEffect(() => {
@@ -216,7 +173,7 @@ export default function CaisseForm({
     console.log(ticketLines, "ticketLines");
     const updatedPrestationArr = ticketLines.map((item: any) => ({
       line_id: item.line_id,
-      designation: item.designation,
+      Designation: item.Designation,
       id_art: item.idproduit,
       qte: 1,
       prix: item.prix,
@@ -235,34 +192,41 @@ export default function CaisseForm({
     }
     setValue("totalPrice" as any, totalTTC);
   }, [ticketLines, setValue, getValues]);
-
+  const router = useRouter();
   const handleCaisseForm = async (formData: any) => {
     const createTicketData = { ...formData };
+    const filteredPaiements = PaiementsDeCommande.filter(
+      (item: any) => !item.hasOwnProperty("readonly")
+    );
+    // console.log(PaiementsDeCommande, "PaiementsDeCommande");
+    // console.log(filteredPaiements, "filteredPaiements");
+    // return;
+
     const PayementData = {
       // ...data,
       id_ticket: ticketLines[0]?.iddocument,
-      PaiementsDeCommande,
+      PaiementsDeCommande: filteredPaiements,
       resteAPayer,
       montantRendu,
       Num_ticket_rt: "",
       id_tier: selectedClient.value,
     };
-    // console.log("PaiementsDeCommande", PaiementsDeCommande);
-    // console.log("formData", formData);
-    // return;
-    await CaissePayement(PayementData, createTicketData);
+
+    const id_ticket = await CaissePayement(PayementData, createTicketData);
     openCreateTKModal();
+    router.push(`/caisse/ticket/${id_ticket}`);
     if (resteAPayer == 0) {
       setPaye(true);
     }
   };
+  console.log(PaiementsDeCommande, "PaiementsDeCommande");
   return (
-    <div className="relative max-h-[100vh] p-4 ">
+    <div className="relative max-h-[100vh]  ">
       {/* <img src="/vercel.svg" alt="" /> */}
       <form className=" h-full  " onSubmit={handleSubmit(handleCaisseForm)}>
         <div className="space-y-4 overflow-y-auto max-h-full  p-1">
           <div className="flex flex-wrap gap-3 ">
-            <div className="flex  gap-3 ">
+            <div className="flex  gap-2 ">
               <input
                 type="radio"
                 name="client_type"
@@ -282,11 +246,11 @@ export default function CaisseForm({
               />
               <label htmlFor="client_psg">client de passage</label>
             </div>
-            <div className=" font-semibold flex gap-3 text-gray-500 flex-1 xl:justify-end mr-10 ">
+            <div className=" font-semibold flex gap-3  flex-1 xl:justify-end mr-10 ">
               {ticketLines[0]?.Num_ticket != null && (
-                <div>
-                  <p>Ticket:</p>
-                  <p className="font-bold text-gray-500">
+                <div className="flex gap-3">
+                  <label className="text-lg text-slate-800">Ticket:</label>
+                  <p className=" text-gray-500 flex items-center">
                     {ticketLines[0]?.Num_ticket}
                   </p>
                 </div>
@@ -347,7 +311,7 @@ export default function CaisseForm({
                 ticketLines.map((item: any, index: number) => {
                   return (
                     <tr key={index}>
-                      <td className="text-center py-4">{item.designation}</td>
+                      <td className="text-center py-4">{item.Designation}</td>
                       <td className="text-center py-4">
                         <Controller
                           name={`prestations[${index}].vendeur` as any}
@@ -383,7 +347,16 @@ export default function CaisseForm({
                           {...register(`prestations[${index}].qte` as any)}
                           className="w-20 p-1 border border-gray-400 rounded-md"
                           type="number"
-                          defaultValue={1}
+                          value={item.qte || 1}
+                          onChange={(e) =>
+                            CalculateTikeLineTotal({
+                              index,
+                              qte: e.target.value,
+                              prix: item.prix,
+                              remise: item.remise,
+                              tva: 1.2,
+                            })
+                          }
                         />
                       </td>
                       <td className="text-center py-4">
@@ -398,7 +371,16 @@ export default function CaisseForm({
                               .replace(/,/g, ".")
                               .replace(/[^0-9.]/g, "");
                           }}
-                          defaultValue={0}
+                          defaultValue={item.remise || 0}
+                          onChange={(e) =>
+                            CalculateTikeLineTotal({
+                              index,
+                              qte: item.qte,
+                              prix: item.prix,
+                              remise: e.target.value,
+                              tva: 1.2,
+                            })
+                          }
                         />
                       </td>
                       <td className="text-center py-4">
@@ -475,28 +457,30 @@ export default function CaisseForm({
             <button
               type="button"
               className="bg-orange-500 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded"
-              onClick={() => addPaimentItem({ title: "Carte Bancaire", id: 1 })}
+              onClick={() =>
+                addPaiementItem({ title: "Carte Bancaire", id: 1 })
+              }
             >
               Carte bancaire
             </button>
             <button
               type="button"
               className="bg-orange-500 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded"
-              onClick={() => addPaimentItem({ title: "Chèque", id: 3 })}
+              onClick={() => addPaiementItem({ title: "Chèque", id: 3 })}
             >
               chèque
             </button>
             <button
               type="button"
               className="bg-orange-500 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded"
-              onClick={() => addPaimentItem({ title: "Espace", id: 2 })}
+              onClick={() => addPaiementItem({ title: "Espace", id: 2 })}
             >
               espace
             </button>
             <button
               type="button"
               className="bg-slate-800 hover:bg-slate-900 text-white font-bold py-2 px-4 rounded"
-              onClick={() => addPaimentItem("cadeau")}
+              onClick={() => addPaiementItem("cadeau")}
             >
               chèque cadeau / Avoir
             </button>
@@ -518,7 +502,10 @@ export default function CaisseForm({
                     return (
                       <tr key={index}>
                         <td className="border-r-2 py-1 text-sm  p-3">
-                          <input type="date" value={item.date_paiement} />
+                          <input
+                            type="date"
+                            value={item.date_paiement.slice(0, 10)}
+                          />
                         </td>
                         <td className="border-r-2 py-1 text-sm  p-3">
                           {item.mode_paiement}
@@ -530,11 +517,9 @@ export default function CaisseForm({
                             value={item.montant}
                             className="border border-gray-400 rounded-md p-3 text-right"
                             onChange={(e) =>
-                              updatePaimentItemMontant(
-                                index,
-                                parseInt(e.target.value)
-                              )
+                              updatePaiementItemMontant(index, e.target.value)
                             }
+                            readOnly={item?.readonly == 1 ? true : false}
                           />
                         </td>
                         <td>
@@ -544,19 +529,21 @@ export default function CaisseForm({
                               `prestations[${index}].removedRow` as any
                             )}
                           />
-                          <button
-                            type="button"
-                            className="text-red-500  font-bold py-2 px-4 rounded"
-                            onClick={() => {
-                              setValue(
-                                `prestations[${index}].removedRow` as any,
-                                true
-                              );
-                              removePaiementItem(index);
-                            }}
-                          >
-                            X
-                          </button>
+                          {!item?.readonly && (
+                            <button
+                              type="button"
+                              className="text-red-500  font-bold py-2 px-4 rounded"
+                              onClick={() => {
+                                setValue(
+                                  `prestations[${index}].removedRow` as any,
+                                  true
+                                );
+                                removePaiementItem(index);
+                              }}
+                            >
+                              X
+                            </button>
+                          )}
                         </td>
                       </tr>
                     );
@@ -573,7 +560,7 @@ export default function CaisseForm({
             </table>
           </div>
           <div className="flex flex-col gap-2">
-            <div>
+            <div className="flex flex-col gap-2">
               {resteAPayer > 0 && (
                 <label className="text-red-500 font-bold">
                   Reste à payer : <span>{resteAPayer.toFixed(2)}</span>

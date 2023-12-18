@@ -1,29 +1,47 @@
+import { get_tickets } from "@/app/lib/ticket/ticketActions";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+
 export default function TicketsEnAttente() {
+  const [ticketLines, setTicketLines] = useState([]);
+  useEffect(() => {
+    async function fetchData() {
+      const result = await get_tickets({
+        where: ` WHERE idtypedoc = 21  AND mise_en_attente=1`,
+      });
+      console.log(result), "get ticktes";
+      const parseData = JSON.parse(result as string);
+      setTicketLines(parseData);
+    }
+    fetchData();
+  }, []);
+  const router = useRouter();
+  const handleRowClick = (row: any) => {
+    router.push(`/caisse/ticket/${row.iddocument}`);
+  };
   return (
-    <div className="absolute top-full left-0 bg-white p-4 w-[500px] z-10 rounded-lg transition cursor-pointer-opacity duration-300 leading-[30px] text-slate-900 hover:text-slate-900 shadow-md ">
-      <h3 className="text-xl font-bold">Tickets en attente</h3>
+    <div className="absolute top-full left-0 bg-white p-4 w-[500px] z-10 rounded-lg transition cursor-pointer-opacity duration-300 leading-[30px] text-slate-900 hover:text-slate-900 shadow-md">
+      <h3 className="text-xl font-bold">Tickets en attente paiement</h3>
       <table className="w-full overflow-auto border">
         <thead>
           <tr>
-            <th>N°</th>
+            <th>Date Creation</th>
             <th>Client</th>
-            <th>Date</th>
-            <th>Etat</th>
+            <th>Reste à payer</th>
           </tr>
         </thead>
         <tbody className="text-center">
-          <tr className="p-4 hover:bg-slate-900 hover:text-white transition">
-            <td>1</td>
-            <td>Client 1</td>
-            <td>01/01/2023</td>
-            <td>En attente</td>
-          </tr>
-          <tr className="p-4 hover:bg-slate-900 hover:text-white transition">
-            <td>2</td>
-            <td>Client 2</td>
-            <td>02/01/2023</td>
-            <td>En attente</td>
-          </tr>
+          {ticketLines?.map((ticketLine: any, index: number) => (
+            <tr
+              key={index}
+              className="p-4 hover:bg-slate-900 hover:text-white transition"
+              onClick={() => handleRowClick(ticketLine)}
+            >
+              <td>{ticketLine?.date_creation.substring(0, 10)}</td>
+              <td>{ticketLine?.client}</td>
+              <td>{Number(ticketLine?.restePayer.toFixed(2))}</td>
+            </tr>
+          ))}
         </tbody>
       </table>
     </div>

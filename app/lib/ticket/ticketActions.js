@@ -4,32 +4,36 @@ import connection from "../db";
 import { NextResponse } from "next/server";
 // import { NextResponse } from "next/server";
 
-export async function get_tickets({ id = "" }) {
-  const where = id != "" ? ` AND rsv_dc.id_res=${id} ` : "";
+export async function get_tickets({ where = "" }) {
   try {
     const sql = `
     SELECT
         dce.id,
-        nom,
-        Num_doc
+        clt.nom as client,
+        Num_doc as Num_ticket, 
+        (dce.mntttc - pm.montant) AS restePayer,
+        Date(dce.date_doc) AS date_creation
     FROM
         docentete AS dce
-    JOIN reservat_docentete rsv_dc ON
-        rsv_dc.id_doc = dce.id
-    JOIN reservat rsv ON
-        rsv.id = rsv_dc.id_res
-    JOIN CLIENT clt ON
+    JOIN client clt ON
         clt.id = dce.tier_doc
-    WHERE
-        idtypedoc = 21 ${where} `;
-    const values = [id];
-    const reservat = await new Promise((resolve, reject) =>
-      connection.query(sql, values, (error, results) =>
+    LEFT JOIN paiement_caisse AS pm
+    ON
+    pm.id_doc = dce.id
+    LEFT JOIN paiement_tier AS pmt
+    ON
+        pmt.id = pm.id_paiement
+    LEFT JOIN methode_paiement AS mdp
+    ON
+        mdp.id = pmt.id_method
+   ${where} `;
+    const tickets = await new Promise((resolve, reject) =>
+      connection.query(sql, (error, results) =>
         error ? reject(error) : resolve(results)
       )
     );
 
-    return JSON.stringify(reservat);
+    return JSON.stringify(tickets);
   } catch (error) {
     console.error("Could not execute query:", error);
     return new NextResponse(
@@ -38,39 +42,51 @@ export async function get_tickets({ id = "" }) {
     );
   }
 }
-export async function get_reservat_ticket_lines({ where = "" }) {
+
+export async function get_ticket_lines({ where = "" }) {
   try {
     const sql = `
-    SELECT DISTINCT
-      Num_doc as Num_ticket,
-      dcl.*,
-      dcl.id as line_id,
-      clt.nom AS client,
-      clt.id AS idClient,
-      ag.id,
-      clb.nom AS vendeur,
-      clb.id_collaborateur AS vendeurId,
-      rsv_dc.id_res
-    FROM
-        docentete AS dce
-    JOIN reservat_docentete rsv_dc ON
-        rsv_dc.id_doc = dce.id
-    JOIN docligne AS dcl
-    ON
-        dcl.iddocument = dce.id
-    JOIN client clt ON
-        clt.id = dce.tier_doc
-    JOIN reservat AS rsv
-    ON
-        rsv.id = rsv_dc.id_res
-    JOIN ligne_res ON ligne_res.idRes = rsv.id
-    JOIN agenda AS ag
-    ON
-        ag.id = ligne_res.idAgenda
-    JOIN collaborateur AS clb
-    ON
-        clb.id_collaborateur = ag.idCollab 
-     ${where} `;
+                SELECT
+                    Num_doc AS Num_ticket,
+                    dcl.*,
+                    dcl.id AS line_id,
+                    dce.mntttc,
+                    dce.mnttva,
+                    dce.mntht,
+                   
+                    clt.nom AS client,
+                    clt.id AS idClient,
+                    clb.nom AS vendeur,
+                    clb.id_collaborateur AS vendeurId,
+                  
+                    pmt.date_reg as pm_date,
+                    mdp.intitule as pm_mode,
+                    mdp.id as pm_mode_id,
+                    pm.montant as pm_montant
+                    
+                    
+                FROM
+                    docentete AS dce
+                
+                JOIN docligne AS dcl
+                ON
+                    dcl.iddocument = dce.id
+                JOIN CLIENT clt ON
+                    clt.id = dce.tier_doc
+                JOIN collaborateur AS clb
+                ON
+                    clb.id_collaborateur = clt.idCollab
+                LEFT JOIN paiement_caisse AS pm
+                ON
+                    pm.id_doc = dce.id
+                LEFT JOIN paiement_tier AS pmt
+                ON
+                    pmt.id = pm.id_paiement
+                LEFT JOIN methode_paiement AS mdp
+                ON
+                    mdp.id = pmt.id_method
+
+     ${where}  `;
     const reservat = await new Promise((resolve, reject) =>
       connection.query(sql, (error, results) =>
         error ? reject(error) : resolve(results)
@@ -86,32 +102,28 @@ export async function get_reservat_ticket_lines({ where = "" }) {
     );
   }
 }
-export async function get_ticket_lines({ where = "" }) {
+export async function get_ticket_paiements({ where = "" }) {
   try {
     const sql = `
-    SELECT 
-      Num_doc as Num_ticket,
-      dcl.*,
-      dcl.id as line_id,
-      clt.nom AS client,
-      clt.id AS idClient,
-      clt.id_collaborateur,
-      clb.nom AS vendeur,
-      clb.id_collaborateur AS vendeurId,
-      rsv_dc.id_res
-    FROM
-        docentete AS dce
-    JOIN reservat_docentete rsv_dc ON
-        rsv_dc.id_doc = dce.id
-    JOIN docligne AS dcl
-    ON
-        dcl.iddocument = dce.id
-    JOIN client clt ON
-        clt.id = dce.tier_doc
-   
-    JOIN collaborateur AS clb
-    ON
-        clb.id_collaborateur = clt.idCollab 
+                SELECT
+                    
+                    Date(pmt.date_reg) as date_paiement,
+                    mdp.intitule as mode_paiement,
+                    mdp.id as mode_paiement_id,
+                    pm.montant as montant,
+                    1 as readonly
+                FROM
+                    docentete AS dce
+                LEFT JOIN paiement_caisse AS pm
+                ON
+                    pm.id_doc = dce.id
+                LEFT JOIN paiement_tier AS pmt
+                ON
+                    pmt.id = pm.id_paiement
+                LEFT JOIN methode_paiement AS mdp
+                ON
+                    mdp.id = pmt.id_method
+
      ${where} `;
     const reservat = await new Promise((resolve, reject) =>
       connection.query(sql, (error, results) =>
@@ -195,12 +207,12 @@ async function insertTicket(data) {
     insertTicketValues
   );
 
-  if (id_ticket) {
-    const insertReservatTicketSQL =
-      "INSERT INTO reservat_docentete(id_res,id_doc) VALUES (?,?)";
-    const insertReservatTicketValues = [data.idRes, id_ticket];
-    await executeQuery(insertReservatTicketSQL, insertReservatTicketValues);
-  }
+  // if (id_ticket) {
+  //   const insertReservatTicketSQL =
+  //     "INSERT INTO reservat_docentete(id_res,id_doc) VALUES (?,?)";
+  //   const insertReservatTicketValues = [data.idRes, id_ticket];
+  //   await executeQuery(insertReservatTicketSQL, insertReservatTicketValues);
+  // }
 
   return id_ticket;
 }
@@ -213,7 +225,7 @@ async function insertTicketLines(data) {
     const insertTicketLineValues = [
       data.id_ticket,
       item.id_art,
-      item.designation,
+      item.Designation,
       item?.qte,
       item.prix,
       1,
@@ -264,10 +276,10 @@ export async function updateTicket({ properties, values, id }) {
 
 export async function removeTicket(id) {
   try {
-    const deleteReservatTicketSQL =
-      "DELETE FROM reservat_docentete WHERE id_doc = ?";
-    const deleteReservatTicketValues = [id];
-    await executeQuery(deleteReservatTicketSQL, deleteReservatTicketValues);
+    // const deleteReservatTicketSQL =
+    //   "DELETE FROM reservat_docentete WHERE id_doc = ?";
+    // const deleteReservatTicketValues = [id];
+    // await executeQuery(deleteReservatTicketSQL, deleteReservatTicketValues);
 
     const deleteTicketLineSQL = "DELETE FROM docligne WHERE iddocument = ?";
     const deleteTicketLineValues = [id];
@@ -285,12 +297,13 @@ export async function removeTicket(id) {
   }
 }
 async function updateTicketLine(ticketLine) {
-  const updateTicketLineSQL = "UPDATE docwater SET qte = ? WHERE id = ?";
+  const updateTicketLineSQL = "UPDATE docligne SET qte = ? WHERE id = ?";
   const updateTicketLineValues = [ticketLine.qte, ticketLine.id];
   await executeQuery(updateTicketLineSQL, updateTicketLineValues);
 }
 async function handleTicketLines(ticketLines) {
   const updateTicketLinePromises = ticketLines.map(async (item) => {
+    console.log(item, "item");
     const removedRecord = item?.removedRow;
     // check if item.line_id exist
     if (item.line_id && removedRecord) {
@@ -299,7 +312,7 @@ async function handleTicketLines(ticketLines) {
       updateTicketLine(item);
     }
     const updateTicketLineSQL =
-      "UPDATE docwater SET qte = ? , Remise=?, total_ttc=? WHERE id = ?";
+      "UPDATE docligne SET qte = ? , Remise=?, total_ttc=? WHERE id = ?";
     const updateTicketLineValues = [
       item.qte,
       item.remise,
@@ -312,8 +325,8 @@ async function handleTicketLines(ticketLines) {
 }
 
 export async function CaissePayement(PayementData, createTicketData) {
-  revalidatePath("/caisse");
-  return;
+  // revalidatePath("/caisse");
+  // return;
   //
   // console.log("PayementData", PayementData);
   // console.log("createTicketData", createTicketData);
@@ -384,5 +397,6 @@ export async function CaissePayement(PayementData, createTicketData) {
     `;
     await executeQuery(query4, [id_ticket]);
   }
-  revalidatePath("/caisse");
+  // revalidatePath("/caisse");
+  return id_ticket;
 }

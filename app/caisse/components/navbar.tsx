@@ -1,3 +1,4 @@
+"use client";
 // components/Navbar.js
 import Link from "next/link";
 import { useState } from "react";
