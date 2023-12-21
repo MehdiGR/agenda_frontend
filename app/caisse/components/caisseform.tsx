@@ -64,8 +64,8 @@ export default function CaisseForm({
     setResteAPayer(newResteAPayer);
   }, [totalTTC, PaiementsDeCommande]);
 
-  const [resteAPayer, setResteAPayer] = useState(totalTTC);
-  const [montantRendu, setMontantRendu] = useState(0);
+  const [resteAPayer, setResteAPayer] = useState<number>(totalTTC);
+  const [montantRendu, setMontantRendu] = useState<number>(0);
   const [paye, setPaye] = useState(false);
 
   const [selectedClientType, setSelectedClientType] = useState("client_ref");

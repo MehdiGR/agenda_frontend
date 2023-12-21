@@ -39,7 +39,7 @@ export default function TicketsEnAttente() {
             >
               <td>{ticketLine?.date_creation.substring(0, 10)}</td>
               <td>{ticketLine?.client}</td>
-              <td>{Number(ticketLine?.restePayer.toFixed(2))}</td>
+              <td>{Number(ticketLine?.restePayer)}</td>
             </tr>
           ))}
         </tbody>

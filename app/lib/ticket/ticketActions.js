@@ -114,13 +114,13 @@ export async function get_ticket_paiements({ where = "" }) {
                     1 as readonly
                 FROM
                     docentete AS dce
-                LEFT JOIN paiement_caisse AS pm
+                 JOIN paiement_caisse AS pm
                 ON
                     pm.id_doc = dce.id
-                LEFT JOIN paiement_tier AS pmt
+                 JOIN paiement_tier AS pmt
                 ON
                     pmt.id = pm.id_paiement
-                LEFT JOIN methode_paiement AS mdp
+                 JOIN methode_paiement AS mdp
                 ON
                     mdp.id = pmt.id_method
 

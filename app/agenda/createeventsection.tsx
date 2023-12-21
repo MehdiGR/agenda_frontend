@@ -161,7 +161,7 @@ export default function CreateEventSection({
     // return;
     // saveReservat(data);
     // startTransition(async () => {
-    const insertedId_res = await saveReservation({
+    const insertedIdTicket = await saveReservation({
       ...data,
       duree: totalDuration,
       totalPrice,
@@ -169,12 +169,8 @@ export default function CreateEventSection({
     });
     // console.log(insertedId_res, "inserted_res");
     // return;
-    if (submitTypeRef.current === "encaisser" && insertedId_res) {
-      router.push("/caisse?res=" + insertedId_res, {
-        // query: {
-        //   res: insertedId_res,
-        // },
-      });
+    if (submitTypeRef.current === "encaisser" && insertedIdTicket) {
+      router.push(`/caisse/ticket/${insertedIdTicket}`);
     }
     // setOnEditingEvent(true);
     toggleEventSelected(null);

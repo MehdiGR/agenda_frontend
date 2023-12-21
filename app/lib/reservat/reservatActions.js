@@ -180,12 +180,12 @@ export async function saveReservation(data) {
   if (data.submitType === "enregistrer") {
     revalidatePath("/agenda");
   } else {
-    const idRes = insertedId_res;
     // check if data.idRes is not empty, indicate that it's an update click
-    if (data.idRes == "") await createTicket({ ...data, idRes });
-    console.log("idRes", idRes);
+    let insertedTicketId="";
+    if (data.idRes == "") { insertedTicketId = await createTicket({ ...data, idRes: insertedId_res });}
+    
     // redirect("/caisse?res=" + insertedId_res);
-    return idRes;
+    return insertedTicketId;
   }
   // revalidatePath("/");
 }
@@ -232,6 +232,7 @@ async function createTicket(data) {
     } else {
       console.log("Failed to insert document.");
     }
+    return id_ticket;
   } catch (error) {
     console.error("An error occurred:", error);
     console.error("Stack trace:", error.stack);
