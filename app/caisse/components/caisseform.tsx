@@ -26,7 +26,7 @@ import {
   updateTicket,
 } from "@/app/lib/ticket/ticketActions";
 import ModalCreateTK from "./modalcreatedticket";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 export default function CaisseForm({
   clients,
   collabOptions,
@@ -64,7 +64,7 @@ export default function CaisseForm({
     setResteAPayer(newResteAPayer);
   }, [totalTTC, PaiementsDeCommande]);
 
-  const [resteAPayer, setResteAPayer] = useState<number>(totalTTC);
+  const [resteAPayer, setResteAPayer] = useState<number>(0);
   const [montantRendu, setMontantRendu] = useState<number>(0);
   const [paye, setPaye] = useState(false);
 
@@ -103,6 +103,7 @@ export default function CaisseForm({
       values: [1],
       id: ticketLines[0]?.iddocument,
     });
+    router.push(`/caisse`);
   };
   const handleClickRemove = () => {
     removeTicket(ticketLines[0]?.iddocument);
@@ -192,8 +193,21 @@ export default function CaisseForm({
     }
     setValue("totalPrice" as any, totalTTC);
   }, [ticketLines, setValue, getValues]);
+  const searchParams = useSearchParams();
+  useEffect(() => {
+    const modal = searchParams.get("modal");
+    console.log(searchParams, "searchParams");
+    if (modal === "true") {
+      openCreateTKModal();
+    }
+  }, [searchParams]);
   const router = useRouter();
   const handleCaisseForm = async (formData: any) => {
+    // router.push(`/caisse/ticket/115?modal=true`);
+
+    // // read the url parameters and check if there is ticket id and  modal equal true  and open the modal
+    // // setPaye(true);
+    // return;
     const createTicketData = { ...formData };
     const filteredPaiements = PaiementsDeCommande.filter(
       (item: any) => !item.hasOwnProperty("readonly")
@@ -213,13 +227,14 @@ export default function CaisseForm({
     };
 
     const id_ticket = await CaissePayement(PayementData, createTicketData);
-    openCreateTKModal();
-    router.push(`/caisse/ticket/${id_ticket}`);
-    if (resteAPayer == 0) {
-      setPaye(true);
-    }
+
+    router.push(`/caisse/ticket/${id_ticket}?modal=true`);
+    const params = new URLSearchParams(searchParams);
+    params.set("modal", "true");
+    // if (resteAPayer == 0) {
+    //   setPaye(true);
+    // }
   };
-  console.log(PaiementsDeCommande, "PaiementsDeCommande");
   return (
     <div className="relative max-h-[100vh]  ">
       {/* <img src="/vercel.svg" alt="" /> */}

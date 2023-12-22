@@ -52,7 +52,9 @@ export default function ModalCreateTK({
         <br />
         <br />
         <div className="p-4 w-full space-y-4">
-          <h4 className="text-xl font-semibold text-gray-500 ">Ticket</h4>
+          <h4 className="text-xl font-semibold text-gray-500 ">
+            Detail Ticket
+          </h4>
           <br className="mb-10" />
           <div className="flex flex-wrap gap-4">
             <div className="flex gap-4">
@@ -107,11 +109,10 @@ export default function ModalCreateTK({
             </button> */}
           </div>
           <div>
-            <h4 className="flex items-center  gap-2 text-xl font-semibold text-gray-500 ">
+            <h4 className="flex items-center  gap-2 text-xl font-semibold text-gray-500 mb-2">
               <CiBoxList />
               Contenu de la commande
             </h4>
-            <br className="mb-10" />
             <table className="w-full border border-gray-400">
               <thead className=" bg-slate-800 text-white  ">
                 <tr>
@@ -136,7 +137,7 @@ export default function ModalCreateTK({
                   ticketLines.map((item: any, index: number) => {
                     return (
                       <tr key={index}>
-                        <td className="text-center py-4">{item.designation}</td>
+                        <td className="text-center py-4">{item.Designation}</td>
                         <td className="text-center py-4">{item.vendeur}</td>
                         <td className="text-center py-4">{item.qte}</td>
                         <td className="text-center py-4">
@@ -182,7 +183,7 @@ export default function ModalCreateTK({
                     return (
                       <tr key={index}>
                         <td className="border-r-2 py-1 text-sm  p-3">
-                          {item.date_paiement}
+                          {item.date_paiement.slice(0, 10)}
                         </td>
                         <td className="border-r-2 py-1 text-sm  p-3">
                           {item.mode_paiement}
@@ -203,6 +204,14 @@ export default function ModalCreateTK({
                 )}
               </tbody>
             </table>
+          </div>
+          <div className="absolute bottom-10 right-10">
+            <button
+              className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+              onClick={closeModal}
+            >
+              Fermer
+            </button>
           </div>
         </div>
       </Modal>

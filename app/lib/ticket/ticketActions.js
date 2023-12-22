@@ -71,11 +71,11 @@ export async function get_ticket_lines({ where = "" }) {
                 JOIN docligne AS dcl
                 ON
                     dcl.iddocument = dce.id
-                JOIN CLIENT clt ON
+                JOIN client clt ON
                     clt.id = dce.tier_doc
                 JOIN collaborateur AS clb
                 ON
-                    clb.id_collaborateur = clt.idCollab
+                    clb.id_collaborateur = dcl.idCollab
                 LEFT JOIN paiement_caisse AS pm
                 ON
                     pm.id_doc = dce.id
