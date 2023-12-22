@@ -193,22 +193,30 @@ export default function CaisseForm({
     }
     setValue("totalPrice" as any, totalTTC);
   }, [ticketLines, setValue, getValues]);
+  const router = useRouter();
   const searchParams = useSearchParams();
+  const modal = searchParams.get("modal");
+
   useEffect(() => {
-    const modal = searchParams.get("modal");
     console.log(searchParams, "searchParams");
     if (modal === "true") {
       openCreateTKModal();
     }
-  }, [searchParams]);
-  const router = useRouter();
+  }, [modal]);
   const handleCaisseForm = async (formData: any) => {
-    // router.push(`/caisse/ticket/115?modal=true`);
-
-    // // read the url parameters and check if there is ticket id and  modal equal true  and open the modal
-    // // setPaye(true);
-    // return;
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("modal", "true");
+    const newQueryString = params.toString();
+    // read the url parameters and check if there is ticket id and  modal equal true  and open the modal
+    console.log(newQueryString, "newQueryString");
+    router.push(`/caisse/ticket/115?${newQueryString}`, {
+      shallow: true,
+    });
+    return;
     const createTicketData = { ...formData };
+    const filteredTicketLines = ticketLines.filter(
+      (item: any) => !item.hasOwnProperty("readonly")
+    );
     const filteredPaiements = PaiementsDeCommande.filter(
       (item: any) => !item.hasOwnProperty("readonly")
     );
@@ -229,7 +237,7 @@ export default function CaisseForm({
     const id_ticket = await CaissePayement(PayementData, createTicketData);
 
     router.push(`/caisse/ticket/${id_ticket}?modal=true`);
-    const params = new URLSearchParams(searchParams);
+    // const params = new URLSearchParams(searchParams);
     params.set("modal", "true");
     // if (resteAPayer == 0) {
     //   setPaye(true);
@@ -415,12 +423,14 @@ export default function CaisseForm({
                         />
                       </td>
                       <td className="text-center py-4">
-                        <button
-                          className="text-red-700 font-bold "
-                          onClick={() => removePrestation(index)}
-                        >
-                          X
-                        </button>
+                        {!item.readonly && (
+                          <button
+                            className="text-red-700 font-bold "
+                            onClick={() => removePrestation(index)}
+                          >
+                            X
+                          </button>
+                        )}
                       </td>
                     </tr>
                   );
@@ -632,7 +642,7 @@ export default function CaisseForm({
             </div>
           </div>
           <div>
-            <label htmlFor="note">Notes à l'attention du client :</label>
+            <label htmlFor="note">Notes à l&apos;attention du client :</label>
             <textarea
               name="note"
               id="note"
@@ -645,7 +655,7 @@ export default function CaisseForm({
             <Calculator handleClickCalculator={handleClickCalculator} />
           </div>
         </div>
-        {!paye && (
+        {resteAPayer > 0 && (
           <div className="flex justify-center absolute bottom-0  gap-1  bg-white p-1 w-full ">
             <button
               type="button"

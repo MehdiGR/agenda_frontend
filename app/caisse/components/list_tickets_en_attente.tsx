@@ -17,7 +17,8 @@ export default function TicketsEnAttente() {
   }, []);
   const router = useRouter();
   const handleRowClick = (row: any) => {
-    router.push(`/caisse/ticket/${row.iddocument}`);
+    router.push(`/caisse/ticket/${row.id_ticket}`);
+    console.log(row);
   };
   return (
     <div className="absolute top-full left-0 bg-white p-4 w-[500px] z-10 rounded-lg transition cursor-pointer-opacity duration-300 leading-[30px] text-slate-900 hover:text-slate-900 shadow-md">
@@ -39,7 +40,7 @@ export default function TicketsEnAttente() {
             >
               <td>{ticketLine?.date_creation.substring(0, 10)}</td>
               <td>{ticketLine?.client}</td>
-              <td>{Number(ticketLine?.restePayer)}</td>
+              <td>{Number(ticketLine?.restePayer.toFixed(2))}</td>
             </tr>
           ))}
         </tbody>

@@ -7,26 +7,27 @@ import { NextResponse } from "next/server";
 export async function get_tickets({ where = "" }) {
   try {
     const sql = `
-    SELECT
-        dce.id,
-        clt.nom as client,
-        Num_doc as Num_ticket, 
-        (dce.mntttc - pm.montant) AS restePayer,
-        Date(dce.date_doc) AS date_creation
-    FROM
-        docentete AS dce
-    JOIN client clt ON
-        clt.id = dce.tier_doc
-    LEFT JOIN paiement_caisse AS pm
-    ON
-    pm.id_doc = dce.id
-    LEFT JOIN paiement_tier AS pmt
-    ON
-        pmt.id = pm.id_paiement
-    LEFT JOIN methode_paiement AS mdp
-    ON
-        mdp.id = pmt.id_method
+            SELECT
+                dce.id as id_ticket,
+                clt.nom as client,
+                Num_doc as Num_ticket,
+                (dce.mntttc - (
+                    SELECT COALESCE(SUM(pm.montant), 0)
+                    FROM paiement_caisse as pm
+                    WHERE dce.id = pm.id_doc
+                )) as restePayer ,
+                Date(dce.date_doc) AS date_creation
+            FROM
+                docentete AS dce
+            JOIN client clt ON
+                clt.id = dce.tier_doc
    ${where} `;
+  //  LEFT JOIN paiement_tier AS pmt
+  //  ON
+  //      pmt.id = pm.id_paiement
+  //  LEFT JOIN methode_paiement AS mdp
+  //  ON
+  //      mdp.id = pmt.id_method
     const tickets = await new Promise((resolve, reject) =>
       connection.query(sql, (error, results) =>
         error ? reject(error) : resolve(results)
@@ -53,18 +54,17 @@ export async function get_ticket_lines({ where = "" }) {
                     dce.mntttc,
                     dce.mnttva,
                     dce.mntht,
+                    dce.date_doc as date_creation,
                    
                     clt.nom AS client,
                     clt.id AS idClient,
                     clb.nom AS vendeur,
                     clb.id_collaborateur AS vendeurId,
-                  
-                    pmt.date_reg as pm_date,
-                    mdp.intitule as pm_mode,
-                    mdp.id as pm_mode_id,
-                    pm.montant as pm_montant
-                    
-                    
+                   (
+                    SELECT 1
+                    FROM paiement_caisse as pm
+                    WHERE dce.id = pm.id_doc
+                   ) as readonly
                 FROM
                     docentete AS dce
                 
@@ -75,16 +75,8 @@ export async function get_ticket_lines({ where = "" }) {
                     clt.id = dce.tier_doc
                 JOIN collaborateur AS clb
                 ON
-                    clb.id_collaborateur = dcl.idCollab
-                LEFT JOIN paiement_caisse AS pm
-                ON
-                    pm.id_doc = dce.id
-                LEFT JOIN paiement_tier AS pmt
-                ON
-                    pmt.id = pm.id_paiement
-                LEFT JOIN methode_paiement AS mdp
-                ON
-                    mdp.id = pmt.id_method
+                    clb.id_collaborateur = clt.idCollab
+                
 
      ${where}  `;
     const reservat = await new Promise((resolve, reject) =>

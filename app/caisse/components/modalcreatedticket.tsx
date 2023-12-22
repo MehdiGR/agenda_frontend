@@ -21,7 +21,7 @@ export default function ModalCreateTK({
   totalTTC,
 }) {
   return (
-    <div className="mt-10 bg-red-500">
+    <div className="mt-10 bg-red-500 ">
       <Modal
         isOpen={modalIsOpen}
         // onRequestClose={closeModal}
@@ -51,7 +51,7 @@ export default function ModalCreateTK({
         </button>
         <br />
         <br />
-        <div className="p-4 w-full space-y-4">
+        <div className="p-4 w-full space-y-4 relative">
           <h4 className="text-xl font-semibold text-gray-500 ">
             Detail Ticket
           </h4>
@@ -205,7 +205,7 @@ export default function ModalCreateTK({
               </tbody>
             </table>
           </div>
-          <div className="absolute bottom-10 right-10">
+          <div className="absolute bottom-0 right-10">
             <button
               className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
               onClick={closeModal}
