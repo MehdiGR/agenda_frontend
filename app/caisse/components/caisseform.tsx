@@ -50,6 +50,7 @@ export default function CaisseForm({
   });
   // const [PaiementsDeCommande, setPaiementsDeCommande] = useState([]);
 
+  const [resteAPayer, setResteAPayer] = useState<number>();
   useEffect(() => {
     // Calculate the sum of montant of all existing items
     const sumOfMontants = PaiementsDeCommande.reduce(
@@ -64,7 +65,6 @@ export default function CaisseForm({
     setResteAPayer(newResteAPayer);
   }, [totalTTC, PaiementsDeCommande]);
 
-  const [resteAPayer, setResteAPayer] = useState<number>(0);
   const [montantRendu, setMontantRendu] = useState<number>(0);
   const [paye, setPaye] = useState(false);
 
@@ -171,7 +171,6 @@ export default function CaisseForm({
   useEffect(() => {
     // Only update the form values if they are different from the current values
     const currentValues = getValues("prestations" as any);
-    console.log(ticketLines, "ticketLines");
     const updatedPrestationArr = ticketLines.map((item: any) => ({
       line_id: item.line_id,
       Designation: item.Designation,
@@ -198,21 +197,13 @@ export default function CaisseForm({
   const modal = searchParams.get("modal");
 
   useEffect(() => {
-    console.log(searchParams, "searchParams");
-    if (modal === "true") {
+    if (searchParams.get("modal") === "true") {
+      console.log(searchParams.get("modal"), "searchParams");
       openCreateTKModal();
     }
   }, [modal]);
   const handleCaisseForm = async (formData: any) => {
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("modal", "true");
-    const newQueryString = params.toString();
-    // read the url parameters and check if there is ticket id and  modal equal true  and open the modal
-    console.log(newQueryString, "newQueryString");
-    router.push(`/caisse/ticket/115?${newQueryString}`, {
-      shallow: true,
-    });
-    return;
+    // return;
     const createTicketData = { ...formData };
     const filteredTicketLines = ticketLines.filter(
       (item: any) => !item.hasOwnProperty("readonly")
@@ -220,9 +211,6 @@ export default function CaisseForm({
     const filteredPaiements = PaiementsDeCommande.filter(
       (item: any) => !item.hasOwnProperty("readonly")
     );
-    // console.log(PaiementsDeCommande, "PaiementsDeCommande");
-    // console.log(filteredPaiements, "filteredPaiements");
-    // return;
 
     const PayementData = {
       // ...data,
@@ -235,13 +223,13 @@ export default function CaisseForm({
     };
 
     const id_ticket = await CaissePayement(PayementData, createTicketData);
-
-    router.push(`/caisse/ticket/${id_ticket}?modal=true`);
-    // const params = new URLSearchParams(searchParams);
+    const params = new URLSearchParams(searchParams.toString());
     params.set("modal", "true");
-    // if (resteAPayer == 0) {
-    //   setPaye(true);
-    // }
+    const newQueryString = params.toString();
+    // read the url parameters and check if there is ticket id and  modal equal true  and open the modal
+    router.replace(`/caisse/ticket/${id_ticket}?${newQueryString}`, {
+      // shallow: true,
+    });
   };
   return (
     <div className="relative max-h-[100vh]  ">
@@ -530,6 +518,7 @@ export default function CaisseForm({
                           <input
                             type="date"
                             value={item.date_paiement.slice(0, 10)}
+                            onChange={(e) => console.log(e)}
                           />
                         </td>
                         <td className="border-r-2 py-1 text-sm  p-3">
@@ -655,7 +644,7 @@ export default function CaisseForm({
             <Calculator handleClickCalculator={handleClickCalculator} />
           </div>
         </div>
-        {resteAPayer > 0 && (
+        {ticketLines.length > 0 && ticketLines[0]?.valide == null && (
           <div className="flex justify-center absolute bottom-0  gap-1  bg-white p-1 w-full ">
             <button
               type="button"
@@ -679,19 +668,19 @@ export default function CaisseForm({
             >
               <IoTicketOutline fontSize={20} className="font-bold" /> Payer
             </button>
-            <ModalCreateTK
-              openModal={openCreateTKModal}
-              closeModal={closeCreateTKModal}
-              modalIsOpen={isCreateTKModalopen}
-              ticketLines={ticketLines}
-              PaiementsDeCommande={PaiementsDeCommande}
-              resteAPayer={resteAPayer}
-              client={selectedClient.label}
-              ticketNum={ticketLines[0]?.Num_ticket}
-              totalTTC={totalTTC}
-            />
           </div>
         )}
+        <ModalCreateTK
+          openModal={openCreateTKModal}
+          closeModal={closeCreateTKModal}
+          modalIsOpen={isCreateTKModalopen}
+          ticketLines={ticketLines}
+          PaiementsDeCommande={PaiementsDeCommande}
+          resteAPayer={resteAPayer}
+          client={selectedClient.label}
+          ticketNum={ticketLines[0]?.Num_ticket}
+          totalTTC={totalTTC}
+        />
         {/*  ticket id*/}
       </form>
     </div>

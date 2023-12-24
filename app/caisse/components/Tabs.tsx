@@ -1,14 +1,27 @@
 // components/Tabs.js
-import { useState } from "react";
+"use client";
+import { ReactElement, useState, ReactNode } from "react";
 
-const TabContent = ({ content }) => <div className="mt-4">{content}</div>;
+interface TabProps {
+  label: string;
+  children: ReactNode;
+}
 
-const Tabs = ({ tabs }) => {
+const TabContent = ({ content }: { content: ReactElement }) => (
+  <div className="mt-4">{content}</div>
+);
+
+const Tabs = ({
+  children,
+}: {
+  children: ReactElement<TabProps> | ReactElement<TabProps>[];
+}) => {
   const [activeTab, setActiveTab] = useState(0);
+  const tabs = Array.isArray(children) ? children : [children];
 
   return (
     <div>
-      <div className="flex">
+      <div className={`flex `}>
         {tabs.map((tab, index) => (
           <button
             key={index}
@@ -19,13 +32,13 @@ const Tabs = ({ tabs }) => {
             } py-2 px-4 focus:outline-none`}
             onClick={() => setActiveTab(index)}
           >
-            {tab.label}
+            {tab.props.label}
           </button>
         ))}
       </div>
 
       <div>
-        <TabContent content={tabs[activeTab].content} />
+        <TabContent content={tabs[activeTab].props.children} />
       </div>
     </div>
   );

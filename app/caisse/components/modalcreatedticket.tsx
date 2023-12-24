@@ -21,28 +21,28 @@ export default function ModalCreateTK({
   totalTTC,
 }) {
   return (
-    <div className="mt-10 bg-red-500 ">
-      <Modal
-        isOpen={modalIsOpen}
-        // onRequestClose={closeModal}
-        contentLabel="Ticket Modal"
-        ariaHideApp={false}
-        style={{
-          overlay: {
-            // position: "fixed",
-            // top: 0,
-            // left: 0,
-            // right: 0,
-            // bottom: 0,
-            // backgroundColor: "rgba(255, 255, 255, 0.75)",
-            // overflow: "auto",
-          },
-          content: {
-            maxWidth: 800,
-            margin: "auto",
-          },
-        }}
-      >
+    <Modal
+      isOpen={modalIsOpen}
+      // onRequestClose={closeModal}
+      contentLabel="Ticket Modal"
+      ariaHideApp={false}
+      style={{
+        overlay: {
+          // position: "fixed",
+          // top: 0,
+          // left: 0,
+          // right: 0,
+          // bottom: 0,
+          // backgroundColor: "rgba(255, 255, 255, 0.75)",
+          // overflow: "auto",
+        },
+        content: {
+          maxWidth: 800,
+          margin: "auto",
+        },
+      }}
+    >
+      <div className=" mt-10 ">
         <button
           onClick={closeModal}
           className="absolute left-0 top-0  p-2 rounded-sm text-red-500 font-bold"
@@ -51,7 +51,7 @@ export default function ModalCreateTK({
         </button>
         <br />
         <br />
-        <div className="p-4 w-full space-y-4 relative">
+        <div className="p-4 w-full space-y-4 ">
           <h4 className="text-xl font-semibold text-gray-500 ">
             Detail Ticket
           </h4>
@@ -205,7 +205,7 @@ export default function ModalCreateTK({
               </tbody>
             </table>
           </div>
-          <div className="absolute bottom-0 right-10">
+          <div className="flex justify-end relative top-5">
             <button
               className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
               onClick={closeModal}
@@ -214,7 +214,7 @@ export default function ModalCreateTK({
             </button>
           </div>
         </div>
-      </Modal>
-    </div>
+      </div>
+    </Modal>
   );
 }

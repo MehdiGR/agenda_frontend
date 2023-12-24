@@ -12,12 +12,12 @@ export default async function Caisse({
   params: { slugs: string[] };
 }) {
   // const { res: id_ticket } = searchParams;
+
   let id_ticket = 0;
   if (params && params.slugs) {
     const valid_param = params.slugs[0] == "ticket";
 
     if (!valid_param && params.slugs.length > 0) {
-      console.log(params.slugs.length, "length");
       notFound();
     }
     id_ticket =
@@ -54,7 +54,6 @@ export default async function Caisse({
   const ticketPaiements = await get_ticket_paiements({
     where: ` WHERE dce.id = "${id_ticket}"`,
   });
-  console.log("# id_ticket", id_ticket);
 
   return (
     // lg:overflow-y-hidden min-w-min

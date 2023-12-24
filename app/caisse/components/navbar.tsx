@@ -5,7 +5,7 @@ import { useState } from "react";
 import TicketsEnAttente from "./list_tickets_en_attente";
 import { RxHamburgerMenu } from "react-icons/rx";
 
-const Navbar = () => {
+const Navbar = ({ children }: { children: React.ReactNode }) => {
   const [isTicketEnAttenteHovered, setIsTicketEnAttenteHovered] =
     useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -48,7 +48,8 @@ const Navbar = () => {
                   : "hidden opacity-0 pointer-events-none"
               }  `}
             >
-              <TicketsEnAttente />
+              {/* <TicketsEnAttente /> */}
+              {children}
             </div>
           </div>
           <Link href="/caisse/journaux">

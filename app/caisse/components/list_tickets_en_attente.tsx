@@ -1,23 +1,17 @@
 import { get_tickets } from "@/app/lib/ticket/ticketActions";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { startTransition, useEffect, useState } from "react";
 
-export default function TicketsEnAttente() {
-  const [ticketLines, setTicketLines] = useState([]);
-  useEffect(() => {
-    async function fetchData() {
-      const result = await get_tickets({
-        where: ` WHERE idtypedoc = 21  AND mise_en_attente=1`,
-      });
-      console.log(result), "get ticktes";
-      const parseData = JSON.parse(result as string);
-      setTicketLines(parseData);
-    }
-    fetchData();
-  }, []);
-  const router = useRouter();
+export default async function TicketsEnAttente() {
+  const result = await get_tickets({
+    where: ` WHERE idtypedoc = 21  AND mise_en_attente=1`,
+  });
+  const ticketLines = JSON.parse(result as string);
+
+  // const router = useRouter();
   const handleRowClick = (row: any) => {
-    router.push(`/caisse/ticket/${row.id_ticket}`);
+    // router.push(`/caisse/ticket/${row.id_ticket}`);
     console.log(row);
   };
   return (
@@ -36,11 +30,14 @@ export default function TicketsEnAttente() {
             <tr
               key={index}
               className="p-4 hover:bg-slate-900 hover:text-white transition"
-              onClick={() => handleRowClick(ticketLine)}
+
+              // onClick={() => startTransition(() => handleRowClick(ticketLine))}
             >
+              {/* <Link href={`/caisse/ticket/${ticketLine?.id_ticket}`}> */}{" "}
               <td>{ticketLine?.date_creation.substring(0, 10)}</td>
               <td>{ticketLine?.client}</td>
               <td>{Number(ticketLine?.restePayer.toFixed(2))}</td>
+              {/* </Link> */}
             </tr>
           ))}
         </tbody>

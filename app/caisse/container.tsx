@@ -124,7 +124,6 @@ export default function Container({
   };
   const [collabOptions, setCollabOptions] = useState(
     collaborateurs.map((vendeur: any) => {
-      // console.log(vendeur);
       return { value: vendeur.id_collaborateur, label: vendeur.nom };
     })
   );

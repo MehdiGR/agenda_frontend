@@ -22,12 +22,12 @@ export async function get_tickets({ where = "" }) {
             JOIN client clt ON
                 clt.id = dce.tier_doc
    ${where} `;
-  //  LEFT JOIN paiement_tier AS pmt
-  //  ON
-  //      pmt.id = pm.id_paiement
-  //  LEFT JOIN methode_paiement AS mdp
-  //  ON
-  //      mdp.id = pmt.id_method
+    //  LEFT JOIN paiement_tier AS pmt
+    //  ON
+    //      pmt.id = pm.id_paiement
+    //  LEFT JOIN methode_paiement AS mdp
+    //  ON
+    //      mdp.id = pmt.id_method
     const tickets = await new Promise((resolve, reject) =>
       connection.query(sql, (error, results) =>
         error ? reject(error) : resolve(results)
@@ -46,6 +46,8 @@ export async function get_tickets({ where = "" }) {
 
 export async function get_ticket_lines({ where = "" }) {
   try {
+    // COALESCE(dce.valide ,0) as valide,
+
     const sql = `
                 SELECT
                     Num_doc AS Num_ticket,
@@ -55,6 +57,7 @@ export async function get_ticket_lines({ where = "" }) {
                     dce.mnttva,
                     dce.mntht,
                     dce.date_doc as date_creation,
+                    dce.valide,
                    
                     clt.nom AS client,
                     clt.id AS idClient,
@@ -63,7 +66,7 @@ export async function get_ticket_lines({ where = "" }) {
                    (
                     SELECT 1
                     FROM paiement_caisse as pm
-                    WHERE dce.id = pm.id_doc
+                    WHERE dce.id = pm.id_doc limit 1
                    ) as readonly
                 FROM
                     docentete AS dce
@@ -341,13 +344,13 @@ export async function CaissePayement(PayementData, createTicketData) {
   // console.log(data);
   // return;
   for (const paiement of PaiementsDeCommande) {
-    const { montant, date_paiement, mode_paiement_id, date_remise } = paiement;
+    const { montant, date_paiement, mode_paiement_id } = paiement;
     const flag = 1;
     const query1 = `
       INSERT INTO paiement_tier
-      (montant, date_reg, id_method, ref, id_tier, flag, dateremise)
+      (montant, date_reg, id_method, ref, id_tier, flag)
       VALUES
-      (?, ?, ?, ?, ?, ?, ?)
+      (?, ?, ?, ?, ?, ?)
     `;
     const { insertId: id_paiement_caisse } = await executeQuery(query1, [
       montant,
@@ -356,7 +359,6 @@ export async function CaissePayement(PayementData, createTicketData) {
       "",
       id_tier,
       flag,
-      date_remise,
     ]);
     const query2 = `
       INSERT INTO paiement_caisse
@@ -389,6 +391,6 @@ export async function CaissePayement(PayementData, createTicketData) {
     `;
     await executeQuery(query4, [id_ticket]);
   }
-  // revalidatePath("/caisse");
+  revalidatePath("/caisse/ticket/" + id_ticket);
   return id_ticket;
 }
