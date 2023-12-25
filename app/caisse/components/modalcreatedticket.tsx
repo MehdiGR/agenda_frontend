@@ -11,7 +11,8 @@ import { IoMdAdd } from "react-icons/io";
 import { useRef } from "react";
 import { Props } from "react-select";
 import ReactToPrint from "react-to-print";
-import exportToPDF from "@/app/lib/ticket/ticketActions";
+import { PDFDownloadLink } from "@react-pdf/renderer";
+import MyDocument from "./Document/mydocument";
 
 export default function ModalCreateTK({
   openModal,
@@ -25,34 +26,7 @@ export default function ModalCreateTK({
   totalTTC,
 }: any) {
   const componentRef = useRef();
-  const downloadAsPdf = async () => {
-    try {
-      // Get the HTML content from the componentRef.
-      const htmlContent = componentRef?.current.outerHTML || null;
-
-      // Send a POST request to the API route with the HTML content.
-      const response = await exportToPDF(JSON.stringify({ htmlContent }));
-
-      // Get the PDF blob from the response.
-      const blob = await response.blob();
-
-      // Create a URL for the blob.
-      const pdfUrl = URL.createObjectURL(blob);
-
-      // Create a temporary anchor element to trigger the download.
-      const a = document.createElement("a");
-      a.href = pdfUrl;
-      a.download = "ticket.pdf";
-      document.body.appendChild(a);
-      a.click();
-
-      // Clean up the URL and remove the anchor element.
-      URL.revokeObjectURL(pdfUrl);
-      a.remove();
-    } catch (error) {
-      console.error("Error downloading PDF:", error);
-    }
-  };
+  const downloadAsPdf = async () => {};
 
   return (
     <Modal
@@ -110,6 +84,14 @@ export default function ModalCreateTK({
                 <PiDownloadBold />
                 Télécharger
               </button>
+              <PDFDownloadLink
+                document={<MyDocument />}
+                fileName="somename.pdf"
+              >
+                {({ blob, url, loading, error }) =>
+                  loading ? "Loading document..." : "Download now!"
+                }
+              </PDFDownloadLink>
               <button className=" flex items-center justify-center gap-2 h-12 leading-[48px] bg-slate-800 hover:bg-slate-500 min-w-[100px] text-white rounded-md px-3">
                 <AiOutlineMail />
                 Envoyer
