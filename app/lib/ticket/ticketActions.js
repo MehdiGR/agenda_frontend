@@ -2,6 +2,8 @@
 import { revalidatePath } from "next/cache";
 import connection from "../db";
 import { NextResponse } from "next/server";
+import puppeteer from 'puppeteer';
+
 // import { NextResponse } from "next/server";
 
 export async function get_tickets({ where = "" }) {
@@ -393,4 +395,43 @@ export async function CaissePayement(PayementData, createTicketData) {
   }
   revalidatePath("/caisse/ticket/" + id_ticket);
   return id_ticket;
+}
+// export to pdf
+import { headers } from "next/headers";
+export default async function exportToPDF(htmlContent) {
+  // console.log(htmlContent)
+  // return;
+  // Launch a new browser session.
+  const browser = await  puppeteer.launch();
+
+  // Open a new page.
+  const page = await browser.newPage();
+
+  // Set the content of the page to your HTML.
+  // You would pass the HTML content as a POST request body or as a query parameter.
+  // Make sure to include the full HTML structure, including <html>, <head>, and <body> tags.
+  await page.setContent(htmlContent, {
+    waitUntil: 'networkidle0',
+  });
+
+  // Generate the PDF from the page content.
+  const pdf = await page.pdf({
+    format: 'A4',
+    printBackground: true, // Print background graphics.
+  });
+
+  // Close the browser session.
+  await browser.close();
+
+  // Send the PDF as a response to the client.
+  // res.setHeader('Content-Type', 'application/pdf');
+  // res.setHeader('Content-Disposition', `attachment; filename=ticket.pdf`);
+  // res.send(pdf);
+  const headerList=headers();
+  // headerList.set('Content-Type', 'application/pdf')
+  headerList.set('Content-Disposition', `attachment; filename=ticket.pdf`)
+  return pdf;
+
+ 
+
 }

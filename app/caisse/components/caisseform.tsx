@@ -26,7 +26,7 @@ import {
   updateTicket,
 } from "@/app/lib/ticket/ticketActions";
 import ModalCreateTK from "./modalcreatedticket";
-import { useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 export default function CaisseForm({
   clients,
   collabOptions,
@@ -43,6 +43,9 @@ export default function CaisseForm({
   updatePaiementItemMontant,
   updateTicketLine,
 }: any) {
+  const searchParams = useSearchParams();
+  const params = new URLSearchParams(searchParams.toString());
+
   const [clientIsRef, setIsRef] = useState(true);
   const [selectedClient, setSelectedClient] = useState({
     label: ticketLines[0]?.client,
@@ -72,7 +75,13 @@ export default function CaisseForm({
   // modal states
   const [isCreateTKModalopen, setModalCreateTKIsOpen] = useState(false);
   const openCreateTKModal = () => setModalCreateTKIsOpen(true);
-  const closeCreateTKModal = () => setModalCreateTKIsOpen(false);
+  const pathname = usePathname();
+  const closeCreateTKModal = () => {
+    // navigate to the previous page and close the modal
+
+    router.replace("/caisse", { shallow: true });
+    // setModalCreateTKIsOpen(false);
+  };
   const inputRefs = {
     input1: useRef(),
     input2: useRef(),
@@ -193,15 +202,15 @@ export default function CaisseForm({
     setValue("totalPrice" as any, totalTTC);
   }, [ticketLines, setValue, getValues]);
   const router = useRouter();
-  const searchParams = useSearchParams();
   const modal = searchParams.get("modal");
 
   useEffect(() => {
     if (searchParams.get("modal") === "true") {
       console.log(searchParams.get("modal"), "searchParams");
       openCreateTKModal();
+      console.log("openCreateTKModal");
     }
-  }, [modal]);
+  }, []);
   const handleCaisseForm = async (formData: any) => {
     // return;
     const createTicketData = { ...formData };
@@ -223,7 +232,6 @@ export default function CaisseForm({
     };
 
     const id_ticket = await CaissePayement(PayementData, createTicketData);
-    const params = new URLSearchParams(searchParams.toString());
     params.set("modal", "true");
     const newQueryString = params.toString();
     // read the url parameters and check if there is ticket id and  modal equal true  and open the modal
@@ -644,7 +652,7 @@ export default function CaisseForm({
             <Calculator handleClickCalculator={handleClickCalculator} />
           </div>
         </div>
-        {ticketLines.length > 0 && ticketLines[0]?.valide == null && (
+        {ticketLines.length > 0 && ticketLines[0]?.valide == null ? (
           <div className="flex justify-center absolute bottom-0  gap-1  bg-white p-1 w-full ">
             <button
               type="button"
@@ -669,7 +677,20 @@ export default function CaisseForm({
               <IoTicketOutline fontSize={20} className="font-bold" /> Payer
             </button>
           </div>
+        ) : (
+          ticketLines.length > 0 && (
+            <div className="">
+              <button
+                type="button"
+                className="flex items-center justify-center gap-2  bg-green-600 border rounded-md font-semibold text-sm text-white min-h-[60px] min-w-[130px]   w-[200px]"
+                onClick={openCreateTKModal}
+              >
+                Detail
+              </button>
+            </div>
+          )
         )}
+
         <ModalCreateTK
           openModal={openCreateTKModal}
           closeModal={closeCreateTKModal}
