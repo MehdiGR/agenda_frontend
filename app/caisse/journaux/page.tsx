@@ -1,17 +1,18 @@
 import Tabs from "../components/Tabs";
-import TodayTicket from "./components/todayticket";
+import OperationCaisse from "./components/operationcaisse";
+import Tickets from "./components/tickets";
+import { get_ticket_lines } from "@/app/lib/ticket/ticketActions";
+import Container from "./container";
 
 export default async function Journaux() {
+  const tickets = JSON.parse(
+    (await get_ticket_lines({
+      where: `WHERE idtypedoc = 21`,
+    })) as string
+  );
   return (
     <div className="p-14">
-      <Tabs className="w-full">
-        <div label="Tickets aujourd’hui" className="w-full">
-          <TodayTicket />
-        </div>
-        <div label="Journaux" className="w-full">
-          <p>slsls</p>
-        </div>
-      </Tabs>
+      <Container tickets={tickets} />
     </div>
   );
 }

@@ -1,84 +1,48 @@
-// components/Tabs.js
 "use client";
-import { ReactElement, useState, ReactNode } from "react";
+// components/Tabs.tsx
+import React, { ReactElement, useState } from "react";
 
-interface TabProps {
-  label: string;
-  children: ReactNode;
+interface TabPanelProps {
+  content: ReactElement;
 }
 
-const TabContent = ({ content }: { content: ReactElement }) => (
+const TabPanel: React.FC<TabPanelProps> = ({ content }) => (
   <div className="mt-4">{content}</div>
 );
 
-const Tabs = ({
-  children,
-}: {
-  children: ReactElement<TabProps> | ReactElement<TabProps>[];
-}) => {
+interface Tab {
+  label: string;
+  content: ReactElement;
+}
+
+interface TabsProps {
+  tabs: Tab[];
+}
+
+const Tabs: React.FC<TabsProps> = ({ tabs }) => {
   const [activeTab, setActiveTab] = useState(0);
-  const tabs = Array.isArray(children) ? children : [children];
 
   return (
     <div>
-      <div className={`flex `}>
+      <div className="flex">
         {tabs.map((tab, index) => (
           <button
             key={index}
-            className={`${
+            className={`py-2 px-4 focus:outline-none ${
               index === activeTab
                 ? "bg-blue-500 text-white"
                 : "bg-gray-300 text-gray-700"
-            } py-2 px-4 focus:outline-none`}
+            }`}
             onClick={() => setActiveTab(index)}
           >
-            {tab.props.label}
+            {tab.label}
           </button>
         ))}
       </div>
 
-      <div>
-        <TabContent content={tabs[activeTab].props.children} />
-      </div>
+      <TabPanel content={tabs[activeTab].content} />
     </div>
   );
 };
 
 export default Tabs;
-
-/*
-example
- const tabs = [
-    {
-      label: "caisse",
-      content: (
-        <div className="grid md:grid-cols-2 sm:grid-cols-1 gap-1">
-          <CaisseForm
-            clients={clients}
-            collabOptions={collabOptions}
-            tickets={ticketState}
-            agendas={agendas}
-            removePrestation={removePrestation}
-            totalTTC={totalTTC}
-            updateAgendaInTable={updateAgendaInTable}
-            selectedResponsable={selectedResponsable}
-            setSelectedResponsable={setSelectedResponsable}
-          />
-          <Prestations
-            prestations={prestations}
-            addPrestation={addPrestation}
-            vendeur={selectedResponsable}
-          />
-        </div>
-      ),
-    },
-    {
-      label: "tickets",
-      content: (
-        <div className="grid md:grid-cols-2 sm:grid-cols-1 gap-1">
-          <h1>tab2</h1>
-        </div>
-      ),
-    },
-  ];
-*/

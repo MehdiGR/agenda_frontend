@@ -396,3 +396,37 @@ export async function CaissePayement(PayementData, createTicketData) {
   revalidatePath("/caisse/ticket/" + id_ticket);
   return id_ticket;
 }
+
+async function insertIntoMouvementCaisse({
+  idutilisateur,
+  id_caisse,
+  montant,
+  retrait,
+  depot,
+  encaissement,
+  commentaire,
+}) {
+  // const date_doc = new Date().toISOString().split("T")[0];
+  const sql = `
+    INSERT INTO mouvementcaisse(
+      idutilisateur,
+      id_caisse,
+      montant,
+      retrait,
+      depot,
+      encaissement,
+      commentaire
+    )
+    VALUES(?, ?, ?, ?, ?, ?, ?)
+  `;
+  const values = [
+    idutilisateur,
+    id_caisse,
+    montant,
+    retrait,
+    depot,
+    encaissement,
+    commentaire,
+  ];
+  await executeQuery(sql, values);
+}
