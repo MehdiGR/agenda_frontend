@@ -1,7 +1,5 @@
 import { get_tickets } from "@/app/lib/ticket/ticketActions";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { startTransition, useEffect, useState } from "react";
+import RowsTicketEnAttente from "./rows_ticket_en_attente";
 
 export default async function TicketsEnAttente() {
   const result = await get_tickets({
@@ -9,11 +7,6 @@ export default async function TicketsEnAttente() {
   });
   const ticketLines = JSON.parse(result as string);
 
-  // const router = useRouter();
-  const handleRowClick = (row: any) => {
-    // router.push(`/caisse/ticket/${row.id_ticket}`);
-    console.log(row);
-  };
   return (
     <div className="absolute top-full left-0 bg-white p-4 w-[500px] z-10 rounded-lg transition cursor-pointer-opacity duration-300 leading-[30px] text-slate-900 hover:text-slate-900 shadow-md">
       <h3 className="text-xl font-bold">Tickets en attente paiement</h3>
@@ -27,18 +20,7 @@ export default async function TicketsEnAttente() {
         </thead>
         <tbody className="text-center">
           {ticketLines?.map((ticketLine: any, index: number) => (
-            <tr
-              key={index}
-              className="p-4 hover:bg-slate-900 hover:text-white transition"
-
-              // onClick={() => startTransition(() => handleRowClick(ticketLine))}
-            >
-              {/* <Link href={`/caisse/ticket/${ticketLine?.id_ticket}`}> */}{" "}
-              <td>{ticketLine?.date_creation.substring(0, 10)}</td>
-              <td>{ticketLine?.client}</td>
-              <td>{Number(ticketLine?.restePayer.toFixed(2))}</td>
-              {/* </Link> */}
-            </tr>
+            <RowsTicketEnAttente key={index} ticketLine={ticketLine} />
           ))}
         </tbody>
       </table>

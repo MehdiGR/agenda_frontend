@@ -72,21 +72,24 @@ export default function CaisseForm({
   const [paye, setPaye] = useState(false);
 
   const [selectedClientType, setSelectedClientType] = useState("client_ref");
-  const [ticketId, setTicketId] = useState<number>();
+  const [ticketId, setTicketId] = useState<any>(null);
 
   // modal states
   const [isDetailTKModalopen, setModalDetailTKIsOpen] = useState(false);
   const openDetailTKModal = () => {
-    const ticketId = parseInt(pathname.split("/")[3]);
-    setTicketId(ticketId);
     setModalDetailTKIsOpen(true);
   };
+  useEffect(() => {
+    if (ticketId !== null) {
+      console.log("ticketId", ticketId);
+      openDetailTKModal();
+    }
+  }, [ticketId]);
   const pathname = usePathname();
   const closeDetailTKModal = () => {
     // navigate to the previous page and close the modal
-
+    setTicketId(null);
     router.replace("/caisse", { shallow: true });
-    // setModalDetailTKIsOpen(false);
   };
   const inputRefs = {
     input1: useRef(),
@@ -210,14 +213,15 @@ export default function CaisseForm({
   const router = useRouter();
   const modal = searchParams.get("modal");
 
-  useEffect(() => {
-    if (searchParams.get("modal") === "true") {
-      openDetailTKModal();
-    }
-    return () => {
-      console.log("unmounted");
-    };
-  }, []);
+  // useEffect(() => {
+  //   console.log(searchParams.get("modal"), "modal");
+  //   if (searchParams.get("modal") === "true") {
+  //     openDetailTKModal();
+  //   }
+  //   // return () => {
+  //   //   console.log("unmounted");
+  //   // };
+  // }, [searchParams]);
   const handleCaisseForm = async (formData: any) => {
     // return;
     const createTicketData = { ...formData };
@@ -238,13 +242,15 @@ export default function CaisseForm({
       id_tier: selectedClient.value,
     };
 
+    //  const ticketId = parseInt(pathname.split("/")[3]);
     const id_ticket = await CaissePayement(PayementData, createTicketData);
-    params.set("modal", "true");
-    const newQueryString = params.toString();
+    setTicketId(id_ticket);
+    // params.set("modal", "true");
+    // const newQueryString = params.toString();
     // read the url parameters and check if there is ticket id and  modal equal true  and open the modal
-    router.replace(`/caisse/ticket/${id_ticket}?${newQueryString}`, {
-      // shallow: true,
-    });
+    // router.replace(`/caisse/ticket/${id_ticket}`, {
+    //   shallow: true,
+    // });
   };
   return (
     <div className="relative max-h-[100vh]  ">
@@ -700,7 +706,7 @@ export default function CaisseForm({
 
         <ModalDetailTK
           closeModal={closeDetailTKModal}
-          modalIsOpen={ticketId != 0 && isDetailTKModalopen}
+          modalIsOpen={isDetailTKModalopen}
           ticketId={ticketId}
           resteAPayer={resteAPayer}
         />
