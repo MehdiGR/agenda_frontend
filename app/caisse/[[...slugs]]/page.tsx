@@ -16,10 +16,21 @@ export default async function Caisse({
   let id_ticket = 0;
   if (params && params.slugs) {
     const valid_param = params.slugs[0] == "ticket";
-
-    if (!valid_param && params.slugs.length > 0) {
+    // check also if there is a ticket id and is a number
+    if (
+      params.slugs[0] === "ticket" &&
+      params.slugs[1] &&
+      !isNaN(Number(params.slugs[1]))
+    ) {
+      id_ticket = parseInt(params.slugs[1]);
+    } else {
       notFound();
     }
+
+    // if (!valid_param && params.slugs.length > 0) {
+    //   notFound();
+    // }
+
     id_ticket =
       params.slugs[0] === "ticket" && params.slugs[1]
         ? parseInt(params.slugs[1])

@@ -11,7 +11,8 @@ export default function Container({
   ticketLines,
   ticketPaiements,
   agendas,
-  prestations,
+  prestations, 
+  
 }: any) {
   const [ticketLinesState, setTicketLinesState] = useState(ticketLines);
   const [PaiementsDeCommande, setPaiementsDeCommande] = useState<

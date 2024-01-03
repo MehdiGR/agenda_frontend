@@ -25,7 +25,7 @@ import {
   removeTicket,
   updateTicket,
 } from "@/app/lib/ticket/ticketActions";
-import ModalCreateTK from "./modalcreatedticket";
+import ModalDetailTK from "./Modals/modaldetailticket";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 export default function CaisseForm({
   clients,
@@ -72,15 +72,23 @@ export default function CaisseForm({
   const [paye, setPaye] = useState(false);
 
   const [selectedClientType, setSelectedClientType] = useState("client_ref");
+  const [ticketId, setTicketId] = useState<number>();
+
   // modal states
-  const [isCreateTKModalopen, setModalCreateTKIsOpen] = useState(false);
-  const openCreateTKModal = () => setModalCreateTKIsOpen(true);
+  const [isDetailTKModalopen, setModalDetailTKIsOpen] = useState(false);
+  const openDetailTKModal = () => {
+    const ticketId = parseInt(pathname.split("/")[3]);
+    setTicketId(ticketId);
+    setInterval(() => {
+      setModalDetailTKIsOpen(true);
+    }, 2000);
+  };
   const pathname = usePathname();
-  const closeCreateTKModal = () => {
+  const closeDetailTKModal = () => {
     // navigate to the previous page and close the modal
 
     router.replace("/caisse", { shallow: true });
-    // setModalCreateTKIsOpen(false);
+    // setModalDetailTKIsOpen(false);
   };
   const inputRefs = {
     input1: useRef(),
@@ -207,8 +215,8 @@ export default function CaisseForm({
   useEffect(() => {
     if (searchParams.get("modal") === "true") {
       console.log(searchParams.get("modal"), "searchParams");
-      openCreateTKModal();
-      console.log("openCreateTKModal");
+      openDetailTKModal();
+      console.log(searchParams, "searchParams");
     }
   }, []);
   const handleCaisseForm = async (formData: any) => {
@@ -683,7 +691,7 @@ export default function CaisseForm({
               <button
                 type="button"
                 className="flex items-center justify-center gap-2  bg-green-600 border rounded-md font-semibold text-sm text-white min-h-[60px] min-w-[130px]   w-[200px]"
-                onClick={openCreateTKModal}
+                onClick={openDetailTKModal}
               >
                 Detail
               </button>
@@ -691,16 +699,17 @@ export default function CaisseForm({
           )
         )}
 
-        <ModalCreateTK
-          openModal={openCreateTKModal}
-          closeModal={closeCreateTKModal}
-          modalIsOpen={isCreateTKModalopen}
-          ticketLines={ticketLines}
-          PaiementsDeCommande={PaiementsDeCommande}
+        <ModalDetailTK
+          openModal={openDetailTKModal}
+          closeModal={closeDetailTKModal}
+          modalIsOpen={isDetailTKModalopen}
           resteAPayer={resteAPayer}
-          client={selectedClient.label}
-          ticketNum={ticketLines[0]?.Num_ticket}
-          totalTTC={totalTTC}
+        />
+        <ModalDetailTK
+          closeModal={closeDetailTKModal}
+          modalIsOpen={isDetailTKModalopen}
+          ticketId={ticketId}
+          resteAPayer={0}
         />
         {/*  ticket id*/}
       </form>

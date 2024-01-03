@@ -1,12 +1,12 @@
 import Tabs from "../components/Tabs";
 import OperationCaisse from "./components/operationcaisse";
 import Tickets from "./components/tickets";
-import { get_ticket_lines } from "@/app/lib/ticket/ticketActions";
+import { get_tickets } from "@/app/lib/ticket/ticketActions";
 import Container from "./container";
 
 export default async function Journaux() {
   const tickets = JSON.parse(
-    (await get_ticket_lines({
+    (await get_tickets({
       where: `WHERE idtypedoc = 21`,
     })) as string
   );

@@ -11,6 +11,9 @@ export async function get_tickets({ where = "" }) {
     const sql = `
             SELECT
                 dce.id as id_ticket,
+                dce.mntht,
+                dce.mnttva,
+                dce.mntttc,
                 clt.nom as client,
                 Num_doc as Num_ticket,
                 (dce.mntttc - (

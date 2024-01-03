@@ -34,13 +34,16 @@ export default function Container({ tickets }: any) {
     },
   ];
   return (
-    <div className="flex justify-center bg-slate-400">
+    <div className="">
+      <div className="flex justify-center ">
+
       <DateNavigation
         selectedDate={selectedDate}
         handlePreviousDay={handlePreviousDay}
         handleNextDay={handleNextDay}
         handleDateChange={handleDateChange}
       />
+      </div>
       <Tabs tabs={tabs} />
     </div>
   );
