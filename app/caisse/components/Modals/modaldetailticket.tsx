@@ -47,7 +47,6 @@ export default function ModalDetailTK({
         console.error("Error fetching data:", error);
       });
   }, [ticketId]);
-  console.log(ticketLines, PaiementsDeCommande);
 
   return (
     <Modal

@@ -79,9 +79,7 @@ export default function CaisseForm({
   const openDetailTKModal = () => {
     const ticketId = parseInt(pathname.split("/")[3]);
     setTicketId(ticketId);
-    setInterval(() => {
-      setModalDetailTKIsOpen(true);
-    }, 2000);
+    setModalDetailTKIsOpen(true);
   };
   const pathname = usePathname();
   const closeDetailTKModal = () => {
@@ -214,10 +212,11 @@ export default function CaisseForm({
 
   useEffect(() => {
     if (searchParams.get("modal") === "true") {
-      console.log(searchParams.get("modal"), "searchParams");
       openDetailTKModal();
-      console.log(searchParams, "searchParams");
     }
+    return () => {
+      console.log("unmounted");
+    };
   }, []);
   const handleCaisseForm = async (formData: any) => {
     // return;
@@ -700,16 +699,10 @@ export default function CaisseForm({
         )}
 
         <ModalDetailTK
-          openModal={openDetailTKModal}
           closeModal={closeDetailTKModal}
-          modalIsOpen={isDetailTKModalopen}
-          resteAPayer={resteAPayer}
-        />
-        <ModalDetailTK
-          closeModal={closeDetailTKModal}
-          modalIsOpen={isDetailTKModalopen}
+          modalIsOpen={ticketId != 0 && isDetailTKModalopen}
           ticketId={ticketId}
-          resteAPayer={0}
+          resteAPayer={resteAPayer}
         />
         {/*  ticket id*/}
       </form>
