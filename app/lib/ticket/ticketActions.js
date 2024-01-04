@@ -6,6 +6,54 @@ import puppeteer from "puppeteer";
 
 // import { NextResponse } from "next/server";
 
+export async function get_encaissements({ where = "" }) {
+  try {
+    const sql = `
+    SELECT
+      dce.id AS id_ticket,
+      clt.nom AS client,
+      Num_doc AS Num_ticket,
+      DATE(dce.date_doc) AS date_creation,
+      (pm.montant),
+      mtp.intitule as mode_paiement,
+      clb.nom AS vendeur 
+    FROM
+        docentete AS dce
+    JOIN CLIENT clt ON
+        clt.id = dce.tier_doc
+    JOIN collaborateur clb ON
+        clt.idCollab = clb.id_collaborateur
+    JOIN paiement_caisse AS pm
+    ON
+        pm.id_doc = dce.id
+    JOIN paiement_tier AS pmt
+    ON
+        pmt.id = pm.id_paiement
+    LEFT JOIN methode_paiement AS mtp
+    ON
+        mtp.id = pmt.id_method
+   ${where} `;
+    //  LEFT JOIN paiement_tier AS pmt
+    //  ON
+    //      pmt.id = pm.id_paiement
+    //  LEFT JOIN methode_paiement AS mdp
+    //  ON
+    //      mdp.id = pmt.id_method
+    const tickets = await new Promise((resolve, reject) =>
+      connection.query(sql, (error, results) =>
+        error ? reject(error) : resolve(results)
+      )
+    );
+
+    return JSON.stringify(tickets);
+  } catch (error) {
+    console.error("Could not execute query:", error);
+    return new NextResponse(
+      { error: "Could not execute query" },
+      { status: 500 }
+    );
+  }
+}
 export async function get_tickets({ where = "" }) {
   try {
     const sql = `
@@ -140,6 +188,55 @@ export async function get_ticket_paiements({ where = "" }) {
     );
   }
 }
+export async function get_synths_paiements({ where = "" }) {
+  try {
+    const sql = `
+                SELECT
+                ROUND(SUM(pm.montant),
+                2) AS espace_encaisse
+            FROM
+                docentete AS dce
+            JOIN paiement_caisse AS pm
+            ON
+                pm.id_doc = dce.id
+            JOIN paiement_tier AS pmt
+            ON
+                pmt.id = pm.id_paiement
+            LEFT JOIN methode_paiement AS mtp
+            ON
+                mtp.id = pmt.id_method
+            GROUP BY
+                mtp.id
+            HAVING
+                mtp.id = 2
+            UNION ALL
+            SELECT
+                SUM(
+                    CASE
+                      WHEN retrait = 1 THEN -1
+                      WHEN depot = 1 THEN 1 
+                      ELSE 0
+                  END
+            ) + SUM(ROUND(montant)) AS operation_caisse
+            FROM
+                mouvementcaisse;
+
+     ${where} `;
+    const synths = await new Promise((resolve, reject) =>
+      connection.query(sql, (error, results) =>
+        error ? reject(error) : resolve(results)
+      )
+    );
+
+    return JSON.stringify(synths);
+  } catch (error) {
+    console.error("Could not execute query:", error);
+    return new NextResponse(
+      { error: "Could not execute query" },
+      { status: 500 }
+    );
+  }
+}
 
 async function executeQuery(sql, values) {
   return new Promise((resolve, reject) => {
@@ -228,7 +325,7 @@ async function insertTicketLines(data) {
       item.Designation,
       item?.qte,
       item.prix,
-      1,
+      item.tva_id,
       item.prix,
       item.total_ttc,
     ];

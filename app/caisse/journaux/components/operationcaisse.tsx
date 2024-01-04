@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { FaDownload, FaUpload } from "react-icons/fa";
 import { BiSolidBank } from "react-icons/bi";
-import ModalOperationCaisse from "./modaloperationcaisse";
+import ModalOperationCaisse from "./Modals/modaloperationcaisse";
 
 export default function OperationCaisse({ data }: any) {
   const [isOprModalOpen, setModalOprIsOpen] = useState(false);
@@ -43,16 +43,16 @@ export default function OperationCaisse({ data }: any) {
           Remise en banque
         </button>
       </div>
-      <table className="w-full overflow-auto border">
+      <table className="w-full overflow-auto ">
         <thead className="bg-slate-800 text-white">
           <tr className="">
-            <th className="p-4 border">N°</th>
+            <th className="p-4 rounded-tl-lg">N°</th>
             <th className="p-4 border">Date Creation</th>
             <th className="p-4 border">Type</th>
             <th className="p-4 border">Utilisateur</th>
             <th className="p-4 border">Commentaires</th>
             <th className="p-4 border">Status</th>
-            <th className="p-4 border"></th>
+            <th className="p-4 rounded-tr-lg"></th>
             {/* <th>Responsable</th> */}
             {/* <th>Statut</th> */}
           </tr>

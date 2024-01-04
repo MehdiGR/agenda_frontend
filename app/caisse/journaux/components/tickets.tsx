@@ -5,18 +5,17 @@ import { CiEdit } from "react-icons/ci";
 
 export default function Tickets({ data, valueDate }: any) {
   const [tickets, setTickets] = useState([]);
-  const [ticketId, setTicketId] = useState<number>();
-  const [isDetailTKModalopen, setModalDetailTKIsOpen] = useState(false);
-  const openDetailTKModal = (id: number) => {
-    setTicketId(id);
-    setModalDetailTKIsOpen(true);
-  };
+  const [ticketId, setTicketId] = useState<any>(null);
+
   // useEffect(() => {
-  //   console.log(ticketId, "ticketId");
-  //   setModalDetailTKIsOpen(true);
+  //   if (ticketId !== null) openDetailTKModal();
   // }, [ticketId]);
-  const closeDetailTKModal = () => {
-    setModalDetailTKIsOpen(false);
+  const openDetailTKModal = (modalState: any) => {
+    modalState(true);
+  };
+  const closeDetailTKModal = (modalState: any) => {
+    modalState(false);
+    setTicketId(null);
   };
   useEffect(() => {
     setTickets(
@@ -33,16 +32,16 @@ export default function Tickets({ data, valueDate }: any) {
   return (
     <div className="space-y-4">
       <div className="p-2"></div>
-      <table className="w-full overflow-auto border">
+      <table className="w-full overflow-auto ">
         <thead className="bg-slate-800 text-white">
           <tr>
-            <th className="p-4 border">N° Ticket</th>
+            <th className="p-4 rounded-tl-lg">N° Ticket</th>
             <th className="p-4 border">Date Creation</th>
             <th className="p-4 border">Client</th>
             <th className="p-4 border">Total HT</th>
             <th className="p-4 border">Total TVA</th>
             <th className="p-4 border">Total TTC</th>
-            <th className="p-4 border"></th>
+            <th className="p-4 rounded-tr-lg"></th>
           </tr>
         </thead>
         <tbody className="text-center">
@@ -60,7 +59,7 @@ export default function Tickets({ data, valueDate }: any) {
               <td className="p-4 text-slate-800">{Number(ticket?.mnttva)}</td>
               <td className="p-4 text-slate-800">{Number(ticket?.mntttc)}</td>
               <td className="p-4 text-slate-800">
-                <button onClick={() => openDetailTKModal(ticket.id_ticket)}>
+                <button onClick={() => setTicketId(ticket.id_ticket)}>
                   <CiEdit size={25} color="blue" />
                 </button>
               </td>
@@ -69,9 +68,9 @@ export default function Tickets({ data, valueDate }: any) {
         </tbody>
       </table>
       <ModalDetailTK
-        closeModal={closeDetailTKModal}
-        modalIsOpen={isDetailTKModalopen}
         ticketId={ticketId}
+        openModal={openDetailTKModal}
+        closeModal={closeDetailTKModal}
         resteAPayer={0}
       />
     </div>

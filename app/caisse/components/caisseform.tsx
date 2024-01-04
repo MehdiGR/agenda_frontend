@@ -75,22 +75,9 @@ export default function CaisseForm({
   const [ticketId, setTicketId] = useState<any>(null);
 
   // modal states
-  const [isDetailTKModalopen, setModalDetailTKIsOpen] = useState(false);
-  const openDetailTKModal = () => {
-    setModalDetailTKIsOpen(true);
-  };
-  useEffect(() => {
-    if (ticketId !== null) {
-      console.log("ticketId", ticketId);
-      openDetailTKModal();
-    }
-  }, [ticketId]);
+
   const pathname = usePathname();
-  const closeDetailTKModal = () => {
-    // navigate to the previous page and close the modal
-    setTicketId(null);
-    router.replace("/caisse", { shallow: true });
-  };
+
   const inputRefs = {
     input1: useRef(),
     input2: useRef(),
@@ -222,6 +209,15 @@ export default function CaisseForm({
   //   //   console.log("unmounted");
   //   // };
   // }, [searchParams]);
+
+  const openDetailTKModal = (modalState: any) => {
+    modalState(true);
+  };
+  const closeDetailTKModal = (modalState: any) => {
+    modalState(false);
+    setTicketId(null);
+    router.replace("/caisse", { shallow: true });
+  };
   const handleCaisseForm = async (formData: any) => {
     // return;
     const createTicketData = { ...formData };
@@ -696,7 +692,11 @@ export default function CaisseForm({
               <button
                 type="button"
                 className="flex items-center justify-center gap-2  bg-green-600 border rounded-md font-semibold text-sm text-white min-h-[60px] min-w-[130px]   w-[200px]"
-                onClick={openDetailTKModal}
+                onClick={() =>
+                  setTicketId(() => {
+                    return ticketLines[0].iddocument;
+                  })
+                }
               >
                 Detail
               </button>
@@ -705,9 +705,9 @@ export default function CaisseForm({
         )}
 
         <ModalDetailTK
-          closeModal={closeDetailTKModal}
-          modalIsOpen={isDetailTKModalopen}
           ticketId={ticketId}
+          openModal={openDetailTKModal}
+          closeModal={closeDetailTKModal}
           resteAPayer={resteAPayer}
         />
         {/*  ticket id*/}

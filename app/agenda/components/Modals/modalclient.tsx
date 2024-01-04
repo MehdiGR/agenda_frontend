@@ -5,7 +5,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { useStore } from "@/app/store/store";
 import { closeModal, saveClient } from "@/app/js/agenda_fn";
-export default function ModalClient({ villes, collaborateurs }) {
+export default function ModalClient({ villes, collaborateurs }: any) {
   const { modalIsOpen } = useStore();
   // ville Options
   const villeOptions = villes.map((ville: any) => {
@@ -16,7 +16,7 @@ export default function ModalClient({ villes, collaborateurs }) {
     return { value: collaborateur.id_collaborateur, label: collaborateur.nom };
   });
   const selectCustomStyles = {
-    control: (provided) => ({
+    control: (provided: any) => ({
       ...provided,
       border: "1px solid #D1D5DB",
       borderRadius: "0.375rem",

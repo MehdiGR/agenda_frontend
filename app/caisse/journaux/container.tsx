@@ -4,8 +4,10 @@ import React, { useState } from "react";
 import Tabs from "../components/Tabs";
 import Tickets from "./components/tickets";
 import OperationCaisse from "./components/operationcaisse";
+import Encaissements from "./components/encaissements";
+import Synths from "./components/synthese";
 
-export default function Container({ tickets }: any) {
+export default function Container({ tickets, encaissements }: any) {
   const [selectedDate, setSelectedDate] = useState(new Date());
 
   const handleNextDay = () => {
@@ -32,18 +34,26 @@ export default function Container({ tickets }: any) {
       label: "Opération de caisse",
       content: <OperationCaisse data={tickets} valueDate={selectedDate} />,
     },
+    {
+      label: "Encaissements",
+      content: <Encaissements data={encaissements} valueDate={selectedDate} />,
+    },
+    {
+      label: "Synthèse",
+      content: <Synths data={encaissements} valueDate={selectedDate} />,
+    },
   ];
   return (
     <div className="">
       <div className="flex justify-center ">
-
-      <DateNavigation
-        selectedDate={selectedDate}
-        handlePreviousDay={handlePreviousDay}
-        handleNextDay={handleNextDay}
-        handleDateChange={handleDateChange}
-      />
+        <DateNavigation
+          selectedDate={selectedDate}
+          handlePreviousDay={handlePreviousDay}
+          handleNextDay={handleNextDay}
+          handleDateChange={handleDateChange}
+        />
       </div>
+      <br />
       <Tabs tabs={tabs} />
     </div>
   );

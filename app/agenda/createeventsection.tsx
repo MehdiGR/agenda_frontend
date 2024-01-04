@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useRef, useState, useTransition } from "react";
-import ModalClient from "./components/modalclient";
+import ModalClient from "./components/Modals/modalclient";
 import Select, { InputProps } from "react-select";
 // import { OptionsType, OptionTypeBase } from "react-select";
 import PrestationSlider from "./components/prestationsSlider";

@@ -1,7 +1,7 @@
 import Tabs from "../components/Tabs";
 import OperationCaisse from "./components/operationcaisse";
 import Tickets from "./components/tickets";
-import { get_tickets } from "@/app/lib/ticket/ticketActions";
+import { get_encaissements, get_tickets } from "@/app/lib/ticket/ticketActions";
 import Container from "./container";
 
 export default async function Journaux() {
@@ -10,9 +10,14 @@ export default async function Journaux() {
       where: `WHERE idtypedoc = 21`,
     })) as string
   );
+  const encaissements = JSON.parse(
+    (await get_encaissements({
+      where: `WHERE idtypedoc = 21`,
+    })) as string
+  );
   return (
     <div className="p-14">
-      <Container tickets={tickets} />
+      <Container tickets={tickets} encaissements={encaissements} />
     </div>
   );
 }

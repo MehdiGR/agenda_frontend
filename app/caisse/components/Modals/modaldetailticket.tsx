@@ -21,31 +21,37 @@ import {
 } from "@/app/lib/ticket/ticketActions";
 
 export default function ModalDetailTK({
-  closeModal,
-  modalIsOpen,
   ticketId,
+  openModal,
+  closeModal,
+  isModalOpen,
   resteAPayer,
 }: any) {
   const componentRef = useRef();
   const downloadAsPdf = async () => {};
   const [ticketLines, setTicketLines] = useState<any>([]);
   const [PaiementsDeCommande, setPaiementsDeCommande] = useState<any>([]);
+  const [isDetailTKModalOpen, setModalDetailTKIsOpen] = useState(false);
+
   useEffect(() => {
-    Promise.all([
-      get_ticket_lines({
-        where: ` WHERE idtypedoc = 21  AND dce.id = "${ticketId}"`,
-      }),
-      get_ticket_paiements({
-        where: ` WHERE dce.id = "${ticketId}"`,
-      }),
-    ])
-      .then(([ticketLinesData, PaiementsDeCommandeData]) => {
-        setTicketLines(JSON.parse(ticketLinesData as string));
-        setPaiementsDeCommande(JSON.parse(PaiementsDeCommandeData as string));
-      })
-      .catch((error) => {
-        console.error("Error fetching data:", error);
-      });
+    if (ticketId !== null) {
+      Promise.all([
+        get_ticket_lines({
+          where: ` WHERE idtypedoc = 21  AND dce.id = "${ticketId}"`,
+        }),
+        get_ticket_paiements({
+          where: ` WHERE dce.id = "${ticketId}"`,
+        }),
+      ])
+        .then(([ticketLinesData, PaiementsDeCommandeData]) => {
+          setTicketLines(JSON.parse(ticketLinesData as string));
+          setPaiementsDeCommande(JSON.parse(PaiementsDeCommandeData as string));
+          openModal(setModalDetailTKIsOpen);
+        })
+        .catch((error) => {
+          console.error("Error fetching data:", error);
+        });
+    }
   }, [ticketId]);
   const customStyles = {
     content: {
@@ -66,7 +72,7 @@ export default function ModalDetailTK({
 
   return (
     <Modal
-      isOpen={modalIsOpen}
+      isOpen={isDetailTKModalOpen}
       // onRequestClose={closeModal}
       contentLabel="Ticket Modal"
       ariaHideApp={false}
@@ -79,7 +85,7 @@ export default function ModalDetailTK({
             Detail Ticket
           </div>
           <div
-            onClick={closeModal}
+            onClick={() => closeModal(setModalDetailTKIsOpen)}
             className="ml-auto fill-current text-gray-700 w-6 h-6 cursor-pointer"
           >
             <CiCircleRemove size={30} color="red" />
@@ -283,7 +289,7 @@ export default function ModalDetailTK({
               <div className="flex justify-end gap-4 mt-4 w-full ">
                 <button
                   className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
-                  onClick={closeModal}
+                  onClick={() => closeModal(setModalDetailTKIsOpen)}
                 >
                   Fermer
                 </button>
