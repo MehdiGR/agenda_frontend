@@ -9,6 +9,8 @@ export default function Prestation({ prestation, addPrestation, vendeur }) {
     total_ttc: prestation.prixTTC,
     prix: prestation.prixVente,
     pUnet: prestation.prixVente,
+    tva_id: prestation.tva_id,
+    tva_valeur: prestation.tva_valeur,
     qte: 1,
     qte_retour: 0,
     remise: 0,

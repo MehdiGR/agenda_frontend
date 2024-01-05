@@ -11,8 +11,7 @@ export default function Container({
   ticketLines,
   ticketPaiements,
   agendas,
-  prestations, 
-  
+  prestations,
 }: any) {
   const [ticketLinesState, setTicketLinesState] = useState(ticketLines);
   const [PaiementsDeCommande, setPaiementsDeCommande] = useState<
@@ -88,6 +87,7 @@ export default function Container({
   // **********************************************************
   // **********************************************************
   const addPrestation = (newTicketLines: any) => {
+    console.log("newTicketLines", newTicketLines);
     setTicketLinesState([...ticketLinesState, newTicketLines]);
   };
   // remove row from ticket state given by params
@@ -97,11 +97,19 @@ export default function Container({
     );
   };
   //calculate totalTTC using reduce
-  const totalTTC = ticketLinesState.reduce(
-    (total: any, ticket: any) => total + ticket.total_ttc,
-    0
+  // const totalTTC = ticketLinesState.reduce(
+  //   (total: any, ticketLine: any) => total + ticketLine.total_ttc,
+  //   0
+  // );
+  const { totalTTC, totalTax } = ticketLinesState.reduce(
+    (totals: any, ticketLine: any) => {
+      totals.totalTTC += ticketLine.total_ttc;
+      // prix is price without taxes
+      totals.totalTax += ticketLine.total_ttc - ticketLine.prix;
+      return totals;
+    },
+    { totalTTC: 0, totalTax: 0 }
   );
-
   //   update agenda property
   const updateAgendaInTable = (index: any, selectedOption: any) => {
     setTicketLinesState(() => [
@@ -145,6 +153,7 @@ export default function Container({
           removePrestation={removePrestation}
           updateTicketLine={updateTicketLine}
           totalTTC={totalTTC}
+          totalTax={totalTax}
           updateAgendaInTable={updateAgendaInTable}
           selectedResponsable={selectedResponsable}
           setSelectedResponsable={setSelectedResponsable}

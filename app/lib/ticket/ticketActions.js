@@ -289,14 +289,16 @@ async function insertTicket(data) {
   const idCaisse = 1;
 
   const insertTicketSQL =
-    "INSERT INTO docentete(Num_doc,idtypedoc,date_doc,tier_doc,is_prospect,mntttc,id_caisse) VALUES (?,?,?,?,?,?,?)";
+    "INSERT INTO docentete(Num_doc,idtypedoc,date_doc,tier_doc,is_prospect,mntttc,mntht,mnttva,id_caisse) VALUES (?,?,?,?,?,?,?,?,?)";
   const insertTicketValues = [
     max,
     21,
     dateDoc,
     data.client.value,
     0,
-    data.totalPrice,
+    data.totalPriceTTC,
+    data.totalPriceHT,
+    data.totalTax,
     idCaisse,
   ];
   const { insertId: id_ticket } = await executeQuery(
@@ -317,7 +319,7 @@ async function insertTicket(data) {
 async function insertTicketLines(data) {
   const insertTicketLinePromises = data.prestations.map(async (item) => {
     const insertTicketLineSQL =
-      "INSERT INTO docligne(iddocument,idproduit,Designation,qte,prix,idtauxtva,pUnet,total_ttc) VALUES (?,?,?,?,?,?,?,?)";
+      "INSERT INTO docligne(iddocument,idproduit,Designation,qte,prix,idtauxtva,pUnet,total_ttc,idCollab) VALUES (?,?,?,?,?,?,?,?,?)";
 
     const insertTicketLineValues = [
       data.id_ticket,
@@ -328,6 +330,7 @@ async function insertTicketLines(data) {
       item.tva_id,
       item.prix,
       item.total_ttc,
+      item.idCollab,
     ];
     await executeQuery(insertTicketLineSQL, insertTicketLineValues);
   });

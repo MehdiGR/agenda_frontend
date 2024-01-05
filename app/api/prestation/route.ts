@@ -14,7 +14,7 @@ export async function GET() {
           art.code_tauxtvaVente,
           art.code_tauxtvaAchat,
           art.duree,
-          p_tv.valeur,
+          p_tv.valeur as tva_valeur,
           p_tv.id AS tva_id,
           img_art.img AS img
         FROM

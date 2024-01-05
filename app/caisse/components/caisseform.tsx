@@ -34,6 +34,7 @@ export default function CaisseForm({
   agendas,
   removePrestation,
   totalTTC,
+  totalTax,
   updateAgendaInTable,
   selectedResponsable,
   setSelectedResponsable,
@@ -121,7 +122,16 @@ export default function CaisseForm({
         value: yup.string().required(),
       })
       .required(),
-    totalPrice: yup.number().required("Saisi le montant"),
+    collaborateur: yup
+      .object()
+      .shape({
+        label: yup.string().required("Sélectionnez un collaborateur"),
+        value: yup.string().required(),
+      })
+      .required(),
+    totalPriceTTC: yup.number(),
+    totalPriceHT: yup.number(),
+    totalTax: yup.number(),
   });
   const {
     register,
@@ -136,6 +146,10 @@ export default function CaisseForm({
       client: {
         label: ticketLines[0]?.client,
         value: ticketLines[0]?.idClient,
+      },
+      collaborateur: {
+        label: selectedResponsable.label,
+        value: selectedResponsable.value,
       },
     },
   });
@@ -161,6 +175,8 @@ export default function CaisseForm({
     const item = ticketLines[index];
     const discount = (prix * remise) / 100;
     const total = qte * (prix - discount) * tva;
+    // const tax = qte * (prix - discount) * (tva - 1);
+
     const updatedRow = {
       ...item,
       qte,
@@ -176,15 +192,19 @@ export default function CaisseForm({
   useEffect(() => {
     // Only update the form values if they are different from the current values
     const currentValues = getValues("prestations" as any);
+    console.log(currentValues);
     const updatedPrestationArr = ticketLines.map((item: any) => ({
       line_id: item.line_id,
       Designation: item.Designation,
       id_art: item.idproduit,
+      idCollab: item.vendeurId,
       qte: 1,
       prix: item.prix,
       total_ttc: item.total_ttc,
       qte_retour: item.qte_retour,
       remise: item.remise,
+      tva_id: item.tva_id,
+      ...(item.readonly !== undefined && { readonly: item.readonly }),
     }));
 
     // Check if the updated values are different from the current values
@@ -195,7 +215,9 @@ export default function CaisseForm({
         shouldDirty: true,
       });
     }
-    setValue("totalPrice" as any, totalTTC);
+    setValue("totalPriceTTC", Number(totalTTC.toFixed(2)));
+    setValue("totalPriceHT", Number((totalTTC - totalTax).toFixed(2)));
+    setValue("totalTax", Number(totalTax.toFixed(2)));
   }, [ticketLines, setValue, getValues]);
   const router = useRouter();
   const modal = searchParams.get("modal");
@@ -221,25 +243,30 @@ export default function CaisseForm({
   const handleCaisseForm = async (formData: any) => {
     // return;
     const createTicketData = { ...formData };
-    const filteredTicketLines = ticketLines.filter(
+    const createTicketDataFiltered = { ...createTicketData };
+    createTicketDataFiltered.prestations = createTicketData.prestations.filter(
       (item: any) => !item.hasOwnProperty("readonly")
     );
-    const filteredPaiements = PaiementsDeCommande.filter(
+    const PaiementsDeCommandeFiltered = PaiementsDeCommande.filter(
       (item: any) => !item.hasOwnProperty("readonly")
     );
-
     const PayementData = {
       // ...data,
       id_ticket: ticketLines[0]?.iddocument,
-      PaiementsDeCommande: filteredPaiements,
+      PaiementsDeCommande: PaiementsDeCommandeFiltered,
       resteAPayer,
       montantRendu,
       Num_ticket_rt: "",
       id_tier: selectedClient.value,
     };
+    // console.log("createTicketDataFiltered", createTicketDataFiltered);
+    // return;
 
     //  const ticketId = parseInt(pathname.split("/")[3]);
-    const id_ticket = await CaissePayement(PayementData, createTicketData);
+    const id_ticket = await CaissePayement(
+      PayementData,
+      createTicketDataFiltered
+    );
     setTicketId(id_ticket);
     // params.set("modal", "true");
     // const newQueryString = params.toString();
@@ -382,7 +409,7 @@ export default function CaisseForm({
                               qte: e.target.value,
                               prix: item.prix,
                               remise: item.remise,
-                              tva: 1.2,
+                              tva: item.tva_valeur / 100 + 1,
                             })
                           }
                         />
@@ -406,7 +433,7 @@ export default function CaisseForm({
                               qte: item.qte,
                               prix: item.prix,
                               remise: e.target.value,
-                              tva: 1.2,
+                              tva: item.tva_valeur / 100 + 1,
                             })
                           }
                         />
@@ -414,7 +441,9 @@ export default function CaisseForm({
                       <td className="text-center py-4">
                         {" "}
                         <input
-                          {...register(`prestations[${index}].total_ttc`)}
+                          {...(register(
+                            `prestations[${index}].total_ttc`
+                          ) as any)}
                           className="w-20 p-1 border border-gray-400 rounded-md"
                           type="text"
                           pattern="[0-9.]*"
@@ -431,12 +460,31 @@ export default function CaisseForm({
                         {!item.readonly && (
                           <button
                             className="text-red-700 font-bold "
-                            onClick={() => removePrestation(index)}
+                            onClick={() => {
+                              setValue(
+                                `prestations[${index}].removedRow` as any,
+                                true
+                              );
+                              removePrestation(index);
+                            }}
                           >
                             X
                           </button>
                         )}
+                        {item?.readonly && (
+                          <input
+                            type="text"
+                            {...register(
+                              `prestations[${index}].readonly` as any
+                            )}
+                            value={item.readonly}
+                          />
+                        )}
                       </td>
+                      <input
+                        type="hidden"
+                        {...register(`prestations[${index}].removedRow` as any)}
+                      />
                     </tr>
                   );
                 })
@@ -461,15 +509,15 @@ export default function CaisseForm({
           </div>
           <div className=" flex justify-end ml-auto gap-6 w-full ">
             <label htmlFor="" className="flex items-center">
-              Total TTC (dont TVA : €) :
+              Total TTC (dont TVA : {totalTax.toFixed(2)} DH ) :
             </label>
             <input
               type="text"
               className="border border-gray-400 rounded-md p-2"
               pattern="[0-9.]*"
               id="input3"
-              name="totalPrice"
-              // {...register(`totalPrice`)}
+              name="totalPriceTTC"
+              // {...register(`totalPriceTTC`)}
               // onInput={(event) => {
               //   const input = event.target as HTMLInputElement;
               //   input.value = input.value
@@ -478,10 +526,17 @@ export default function CaisseForm({
               // }}
               onFocus={() => inputRefs[`input3`].current.focus()}
               ref={inputRefs[`input3`]}
-              onChange={() => setValue("totalPrice", totalTTC)}
+              onChange={() => {
+                setValue("totalPriceTTC", Number(totalTTC.toFixed(2)));
+                setValue(
+                  "totalPriceHT",
+                  Number((totalTTC - totalTax).toFixed(2))
+                );
+                setValue("totalTax", Number(totalTax.toFixed(2)));
+              }}
               value={totalTTC}
             />
-            {<p className="text-red-500">{errors.totalPrice?.message}</p>}
+            {<p className="text-red-500">{errors.totalPriceTTC?.message}</p>}
           </div>
           <div className="flex flex-wrap gap-4 ">
             <button
@@ -554,21 +609,11 @@ export default function CaisseForm({
                           />
                         </td>
                         <td>
-                          <input
-                            type="hidden"
-                            {...register(
-                              `prestations[${index}].removedRow` as any
-                            )}
-                          />
                           {!item?.readonly && (
                             <button
                               type="button"
                               className="text-red-500  font-bold py-2 px-4 rounded"
                               onClick={() => {
-                                setValue(
-                                  `prestations[${index}].removedRow` as any,
-                                  true
-                                );
                                 removePaiementItem(index);
                               }}
                             >
@@ -608,7 +653,7 @@ export default function CaisseForm({
                 Responsable :
               </label>
               <Controller
-                name="collborateur"
+                name="collaborateur"
                 control={control}
                 render={({ field }) => (
                   <Select
