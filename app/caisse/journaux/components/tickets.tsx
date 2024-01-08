@@ -59,7 +59,7 @@ export default function Tickets({ data, valueDate }: any) {
               <td className="p-4 text-slate-800">{Number(ticket?.mnttva)}</td>
               <td className="p-4 text-slate-800">{Number(ticket?.mntttc)}</td>
               <td className="p-4 text-slate-800">
-                <button onClick={() => setTicketId(ticket.id_ticket)}>
+                <button onClick={() => setTicketId(ticket.ticketId)}>
                   <CiEdit size={25} color="blue" />
                 </button>
               </td>

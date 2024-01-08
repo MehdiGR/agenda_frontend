@@ -6,7 +6,7 @@ export default function RowsTicketEnAttente({ ticketLine }: any) {
   const router = useRouter();
 
   const handleRowClick = (row: any) => {
-    router.replace(`/caisse/ticket/${row.id_ticket}`);
+    router.replace(`/caisse/ticket/${row.ticketId}`);
     console.log(row);
   };
   return (

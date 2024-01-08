@@ -27,8 +27,8 @@ export async function get_resavations(id = 0) {
                     ag.nom AS prest_agenda,
                     clt.nom AS nomClient,
                     clt.id AS idClient,
-                    res_dce.id_doc AS id_ticket,
-                    MAX(dcl.id) AS id_ticket_ligne -- Using MAX to ensure a single dcl.id per group
+                    res_dce.id_doc AS ticketId,
+                    MAX(dcl.id) AS ticketId_ligne -- Using MAX to ensure a single dcl.id per group
                 FROM
                     reservat AS rsv
                 JOIN ligne_res AS lr
@@ -88,6 +88,7 @@ export async function saveReservation(data) {
   // return;
   const time = `${data.hourDB.value}:${data.minutesDB.value}`;
   // console.log(data);
+  // return;
   // // console.log(time);
   // redirect("/caisse");
   // return;
@@ -141,8 +142,8 @@ export async function saveReservation(data) {
           const deleteRecordSQL = "DELETE FROM ligne_res WHERE id=?";
           const deleteRecordValues = [agenda_prest.line_id];
           await executeQuery(deleteRecordSQL, deleteRecordValues);
-          if (data.id_ticket_line !== null) {
-            removeTicketLigne(data.id_ticket_line);
+          if (data.ticketId_line !== null) {
+            removeTicketLigne(data.ticketId_line);
           }
           removeTicketLigne;
         } else {
@@ -171,7 +172,7 @@ export async function saveReservation(data) {
           agenda_prest.start_time,
         ];
         await executeQuery(insertRecordSQL, insertRecordValues);
-        if (data.id_ticket !== null && data.submitType === "encaisser") {
+        if (data.ticketId !== null && data.submitType === "encaisser") {
           insertTicketLignes(data);
         }
       }
@@ -181,10 +182,15 @@ export async function saveReservation(data) {
     revalidatePath("/agenda");
   } else {
     // check if data.idRes is not empty, indicate that it's an update click
-    let insertedTicketId="";
-    if (data.idRes == "") { insertedTicketId = await createTicket({ ...data, idRes: insertedId_res });}
-    
-    // redirect("/caisse?res=" + insertedId_res);
+    let insertedTicketId = "";
+
+    if (!data.ticketId) {
+      insertedTicketId = await createTicket({ ...data, idRes: insertedId_res });
+    } else {
+      insertedTicketId = data.ticketId;
+    }
+
+    // redirect("/caisse/" + insertedTicketId);
     return insertedTicketId;
   }
   // revalidatePath("/");
@@ -224,15 +230,15 @@ async function checkExistingRecord(line_id) {
 
 async function createTicket(data) {
   try {
-    const id_ticket = await insertTicket(data);
-    console.log("id_ticket", id_ticket);
-    if (id_ticket) {
-      await insertTicketLignes({ ...data, id_ticket });
+    const ticketId = await insertTicket(data);
+    console.log("ticketId", ticketId);
+    if (ticketId) {
+      await insertTicketLignes({ ...data, ticketId });
       console.log("Document and line items inserted successfully.");
     } else {
       console.log("Failed to insert document.");
     }
-    return id_ticket;
+    return ticketId;
   } catch (error) {
     console.error("An error occurred:", error);
     console.error("Stack trace:", error.stack);
@@ -262,19 +268,19 @@ async function insertTicket(data) {
     data.totalPrice,
     idCaisse,
   ];
-  const { insertId: id_ticket } = await executeQuery(
+  const { insertId: ticketId } = await executeQuery(
     insertTicketSQL,
     insertTicketValues
   );
 
-  if (id_ticket) {
+  if (ticketId) {
     const insertReservatTicketSQL =
       "INSERT INTO reservat_docentete(id_res,id_doc) VALUES (?,?)";
-    const insertReservatTicketValues = [data.idRes, id_ticket];
+    const insertReservatTicketValues = [data.idRes, ticketId];
     await executeQuery(insertReservatTicketSQL, insertReservatTicketValues);
   }
 
-  return id_ticket;
+  return ticketId;
 }
 
 async function insertTicketLignes(data) {
@@ -284,7 +290,7 @@ async function insertTicketLignes(data) {
         "INSERT INTO docligne(iddocument,idproduit,Designation,qte,prix,idtauxtva,pUnet,total_ttc) VALUES (?,?,?,?,?,?,?,?)";
 
       const insertTicketLigneValues = [
-        data.id_ticket,
+        data.ticketId,
         item.id_art,
         item.designation,
         item?.qte,

@@ -91,15 +91,13 @@ export const addPrestation = async (data) => {
   // console.log("selected events", [...selectedEventsIndices]);
   // return;
   if (current_event) {
-    console.log(current_event, "current_event");
     const [start_date, start_time] = current_event.start.split("T");
 
     const [star_hour, start_minutes] = start_time.split(":");
 
     const duration_hours = Math.floor(data.duree / 60);
     const duration_minutes = data.duree % 60;
-    console.log("star_hour", star_hour);
-    console.log("duration_hours", duration_hours);
+
     let end_minutes = parseInt(start_minutes) + duration_minutes;
     const end_hour =
       parseInt(star_hour) + duration_hours + Math.floor(end_minutes / 60); // Add extra hour if minutes exceed 59
@@ -394,6 +392,8 @@ export const saveReservat = async (formData) => {
 };
 
 export const processReservations = (reservations) => {
+  // console.log("reservations", reservations);
+  // return;
   // const setEvents = useStore.getState().setEvents;
   const manageEvents = useStore_new2.getState().manageEvents;
   const toggleEventSelected = useStore_new2.getState().toggleEventSelected;
@@ -434,6 +434,7 @@ export const processReservations = (reservations) => {
       borderColor: "rgb(251, 233, 131)",
       duree: res.prest_duree,
       isTemp: false,
+      ticketId: res.ticketId,
       agenda_prestationArr: [
         {
           eventIndex: index,
@@ -451,15 +452,14 @@ export const processReservations = (reservations) => {
           prixVente: res.prest_prix_vente,
           code_tauxtvaVente: res.prest_code_tauxtvaVente,
           code_tauxtvaAchat: res.prest_code_tauxtvaAchat,
-          id_ticket: res.id_ticket,
-          id_ticket_line: res.id_ticket_line,
+          // ticketId: res.ticketId,
+          ticketId_line: res.ticketId_line,
         },
       ],
 
       // editable: false,
     });
   });
-
   manageEvents([{ action: "add_all", payload: { events } }]); // setEvents(events);
 };
 // create function that update agenda_prestation hourDB and duration_hour or duration_minutes by index with params (index,property,value)

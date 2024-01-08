@@ -47,7 +47,7 @@ export default function MyCalendar({
   let calendarApi: any;
 
   useEffect(() => {
-    console.log("events", events);
+    // console.log("events", events);
     if (calendarApi) {
       calendarApi.gotoDate(selectedDate);
     }

@@ -11,9 +11,9 @@ export default async function Caisse({
 }: {
   params: { slugs: string[] };
 }) {
-  // const { res: id_ticket } = searchParams;
+  // const { res: ticketId } = searchParams;
 
-  let id_ticket = 0;
+  let ticketId = 0;
   if (params && params.slugs) {
     const valid_param = params.slugs[0] == "ticket";
     // check also if there is a ticket id and is a number
@@ -22,7 +22,7 @@ export default async function Caisse({
       params.slugs[1] &&
       !isNaN(Number(params.slugs[1]))
     ) {
-      id_ticket = parseInt(params.slugs[1]);
+      ticketId = parseInt(params.slugs[1]);
     } else {
       notFound();
     }
@@ -31,7 +31,7 @@ export default async function Caisse({
     //   notFound();
     // }
 
-    id_ticket =
+    ticketId =
       params.slugs[0] === "ticket" && params.slugs[1]
         ? parseInt(params.slugs[1])
         : 0;
@@ -53,17 +53,17 @@ export default async function Caisse({
   const clients = await resClt.json();
   const collaborateurs = await resCollab.json();
   const prestations = await resPres.json();
-  // const ticketLines = await get_ticketLines({ Num_ticket: Number(id_ticket) });
+  // const ticketLines = await get_ticketLines({ Num_ticket: Number(ticketId) });
   let AndCondition = "";
-  // if (id_ticket) {
-  //   AndCondition = `AND dce.id="${String(id_ticket)}"`;
+  // if (ticketId) {
+  //   AndCondition = `AND dce.id="${String(ticketId)}"`;
   // }
 
   const ticketLines = await get_ticket_lines({
-    where: ` WHERE idtypedoc = 21  AND dce.id = "${id_ticket}"`,
+    where: ` WHERE idtypedoc = 21  AND dce.id = "${ticketId}"`,
   });
   const ticketPaiements = await get_ticket_paiements({
-    where: ` WHERE dce.id = "${id_ticket}"`,
+    where: ` WHERE dce.id = "${ticketId}"`,
   });
 
   return (

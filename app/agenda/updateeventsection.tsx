@@ -111,7 +111,8 @@ export default function UpdateEventSection({
     }),
     note: yup.string(),
     agenda_prestationArr: yup.array(),
-    idRes: yup.string().default(""),
+    idRes: yup.string(),
+    ticketId: yup.string(),
   });
   const {
     register,
@@ -137,6 +138,7 @@ export default function UpdateEventSection({
         value: selectedEventFirst?.client?.value,
       },
       idRes: selectedEventFirst?.idRes,
+      ticketId: selectedEventFirst?.ticketId,
       // agenda_prestationArr: selectedEventAgendaPrestationArr,
     },
   });
@@ -158,22 +160,18 @@ export default function UpdateEventSection({
   const router = useRouter();
 
   const handleSaveReservat: any = async (data) => {
-    // console.log(data);
+    // console.log("data", data);
     // return;
     // saveReservat(data)
-    const idRes = await saveReservation({
+    const ticketId = await saveReservation({
       ...data,
       duree: totalDuration,
       totalPrice,
       submitType: submitTypeRef.current,
     });
-
+    console.log("ticketId", ticketId);
     if (submitTypeRef.current === "encaisser") {
-      router.push("/caisse?res=" + idRes, {
-        // query: {
-        //   res: insertedId_res,
-        // },
-      });
+      router.push("/caisse/ticket/" + ticketId);
     }
   };
   useEffect(() => {
@@ -181,7 +179,7 @@ export default function UpdateEventSection({
     const currentValues = getValues("agenda_prestationArr");
     const updatedAgendaPrestationArr = selectedEventAgendaPrestationArr.map(
       (item) => ({
-        ligne_id: item.ligne_id || "",
+        line_id: item.line_id || "",
         start_time: item.start_time,
         id_art: item.id_art,
         qte: 1,
@@ -293,12 +291,8 @@ export default function UpdateEventSection({
           </div>
           <p className="text-red-500">{errors.client?.label?.message}</p>
         </div>
-        <input
-          type="hidden"
-          {...register("idRes")}
-          // defaultValue={agenda_prestationArr[0]?.res_id}
-          // value={agenda_prestationArr[0]?.res_id}
-        />
+        <input type="hidden" {...register("idRes")} />
+        <input type="hidden" {...register("ticketId")} />
         <div className="flex gap-28 ">
           <div className="flex flex-col gap-1">
             <label className="font-semibold">Date:</label>
@@ -452,11 +446,9 @@ export default function UpdateEventSection({
                     return (
                       <tr key={index}>
                         <Controller
-                          name={
-                            `agenda_prestationArr[${index}].ligne_id` as any
-                          }
+                          name={`agenda_prestationArr[${index}].line_id` as any}
                           control={control}
-                          defaultValue={item?.ligne_id || ""}
+                          defaultValue={item?.line_id || ""}
                           render={({ field }) => {
                             return <input type="hidden" {...field} />;
                           }}

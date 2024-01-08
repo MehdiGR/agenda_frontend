@@ -17,9 +17,13 @@ export async function GET(req: Request) {
               lr.idAgenda AS prest_idAgenda,
               lr.id AS ligne_id,
               ag.nom AS prest_agenda,
-              clt.nom as nomClient
+              clt.nom as nomClient,
+              rsv_doc.id_doc as ticketId
           FROM
               reservat AS rsv
+              LEFT JOIN reservat_docentete AS rsv_doc
+              ON
+                  rsv.id = rsv_doc.id_res
           JOIN ligne_res AS lr
           ON
               lr.idRes = rsv.id
@@ -29,7 +33,7 @@ export async function GET(req: Request) {
                JOIN agenda AS ag
           ON
               ag.id = lr.idAgenda
-              JOIN client as clt on clt.id=rsv.idClient order by rsv.id`,
+              JOIN client as clt ON clt.id=rsv.idClient ORDER by rsv.id`,
         // order by rsv.dateRes,rsv.heurDB,lr.heurDB;
         (error: any, results: any) => (error ? reject(error) : resolve(results))
       )

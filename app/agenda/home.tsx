@@ -16,7 +16,7 @@ export default function Home({
   agendas,
   periods,
   reservations,
-}) {
+}: any) {
   // const {
   //   addEvent,
   //   updateEvent,
@@ -79,6 +79,7 @@ export default function Home({
       // setEvents([...events, newEvent]);
       const existTemp = events.findIndex((event: any) => event.isTemp == true);
       // //  && event.saved == false
+      console.log("existTemp", existTemp);
       if (existTemp == -1) {
         newEvent = { ...newEvent, eventIndex: lastIndex + 1 };
         // addEvent(newEvent);
@@ -98,7 +99,7 @@ export default function Home({
       // resetDurationMinutes();
       // addAllAgendaPres([]);
       // setActiveCreateSection(true);
-      setOnEditingEvent(true);
+      // setOnEditingEvent(true);
       setActiveCreateSection(true);
     }
   };
@@ -143,7 +144,7 @@ export default function Home({
   //   };
   // }, [selectedEventsIndices]);
   return (
-    <div className="flex  gap-10  h-full   ">
+    <div className="grid grid-flow-col auto-cols gap-10  h-full   ">
       {activeCreateSection && (
         <CreateEventSection
           clients={clients}

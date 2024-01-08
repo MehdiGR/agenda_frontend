@@ -10,7 +10,7 @@ export async function get_encaissements({ where = "" }) {
   try {
     const sql = `
     SELECT
-      dce.id AS id_ticket,
+      dce.id AS ticketId,
       clt.nom AS client,
       Num_doc AS Num_ticket,
       DATE(dce.date_doc) AS date_creation,
@@ -58,7 +58,7 @@ export async function get_tickets({ where = "" }) {
   try {
     const sql = `
             SELECT
-                dce.id as id_ticket,
+                dce.id as ticketId,
                 dce.mntht,
                 dce.mnttva,
                 dce.mntttc,
@@ -264,14 +264,14 @@ async function checkExistingRecord(line_id) {
 
 async function createTicket(data) {
   try {
-    const id_ticket = await insertTicket(data);
-    if (id_ticket) {
-      await insertTicketLines({ ...data, id_ticket });
+    const ticketId = await insertTicket(data);
+    if (ticketId) {
+      await insertTicketLines({ ...data, ticketId });
       console.log("Document and line items inserted successfully.");
     } else {
       console.log("Failed to insert document.");
     }
-    return id_ticket;
+    return ticketId;
   } catch (error) {
     console.error("An error occurred:", error);
     console.error("Stack trace:", error.stack);
@@ -301,19 +301,19 @@ async function insertTicket(data) {
     data.totalTax,
     idCaisse,
   ];
-  const { insertId: id_ticket } = await executeQuery(
+  const { insertId: ticketId } = await executeQuery(
     insertTicketSQL,
     insertTicketValues
   );
 
-  // if (id_ticket) {
+  // if (ticketId) {
   //   const insertReservatTicketSQL =
   //     "INSERT INTO reservat_docentete(id_res,id_doc) VALUES (?,?)";
-  //   const insertReservatTicketValues = [data.idRes, id_ticket];
+  //   const insertReservatTicketValues = [data.idRes, ticketId];
   //   await executeQuery(insertReservatTicketSQL, insertReservatTicketValues);
   // }
 
-  return id_ticket;
+  return ticketId;
 }
 
 async function insertTicketLines(data) {
@@ -322,7 +322,7 @@ async function insertTicketLines(data) {
       "INSERT INTO docligne(iddocument,idproduit,Designation,qte,prix,idtauxtva,pUnet,total_ttc,idCollab) VALUES (?,?,?,?,?,?,?,?,?)";
 
     const insertTicketLineValues = [
-      data.id_ticket,
+      data.ticketId,
       item.id_art,
       item.Designation,
       item?.qte,
@@ -438,11 +438,11 @@ export async function CaissePayement(PayementData, createTicketData) {
     Num_ticket_rt,
     id_tier,
   } = PayementData;
-  let id_ticket = PayementData.id_ticket;
-  // check if id_ticket is not defined if yes then create new ticket and the return insertedTicket affected to id_ticket
-  if (!id_ticket) {
+  let ticketId = PayementData.ticketId;
+  // check if ticketId is not defined if yes then create new ticket and the return insertedTicket affected to ticketId
+  if (!ticketId) {
     const insertedTicket = await createTicket(createTicketData);
-    id_ticket = insertedTicket;
+    ticketId = insertedTicket;
   } else {
     handleTicketLines(createTicketData.prestations);
   }
@@ -473,7 +473,7 @@ export async function CaissePayement(PayementData, createTicketData) {
     `;
     await executeQuery(query2, [
       id_paiement_caisse,
-      id_ticket,
+      ticketId,
       montant,
       montantRendu,
       Num_ticket_rt,
@@ -486,7 +486,7 @@ export async function CaissePayement(PayementData, createTicketData) {
     WHERE id = ?
   `;
   const { total_ttc } = createTicketData;
-  await executeQuery(query3, [total_ttc, id_ticket]);
+  await executeQuery(query3, [total_ttc, ticketId]);
 
   if (resteAPayer === 0) {
     const query4 = `
@@ -494,10 +494,10 @@ export async function CaissePayement(PayementData, createTicketData) {
       SET valide = 1, mise_en_attente = 0
       WHERE id = ?
     `;
-    await executeQuery(query4, [id_ticket]);
+    await executeQuery(query4, [ticketId]);
   }
-  revalidatePath("/caisse/ticket/" + id_ticket);
-  return id_ticket;
+  revalidatePath("/caisse/ticket/" + ticketId);
+  return ticketId;
 }
 
 async function insertIntoMouvementCaisse({

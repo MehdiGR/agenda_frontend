@@ -183,15 +183,15 @@ export default function CreateEventSection({
     const currentValues = getValues("agenda_prestationArr");
     const updatedAgendaPrestationArr = selectedEventAgendaPrestationArr.map(
       (item) => ({
-        line_id: item.line_id || "",
+        line_id: "4",
         start_time: item.start_time,
         designation: item.intitule,
         id_art: item.id_art,
         qte: 1,
         prixVente: item.prixVente,
         prixTTC: item.prixTTC,
-        id_ticket: item.id_ticket,
-        id_ticket_line: item.id_ticket_line,
+        ticketId: item.ticketId,
+        ticketId_line: item.ticketId_line,
         agenda: {
           label: item.agendaTitle,
           value: item.agendaId,

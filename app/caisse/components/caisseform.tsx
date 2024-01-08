@@ -252,7 +252,7 @@ export default function CaisseForm({
     );
     const PayementData = {
       // ...data,
-      id_ticket: ticketLines[0]?.iddocument,
+      ticketId: ticketLines[0]?.iddocument,
       PaiementsDeCommande: PaiementsDeCommandeFiltered,
       resteAPayer,
       montantRendu,
@@ -263,15 +263,15 @@ export default function CaisseForm({
     // return;
 
     //  const ticketId = parseInt(pathname.split("/")[3]);
-    const id_ticket = await CaissePayement(
+    const ticketId = await CaissePayement(
       PayementData,
       createTicketDataFiltered
     );
-    setTicketId(id_ticket);
+    setTicketId(ticketId);
     // params.set("modal", "true");
     // const newQueryString = params.toString();
     // read the url parameters and check if there is ticket id and  modal equal true  and open the modal
-    // router.replace(`/caisse/ticket/${id_ticket}`, {
+    // router.replace(`/caisse/ticket/${ticketId}`, {
     //   shallow: true,
     // });
   };
