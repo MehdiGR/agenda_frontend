@@ -2,20 +2,21 @@
 import React, { useEffect, useState } from "react";
 
 export default function Synths({ data, valueDate }: any) {
-  const [tickets, setTickets] = useState([]);
+  const [synth, setSynth] = useState<any>({}); // Initialize with an empty object
+  console.log(synth, "synth");
 
   useEffect(() => {
-    setTickets(
-      data.filter((tickets: any) => {
-        const ticketDate = new Date(tickets?.date_creation);
+    const foundSynth = data.find((item: any) => {
+      const synthDate = new Date(item?.synths_date);
+      return (
+        synthDate.toISOString().slice(0, 10) ===
+        valueDate.toISOString().slice(0, 10)
+      );
+    });
 
-        return (
-          ticketDate.toISOString().slice(0, 10) ===
-          valueDate.toISOString().slice(0, 10)
-        );
-      })
-    );
-  }, [data, valueDate]);
+    setSynth(foundSynth || {}); // Update the state with the found object or an empty object if not found
+  }, [data, valueDate]); // Dependencies array for the useEffect hook
+
   return (
     <div className="space-y-4 border border-gray-300 p-4">
       <div className="p-2"></div>
@@ -33,19 +34,21 @@ export default function Synths({ data, valueDate }: any) {
             <td className="border border-gray-300 flex justify-between p-4">
               <p className="text-gray-600">Espèces encaissées : </p>
               <p className="font-bold text-gray-600">
-                0.00 <span className="currency">DH</span>
+                {synth?.total_espace_encaisse}
+                <span className="currency">DH</span>
               </p>
             </td>
             <td className="border border-gray-300 flex justify-between p-4">
               <p className="text-gray-600">Opérations de caisse : </p>
               <p className="font-bold text-gray-600">
-                0.00 <span className="currency">DH</span>
+                {synth?.total_operation_caisse}
+                <span className="currency">DH</span>
               </p>
             </td>
             <td className="border border-gray-300 flex justify-between p-4">
               <p className="text-gray-600">Montant en caisse : </p>
               <p className="font-bold text-gray-600">
-                0.00 <span className="currency">DH</span>
+                {synth?.montant_en_caisse} <span className="currency">DH</span>
               </p>
             </td>
           </tr>

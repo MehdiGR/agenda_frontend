@@ -7,7 +7,7 @@ import OperationCaisse from "./components/operationcaisse";
 import Encaissements from "./components/encaissements";
 import Synths from "./components/synthese";
 
-export default function Container({ tickets, encaissements }: any) {
+export default function Container({ tickets, encaissements, synths }: any) {
   const [selectedDate, setSelectedDate] = useState(new Date());
 
   const handleNextDay = () => {
@@ -40,7 +40,7 @@ export default function Container({ tickets, encaissements }: any) {
     },
     {
       label: "Synthèse",
-      content: <Synths data={encaissements} valueDate={selectedDate} />,
+      content: <Synths data={synths} valueDate={selectedDate} />,
     },
   ];
   return (

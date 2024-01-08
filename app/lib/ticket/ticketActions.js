@@ -19,7 +19,7 @@ export async function get_encaissements({ where = "" }) {
       clb.nom AS vendeur 
     FROM
         docentete AS dce
-    JOIN CLIENT clt ON
+    JOIN client clt ON
         clt.id = dce.tier_doc
     JOIN collaborateur clb ON
         clt.idCollab = clb.id_collaborateur
@@ -192,34 +192,46 @@ export async function get_synths_paiements({ where = "" }) {
   try {
     const sql = `
                 SELECT
-                ROUND(SUM(pm.montant),
-                2) AS espace_encaisse
-            FROM
-                docentete AS dce
-            JOIN paiement_caisse AS pm
-            ON
-                pm.id_doc = dce.id
-            JOIN paiement_tier AS pmt
-            ON
-                pmt.id = pm.id_paiement
-            LEFT JOIN methode_paiement AS mtp
-            ON
-                mtp.id = pmt.id_method
-            GROUP BY
-                mtp.id
-            HAVING
-                mtp.id = 2
-            UNION ALL
-            SELECT
-                SUM(
-                    CASE
-                      WHEN retrait = 1 THEN -1
-                      WHEN depot = 1 THEN 1 
-                      ELSE 0
-                  END
-            ) + SUM(ROUND(montant)) AS operation_caisse
-            FROM
-                mouvementcaisse;
+                  synths_date,
+                  SUM(espace_encaisse) AS total_espace_encaisse,
+                  SUM(operation_caisse) AS total_operation_caisse,
+                  SUM(COALESCE(espace_encaisse, 0) + COALESCE(operation_caisse, 0)) AS montant_en_caisse
+                FROM (
+                  SELECT
+                      ROUND(SUM(pm.montant), 2) AS espace_encaisse,
+                      NULL AS operation_caisse,
+                      dce.date_doc AS synths_date
+                  FROM
+                      docentete AS dce
+                  JOIN paiement_caisse AS pm ON pm.id_doc = dce.id
+                  JOIN paiement_tier AS pmt ON pmt.id = pm.id_paiement
+                  LEFT JOIN methode_paiement AS mtp ON mtp.id = pmt.id_method
+                  WHERE
+                      dce.idtypedoc = 21
+                      AND mtp.id = 2
+                  GROUP BY
+                      dce.date_doc
+
+                  UNION ALL
+
+                  SELECT
+                      NULL AS espace_encaisse,
+                      ROUND(SUM(
+                          CASE
+                              WHEN retrait = 1 THEN -montant
+                              WHEN depot = 1 THEN montant
+                              ELSE 0
+                          END
+                      ), 2) AS operation_caisse,
+                      dateetheur AS synths_date
+                  FROM
+                      mouvementcaisse
+                  GROUP BY
+                      dateetheur
+                ) AS subquery
+                ${where}
+                GROUP BY
+                    synths_date
 
      ${where} `;
     const synths = await new Promise((resolve, reject) =>
