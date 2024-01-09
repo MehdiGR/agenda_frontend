@@ -1859,7 +1859,7 @@ CREATE TABLE `mouvementcaisse` (
   `idutilisateur` int(11) DEFAULT NULL,
   `id_caisse` int(11) DEFAULT NULL,
   `montant` float DEFAULT NULL,
-  `dateetheur` datetime DEFAULT current_timestamp(),
+  `date_et_heur` datetime DEFAULT current_timestamp(),
   `retrait` tinyint(1) DEFAULT 1,
   `depot` tinyint(1) DEFAULT 0,
   `encaissement` tinyint(4) DEFAULT 0,

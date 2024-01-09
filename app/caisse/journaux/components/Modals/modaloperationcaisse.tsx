@@ -1,5 +1,6 @@
 import Modal from "react-modal";
 import { CiCircleRemove } from "react-icons/ci";
+import { addMouvementCaisse } from "@/app/lib/ticket/ticketActions";
 
 export default function ModalOperationCaisse({
   closeModal,
@@ -22,6 +23,17 @@ export default function ModalOperationCaisse({
       backgroundColor: "rgba(0, 0, 0, 0.75)", // Optional: Add a semi-transparent overlay background
     },
   };
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    // formData.entries() => Retrieving an iterator for all key/value pairs in the FormData object
+    // Each pair is represented as a two-element array: [fieldName, fieldValue]
+    const data = Object.fromEntries(formData.entries());
+    const res = await addMouvementCaisse(data);
+    console.log(res);
+    // Your existing code to handle form submission
+    // ...
+  };
   return (
     <Modal
       isOpen={modalIsOpen}
@@ -33,7 +45,7 @@ export default function ModalOperationCaisse({
       <div className="bg-white rounded-lg w-full">
         <div className="flex items-center w-full mb-3">
           <div className="text-gray-900 font-medium text-lg">
-            {operationType}
+            {operationType.title}
           </div>
           <div
             onClick={closeModal}
@@ -44,16 +56,24 @@ export default function ModalOperationCaisse({
         </div>
         <hr />
         <div className="mt-2 w-full">
-          <form className="space-y-4">
+          <form className="space-y-4" onSubmit={handleSubmit}>
+            <input
+              type="hidden"
+              name="operationTypeColumn"
+              value={operationType.value}
+            />
+            <input type="hidden" name="id_utilisateur" value={1} />
+            <input type="hidden" name="id_caisse" value={1} />
             <div className="flex flex-col gap-2">
               <label
-                htmlFor="amount"
+                htmlFor="montant"
                 className="text-sm text-gray-500 font-semibold"
               >
                 Montant
               </label>
               <input
-                id="amount"
+                id="montant"
+                name="montant"
                 className="text-sm w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
                 type="text"
                 placeholder="Montant"
@@ -61,13 +81,14 @@ export default function ModalOperationCaisse({
             </div>
             <div className="flex flex-col gap-2">
               <label
-                htmlFor="description"
+                htmlFor="Commentaire"
                 className="text-sm text-gray-500 font-semibold"
               >
                 Description
               </label>
               <textarea
-                id="description"
+                id="Commentaire"
+                name="Commentaire"
                 className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
                 placeholder="Description"
               ></textarea>
@@ -77,6 +98,7 @@ export default function ModalOperationCaisse({
                 Ajouter
               </button>
               <button
+                type="button"
                 className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
                 onClick={closeModal}
               >

@@ -173,7 +173,7 @@ export async function saveReservation(data) {
         ];
         await executeQuery(insertRecordSQL, insertRecordValues);
         if (data.ticketId !== null && data.submitType === "encaisser") {
-          insertTicketLignes(data);
+          addTicketLignes(data);
         }
       }
     })
@@ -230,10 +230,10 @@ async function checkExistingRecord(line_id) {
 
 async function createTicket(data) {
   try {
-    const ticketId = await insertTicket(data);
+    const ticketId = await addTicket(data);
     console.log("ticketId", ticketId);
     if (ticketId) {
-      await insertTicketLignes({ ...data, ticketId });
+      await addTicketLignes({ ...data, ticketId });
       console.log("Document and line items inserted successfully.");
     } else {
       console.log("Failed to insert document.");
@@ -245,7 +245,7 @@ async function createTicket(data) {
   }
 }
 
-async function insertTicket(data) {
+async function addTicket(data) {
   console.log("doc", data);
 
   const selectMaxNumDocSQL =
@@ -257,20 +257,22 @@ async function insertTicket(data) {
   const dateDoc = new Date().toISOString().split("T")[0];
   const idCaisse = 1;
 
-  const insertTicketSQL =
-    "INSERT INTO docentete(Num_doc,idtypedoc,date_doc,tier_doc,is_prospect,mntttc,id_caisse) VALUES (?,?,?,?,?,?,?)";
-  const insertTicketValues = [
+  const addTicketSQL =
+    "INSERT INTO docentete(Num_doc,idtypedoc,date_doc,tier_doc,is_prospect,mntttc,mntht,mnttva,id_caisse) VALUES (?,?,?,?,?,?,?,?,?)";
+  const addTicketValues = [
     max,
     21,
     dateDoc,
     data.client.value,
     0,
-    data.totalPrice,
+    data.totalTTC,
+    data.totalHT,
+    data.totalTax,
     idCaisse,
   ];
   const { insertId: ticketId } = await executeQuery(
-    insertTicketSQL,
-    insertTicketValues
+    addTicketSQL,
+    addTicketValues
   );
 
   if (ticketId) {
@@ -283,27 +285,25 @@ async function insertTicket(data) {
   return ticketId;
 }
 
-async function insertTicketLignes(data) {
-  const insertTicketLignePromises = data.agenda_prestationArr.map(
-    async (item) => {
-      const insertTicketLigneSQL =
-        "INSERT INTO docligne(iddocument,idproduit,Designation,qte,prix,idtauxtva,pUnet,total_ttc) VALUES (?,?,?,?,?,?,?,?)";
+async function addTicketLignes(data) {
+  const addTicketLignePromises = data.agenda_prestationArr.map(async (item) => {
+    const addTicketLigneSQL =
+      "INSERT INTO docligne(iddocument,idproduit,Designation,qte,prix,idtauxtva,pUnet,total_ttc) VALUES (?,?,?,?,?,?,?,?)";
 
-      const insertTicketLigneValues = [
-        data.ticketId,
-        item.id_art,
-        item.designation,
-        item?.qte,
-        item.prixVente,
-        1,
-        item.prixVente,
-        item.prixTTC,
-      ];
-      await executeQuery(insertTicketLigneSQL, insertTicketLigneValues);
-    }
-  );
+    const addTicketLigneValues = [
+      data.ticketId,
+      item.id_art,
+      item.designation,
+      item?.qte,
+      item.prixVente,
+      1,
+      item.prixVente,
+      item.prixTTC,
+    ];
+    await executeQuery(addTicketLigneSQL, addTicketLigneValues);
+  });
 
-  await Promise.all(insertTicketLignePromises);
+  await Promise.all(addTicketLignePromises);
 }
 async function removeTicketLigne(ticketLigneId) {
   try {

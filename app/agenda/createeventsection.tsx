@@ -21,15 +21,9 @@ import {
 
 import {
   openModal,
-  removePrestation,
   formatDuration,
-  handleOptionChangeAg,
-  handleOptionChangeClt,
   handleOptionChangeTypeClt,
-  saveReservat,
   cancelCreationEvent,
-  calculateTotalDuration,
-  calculateTotalPrices,
 } from "@/app/js/agenda_fn";
 import { useStore } from "@/app/store/store";
 import { saveReservation } from "@/app/lib/reservat/reservatActions";
@@ -146,15 +140,13 @@ export default function CreateEventSection({
   }
 
   const [isPending, startTransition] = useTransition();
-  const { TotalDuration, TotalPrice } = exportStore();
+  const { TotalDuration, calculateTotals } = exportStore();
   const totalDuration = TotalDuration();
-  const totalPrice = TotalPrice();
+  const { totalTTC, totalHT, totalTax } = calculateTotals();
   const submitTypeRef = useRef("");
 
   const router = useRouter();
   const handleSaveReservat: any = async (data: any) => {
-    // console.log(data);
-    // return;
     // if (submitTypeRef.current === "encaisser") {
     //   console.log("Encaisser button was clicked");
     // }
@@ -164,7 +156,9 @@ export default function CreateEventSection({
     const insertedIdTicket = await saveReservation({
       ...data,
       duree: totalDuration,
-      totalPrice,
+      totalTTC,
+      totalHT,
+      totalTax,
       submitType: submitTypeRef.current,
     });
     // console.log(insertedId_res, "inserted_res");
@@ -737,7 +731,7 @@ export default function CreateEventSection({
                   {formatDuration(totalDuration) || "00h00"}
                 </th>
                 <th className="border-r-2 bg-slate-800 text-white">
-                  {totalPrice.toFixed(2)} DH
+                  {totalTTC.toFixed(2)} DH
                 </th>
                 <th className="border-r-2 bg-slate-800"></th>
               </tr>

@@ -3,7 +3,6 @@ import React, { useEffect, useState } from "react";
 
 export default function Synths({ data, valueDate }: any) {
   const [synth, setSynth] = useState<any>({}); // Initialize with an empty object
-  console.log(synth, "synth");
 
   useEffect(() => {
     const foundSynth = data.find((item: any) => {
@@ -28,27 +27,28 @@ export default function Synths({ data, valueDate }: any) {
                 Montant en caisse à l&apos;ouverture :{" "}
               </p>
               <p className="font-bold text-gray-600">
-                0.00 <span className="currency">DH</span>
+                0<span className="currency"> DH</span>
               </p>
             </td>
             <td className="border border-gray-300 flex justify-between p-4">
               <p className="text-gray-600">Espèces encaissées : </p>
               <p className="font-bold text-gray-600">
-                {synth?.total_espace_encaisse}
-                <span className="currency">DH</span>
+                {synth?.total_espace_encaisse || 0}
+                <span className="currency"> DH</span>
               </p>
             </td>
             <td className="border border-gray-300 flex justify-between p-4">
               <p className="text-gray-600">Opérations de caisse : </p>
               <p className="font-bold text-gray-600">
-                {synth?.total_operation_caisse}
-                <span className="currency">DH</span>
+                {synth?.total_operation_caisse || 0}
+                <span className="currency"> DH</span>
               </p>
             </td>
             <td className="border border-gray-300 flex justify-between p-4">
               <p className="text-gray-600">Montant en caisse : </p>
               <p className="font-bold text-gray-600">
-                {synth?.montant_en_caisse} <span className="currency">DH</span>
+                {synth?.montant_en_caisse || 0}{" "}
+                <span className="currency"> DH</span>
               </p>
             </td>
           </tr>

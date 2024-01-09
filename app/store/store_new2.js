@@ -340,30 +340,33 @@ export const exportStore = () => {
 
     return totalDuration || 0;
   };
-  const TotalPrice = () => {
+
+  const calculateTotals = () => {
     const events = useStore_new2.getState().events;
     const selectedEventsIndices =
       useStore_new2.getState().selectedEventsIndices;
 
-    let totalPrice = events.reduce((total, event, index) => {
-      if (selectedEventsIndices.has(index)) {
-        return (
-          total +
-          event.agenda_prestationArr.reduce(
-            (sum, prestation) => sum + prestation.prixTTC,
-            0
-          )
-        );
-      }
-      return total;
-    }, 0);
+    let totalTTC = 0;
+    let totalHT = 0;
+    let totalTax = 0;
 
-    return totalPrice || 0;
+    events.forEach((event, index) => {
+      if (selectedEventsIndices.has(index)) {
+        event.agenda_prestationArr.forEach((prestation) => {
+          totalTTC += prestation.prixTTC;
+          totalHT += prestation.prixVente;
+        });
+      }
+    });
+
+    totalTax = totalTTC - totalHT;
+
+    return { totalTTC, totalHT, totalTax };
   };
 
   return {
     useStore_new2,
     TotalDuration,
-    TotalPrice,
+    calculateTotals,
   };
 };

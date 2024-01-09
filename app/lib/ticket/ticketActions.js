@@ -173,13 +173,42 @@ export async function get_ticket_paiements({ where = "" }) {
                     mdp.id = pmt.id_method
 
      ${where} `;
-    const reservat = await new Promise((resolve, reject) =>
+    const ticket_paiements = await new Promise((resolve, reject) =>
       connection.query(sql, (error, results) =>
         error ? reject(error) : resolve(results)
       )
     );
 
-    return JSON.stringify(reservat);
+    return JSON.stringify(ticket_paiements);
+  } catch (error) {
+    console.error("Could not execute query:", error);
+    return new NextResponse(
+      { error: "Could not execute query" },
+      { status: 500 }
+    );
+  }
+}
+export async function get_operation_caisse({ where = "" }) {
+  try {
+    // will be update 'id utilisateur' when implement authentication
+    const sql = `SELECT
+                      id,
+                      DATE(date_et_heur) AS date_creation,
+                      id_utilisateur AS utilisateur,
+                      commentaire,
+                      ROUND(montant,2) AS montant,
+                      'Enregistrer' AS statut,
+                      CASE WHEN retrait = 1 THEN 'Retrait' WHEN depot = 1 THEN 'Depot' WHEN encaissement = 1 THEN 'Encaissement'
+                  END AS operationType
+                  FROM
+                      mouvementcaisse ${where} `;
+    const operation_caisse = await new Promise((resolve, reject) =>
+      connection.query(sql, (error, results) =>
+        error ? reject(error) : resolve(results)
+      )
+    );
+
+    return JSON.stringify(operation_caisse);
   } catch (error) {
     console.error("Could not execute query:", error);
     return new NextResponse(
@@ -192,9 +221,9 @@ export async function get_synths_paiements({ where = "" }) {
   try {
     const sql = `
                 SELECT
-                  synths_date,
-                  SUM(espace_encaisse) AS total_espace_encaisse,
-                  SUM(operation_caisse) AS total_operation_caisse,
+                  DATE(synths_date) AS synths_date,
+                  COALESCE( SUM(espace_encaisse),0) AS total_espace_encaisse,
+                  COALESCE(SUM(operation_caisse),0) AS total_operation_caisse,
                   SUM(COALESCE(espace_encaisse, 0) + COALESCE(operation_caisse, 0)) AS montant_en_caisse
                 FROM (
                   SELECT
@@ -223,17 +252,15 @@ export async function get_synths_paiements({ where = "" }) {
                               ELSE 0
                           END
                       ), 2) AS operation_caisse,
-                      dateetheur AS synths_date
+                      date_et_heur AS synths_date
                   FROM
                       mouvementcaisse
                   GROUP BY
-                      dateetheur
+                      date_et_heur
                 ) AS subquery
                 ${where}
                 GROUP BY
-                    synths_date
-
-     ${where} `;
+                    DATE(synths_date) `;
     const synths = await new Promise((resolve, reject) =>
       connection.query(sql, (error, results) =>
         error ? reject(error) : resolve(results)
@@ -276,9 +303,9 @@ async function checkExistingRecord(line_id) {
 
 async function createTicket(data) {
   try {
-    const ticketId = await insertTicket(data);
+    const ticketId = await addTicket(data);
     if (ticketId) {
-      await insertTicketLines({ ...data, ticketId });
+      await addTicketLines({ ...data, ticketId });
       console.log("Document and line items inserted successfully.");
     } else {
       console.log("Failed to insert document.");
@@ -290,7 +317,7 @@ async function createTicket(data) {
   }
 }
 
-async function insertTicket(data) {
+async function addTicket(data) {
   const selectMaxNumDocSQL =
     "SELECT Max(CAST(SUBSTRING(Num_doc ,4 ) as UNSIGNED)) as max FROM docentete WHERE idtypedoc=21";
   const maxNumDocResult = await executeQuery(selectMaxNumDocSQL);
@@ -300,9 +327,9 @@ async function insertTicket(data) {
   const dateDoc = new Date().toISOString().split("T")[0];
   const idCaisse = 1;
 
-  const insertTicketSQL =
+  const addTicketSQL =
     "INSERT INTO docentete(Num_doc,idtypedoc,date_doc,tier_doc,is_prospect,mntttc,mntht,mnttva,id_caisse) VALUES (?,?,?,?,?,?,?,?,?)";
-  const insertTicketValues = [
+  const addTicketValues = [
     max,
     21,
     dateDoc,
@@ -314,8 +341,8 @@ async function insertTicket(data) {
     idCaisse,
   ];
   const { insertId: ticketId } = await executeQuery(
-    insertTicketSQL,
-    insertTicketValues
+    addTicketSQL,
+    addTicketValues
   );
 
   // if (ticketId) {
@@ -328,12 +355,12 @@ async function insertTicket(data) {
   return ticketId;
 }
 
-async function insertTicketLines(data) {
-  const insertTicketLinePromises = data.prestations.map(async (item) => {
-    const insertTicketLineSQL =
+async function addTicketLines(data) {
+  const addTicketLinePromises = data.prestations.map(async (item) => {
+    const addTicketLineSQL =
       "INSERT INTO docligne(iddocument,idproduit,Designation,qte,prix,idtauxtva,pUnet,total_ttc,idCollab) VALUES (?,?,?,?,?,?,?,?,?)";
 
-    const insertTicketLineValues = [
+    const addTicketLineValues = [
       data.ticketId,
       item.id_art,
       item.Designation,
@@ -344,10 +371,10 @@ async function insertTicketLines(data) {
       item.total_ttc,
       item.idCollab,
     ];
-    await executeQuery(insertTicketLineSQL, insertTicketLineValues);
+    await executeQuery(addTicketLineSQL, addTicketLineValues);
   });
 
-  await Promise.all(insertTicketLinePromises);
+  await Promise.all(addTicketLinePromises);
 }
 async function removeTicketLine(ticketLineId) {
   try {
@@ -512,36 +539,38 @@ export async function CaissePayement(PayementData, createTicketData) {
   return ticketId;
 }
 
-async function insertIntoMouvementCaisse({
-  idutilisateur,
-  id_caisse,
-  montant,
-  retrait,
-  depot,
-  encaissement,
-  commentaire,
-}) {
+export async function addMouvementCaisse(data) {
   // const date_doc = new Date().toISOString().split("T")[0];
+  // console.log(data);
+  // return data;
   const sql = `
     INSERT INTO mouvementcaisse(
-      idutilisateur,
+      id_utilisateur,
       id_caisse,
       montant,
-      retrait,
-      depot,
-      encaissement,
+     ${data.operationTypeColumn},
       commentaire
     )
-    VALUES(?, ?, ?, ?, ?, ?, ?)
+    VALUES(?, ?, ?, ?, ?)
   `;
   const values = [
-    idutilisateur,
-    id_caisse,
-    montant,
-    retrait,
-    depot,
-    encaissement,
-    commentaire,
+    data.id_utilisateur,
+    data.id_caisse,
+    data.montant,
+    1,
+    data.commentaire,
   ];
   await executeQuery(sql, values);
+  revalidatePath("/caisse/journaux");
+}
+export async function removeMouvement(id) {
+  // const date_doc = new Date().toISOString().split("T")[0];
+  // console.log(id);
+  // return id;
+  const sql = `
+    DELETE FROM mouvementcaisse WHERE id = ?
+  `;
+  const values = [id];
+  await executeQuery(sql, values);
+  revalidatePath("/caisse/journaux");
 }

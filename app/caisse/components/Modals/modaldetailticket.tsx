@@ -142,7 +142,7 @@ export default function ModalDetailTK({
                   <div className="flex justify-between my-10">
                     <div className="">
                       <span className="mr-1 font-bold">Ticket n° : </span>
-                      <span>{ticketLines[0].ticketNum}</span>
+                      <span>{ticketLines[0].Num_ticket}</span>
                     </div>
                     <div>
                       <span className="mr-1 font-bold">Client : </span>
