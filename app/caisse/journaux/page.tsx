@@ -28,7 +28,7 @@ export default async function Journaux() {
   );
   const synths = JSON.parse(
     (await get_synths_paiements({
-      where: ``,
+      having: ``,
     })) as string
   );
   console.log(synths, "synths");

@@ -1,21 +1,37 @@
 "use client";
+import { get_synths_paiements } from "@/app/lib/ticket/ticketActions";
 import React, { useEffect, useState } from "react";
 
-export default function Synths({ data, valueDate }: any) {
+export default function Synths({ valueDate }: any) {
   const [synth, setSynth] = useState<any>({}); // Initialize with an empty object
-
+  // useEffect(() => {
+  //   const foundSynth = data.find((item: any) => {
+  //     const synthDate = new Date(item?.synths_date);
+  //     return (
+  //       synthDate.toISOString().slice(0, 10) ===
+  //       valueDate.toISOString().slice(0, 10)
+  //     );
+  //   });
+  //   console.log(foundSynth);
+  //   setSynth(foundSynth || {}); // Update the state with the found object or an empty object if not found
+  // }, [data, valueDate]); // Dependencies array for the useEffect hook
   useEffect(() => {
-    const foundSynth = data.find((item: any) => {
-      const synthDate = new Date(item?.synths_date);
-      return (
-        synthDate.toISOString().slice(0, 10) ===
-        valueDate.toISOString().slice(0, 10)
-      );
-    });
-
-    setSynth(foundSynth || {}); // Update the state with the found object or an empty object if not found
-  }, [data, valueDate]); // Dependencies array for the useEffect hook
-
+    // async function fetchData() {
+    Promise.all([
+      get_synths_paiements({
+        having: ` HAVING DATE(synths_date)="${valueDate
+          .toISOString()
+          .slice(0, 10)}"`,
+      })
+        .then((data) => {
+          setSynth(JSON.parse(data as string)[0]);
+        })
+        .catch((error) => {
+          setSynth({});
+          console.log("Error fetching data:", error);
+        }),
+    ]);
+  }, [valueDate]);
   return (
     <div className="space-y-4 border border-gray-300 p-4">
       <div className="p-2"></div>
@@ -58,31 +74,34 @@ export default function Synths({ data, valueDate }: any) {
             <td className="border border-gray-300 flex justify-between p-4">
               <p className="font-bold text-gray-600">Chiffre affaires HT : </p>
               <p className="font-bold text-gray-600">
-                0.00 <span className="currency">DH</span>
+                {synth?.chiffre_affaires_ht || 0}
+                <span className="currency">DH</span>
               </p>
             </td>
             <td className="border border-gray-300 flex justify-between p-4">
               <p className="text-gray-600">TVA : </p>
               <p className="font-bold text-gray-600">
-                0.00 <span className="currency">DH</span>
+                {synth?.total_tva || 0} <span className="currency"> DH</span>
               </p>
             </td>
             <td className="border border-gray-300 flex justify-between p-4">
               <p className="text-gray-600">Chiffre affaires TTC : </p>
               <p className="font-bold text-gray-600">
-                0.00 <span className="currency">DH</span>
+                {synth?.chiffre_affaires_ttc || 0}{" "}
+                <span className="currency">DH</span>
               </p>
             </td>
             <td className="border border-gray-300 flex justify-between p-4">
               <p className="text-gray-600">Nombre de tickets : </p>
               <p className="font-bold text-gray-600">
-                0.00 <span className="currency">DH</span>
+                {synth?.nbr_tickets || 0} <span className="currency">DH</span>
               </p>
             </td>
             <td className="border border-gray-300 flex justify-between p-4">
               <p className="text-gray-600">Panier moyen TTC : </p>
               <p className="font-bold text-gray-600">
-                0.00 <span className="currency">DH</span>
+                {synth?.panier_moyen_ttc || 0}{" "}
+                <span className="currency">DH</span>
               </p>
             </td>
           </tr>

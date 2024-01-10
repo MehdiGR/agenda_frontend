@@ -21,15 +21,9 @@ import {
 
 import {
   openModal,
-  removePrestation,
   formatDuration,
-  handleOptionChangeAg,
-  handleOptionChangeClt,
   handleOptionChangeTypeClt,
-  saveReservat,
   cancelCreationEvent,
-  calculateTotalDuration,
-  calculateTotalPrices,
 } from "@/app/js/agenda_fn";
 import { useStore } from "@/app/store/store";
 import { saveReservation } from "@/app/lib/reservat/reservatActions";
@@ -153,9 +147,9 @@ export default function UpdateEventSection({
   // }
 
   const [isPending, startTransition] = useTransition();
-  const { TotalDuration, TotalPrice } = exportStore();
+  const { TotalDuration, calculateTotals } = exportStore();
   const totalDuration = TotalDuration();
-  const totalPrice = TotalPrice();
+  const { totalTTC, totalHT, totalTax } = calculateTotals();
   const submitTypeRef = useRef("");
   const router = useRouter();
 
@@ -166,7 +160,9 @@ export default function UpdateEventSection({
     const ticketId = await saveReservation({
       ...data,
       duree: totalDuration,
-      totalPrice,
+      totalTTC,
+      totalHT,
+      totalTax,
       submitType: submitTypeRef.current,
     });
     console.log("ticketId", ticketId);
@@ -739,7 +735,7 @@ export default function UpdateEventSection({
                   {formatDuration(totalDuration) || "00h00"}
                 </th>
                 <th className="border-r-2 bg-slate-800 text-white">
-                  {totalPrice.toFixed(2)} DH
+                  {totalTTC.toFixed(2)} DH
                 </th>
                 <th className="border-r-2 bg-slate-800"></th>
               </tr>
