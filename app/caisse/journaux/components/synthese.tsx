@@ -2,8 +2,12 @@
 import { get_synths_paiements } from "@/app/lib/ticket/ticketActions";
 import React, { useEffect, useState } from "react";
 
-export default function Synths({ valueDate }: any) {
-  const [synth, setSynth] = useState<any>({}); // Initialize with an empty object
+export default function Synths({ data }: any) {
+  console.log(data, "data");
+  const [synth, setSynth] = useState<any>(data); // Initialize with an empty object
+  useEffect(() => {
+    setSynth(data);
+  }, [data]);
   // useEffect(() => {
   //   const foundSynth = data.find((item: any) => {
   //     const synthDate = new Date(item?.synths_date);
@@ -15,23 +19,24 @@ export default function Synths({ valueDate }: any) {
   //   console.log(foundSynth);
   //   setSynth(foundSynth || {}); // Update the state with the found object or an empty object if not found
   // }, [data, valueDate]); // Dependencies array for the useEffect hook
-  useEffect(() => {
-    // async function fetchData() {
-    Promise.all([
-      get_synths_paiements({
-        having: ` HAVING DATE(synths_date)="${valueDate
-          .toISOString()
-          .slice(0, 10)}"`,
-      })
-        .then((data) => {
-          setSynth(JSON.parse(data as string)[0]);
-        })
-        .catch((error) => {
-          setSynth({});
-          console.log("Error fetching data:", error);
-        }),
-    ]);
-  }, [valueDate]);
+  // useEffect(() => {
+  //   // async function fetchData() {
+  //   Promise.all([
+  //     get_synths_paiements({
+  //       having: ` HAVING DATE(synths_date)="${valueDate
+  //         .toISOString()
+  //         .slice(0, 10)}"`,
+  //     })
+  //       .then((data) => {
+  //         setSynth(JSON.parse(data as string)[0]);
+  //       })
+  //       .catch((error) => {
+  //         setSynth({});
+  //         console.log("Error fetching data:", error);
+  //       }),
+  //   ]);
+  // }, [valueDate]);
+
   return (
     <div className="space-y-4 border border-gray-300 p-4">
       <div className="p-2"></div>
@@ -108,44 +113,23 @@ export default function Synths({ valueDate }: any) {
         </table>
         <table className="flex-1">
           <tr>
-            <td className="border border-gray-300 flex justify-between p-4">
+            {synth.paiements?.map((paiement: any, index: number) => (
+              <td
+                key={index}
+                className="border border-gray-300 flex justify-between p-4"
+              >
+                <p className="text-gray-600">{paiement?.mode_paiement} : </p>
+                <p className="font-bold text-gray-600">
+                  {paiement?.montant} <span className="currency">DH</span>
+                </p>
+              </td>
+            ))}
+            {/* <td className="border border-gray-300 flex justify-between p-4">
               <p className="font-bold text-gray-600">Carte bancaire : </p>
               <p className="font-bold text-gray-600">
                 0.00 <span className="currency">DH</span>
               </p>
-            </td>
-            <td className="border border-gray-300 flex justify-between p-4">
-              <p className="text-gray-600">Chèque : </p>
-              <p className="font-bold text-gray-600">
-                0.00 <span className="currency">DH</span>
-              </p>
-            </td>
-            <td className="border border-gray-300 flex justify-between p-4">
-              <p className="text-gray-600">Espèces : </p>
-              <p className="font-bold text-gray-600">
-                0.00 <span className="currency">DH</span>
-              </p>
-            </td>
-            <td className="border border-gray-300 flex justify-between p-4">
-              <p className="font-bold text-gray-600">Total : </p>
-              <p className="font-bold text-gray-600">
-                0.00 <span className="currency">DH</span>
-              </p>
-            </td>
-            <td className="border border-gray-300 flex justify-between p-4">
-              <p className="text-gray-600">
-                Dont paiement de ticket antérieur :{" "}
-              </p>
-              <p className="font-bold text-gray-600">
-                0.00 <span className="currency">DH</span>
-              </p>
-            </td>
-            <td className="border border-gray-300 flex justify-between p-4">
-              <p className="text-gray-600">En attente de paiement : </p>
-              <p className="font-bold text-gray-600">
-                0.00 <span className="currency">DH</span>
-              </p>
-            </td>
+            </td> */}
           </tr>
         </table>
       </div>

@@ -217,169 +217,102 @@ export async function get_operation_caisse({ where = "" }) {
     );
   }
 }
-export async function get_synths_paiements({ having = "" }) {
-  const querytest = `SELECT
-  DATE(synths_date) AS synths_date,
-  COALESCE(SUM(total_espace_encaisse), 0) AS total_espace_encaisse,
-  COALESCE(SUM(total_operation_caisse), 0) AS total_operation_caisse,
-  SUM(
-      COALESCE(total_espace_encaisse, 0) + COALESCE(total_operation_caisse, 0)
-  ) AS montant_en_caisse,
-  COALESCE(SUM(chiffre_affaires_ht), 0) AS chiffre_affaires_ht,
-  COALESCE(SUM(total_tva), 0) AS total_tva,
-  COALESCE(SUM(chiffre_affaires_ttc), 0) AS chiffre_affaires_ttc,
-  COALESCE(SUM(nbr_tickets), 0) AS nbr_tickets,
-  COALESCE(SUM(panier_moyen_ttc), 0) AS panier_moyen_ttc,
-  mode_title,
-  ROUND(SUM(total_paiement_by_mode), 2) AS total_paiement_by_mode
-FROM
-  (
-  SELECT
-      ROUND(SUM(pm.montant), 2) AS total_espace_encaisse,
-      NULL AS total_operation_caisse,
-      dce.date_doc AS synths_date,
-      NULL AS chiffre_affaires_ht,
-      NULL AS total_tva,
-      NULL AS chiffre_affaires_ttc,
-      NULL AS nbr_tickets,
-      NULL AS panier_moyen_ttc,
-      NULL AS mode_title,
-      NULL AS total_paiement_by_mode
-  FROM
-      docentete AS dce
-  JOIN paiement_caisse AS pm ON pm.id_doc = dce.id
-  JOIN paiement_tier AS pmt ON pmt.id = pm.id_paiement
-  JOIN methode_paiement AS mtp ON mtp.id = pmt.id_method
-  WHERE
-      dce.idtypedoc = 21 AND mtp.id = 2
-  GROUP BY
-      dce.date_doc
-  UNION ALL
-  SELECT
-      NULL AS total_espace_encaisse,
-      ROUND(SUM(CASE WHEN retrait = 1 THEN - montant WHEN depot = 1 THEN montant ELSE 0 END), 2) AS total_operation_caisse,
-      date_et_heur AS synths_date,
-      NULL AS chiffre_affaires_ht,
-      NULL AS total_tva,
-      NULL AS chiffre_affaires_ttc,
-      NULL AS nbr_tickets,
-      NULL AS panier_moyen_ttc,
-      NULL AS mode_title,
-      NULL AS total_paiement_by_mode
-  FROM
-      mouvementcaisse
-  GROUP BY
-      date_et_heur
-  UNION ALL
-  SELECT
-      NULL AS total_espace_encaisse,
-      NULL AS total_operation_caisse,
-      date_doc AS synths_date,
-      SUM(mntht) AS chiffre_affaires_ht,
-      ROUND(SUM(mnttva), 2) AS total_tva,
-      ROUND(SUM(mntttc), 2) AS chiffre_affaires_ttc,
-      COUNT(Num_doc) AS nbr_tickets,
-      ROUND(SUM(mntttc) / COUNT(Num_doc), 2) AS panier_moyen_ttc,
-      NULL AS mode_title,
-      NULL AS total_paiement_by_mode
-  FROM
-      docentete
-  GROUP BY
-      date_doc
-  UNION ALL
-  SELECT
-      NULL AS total_espace_encaisse,
-      NULL AS total_operation_caisse,
-      DATE(pmt.date_reg) AS synths_date,
-      NULL AS chiffre_affaires_ht,
-      NULL AS total_tva,
-      NULL AS chiffre_affaires_ttc,
-      NULL AS nbr_tickets,
-      NULL AS panier_moyen_ttc,
-      mtp.intitule AS mode_title,
-      ROUND(SUM(pmt.montant), 2) AS total_paiement_by_mode
-  FROM
-      paiement_tier AS pmt
-  JOIN methode_paiement AS mtp ON pmt.id_method = mtp.id
-  GROUP BY
-      mtp.id, mode_title, DATE(pmt.date_reg)
-  HAVING
-      SUM(pmt.montant) <> 0
-  ) AS subquery
-GROUP BY
-  DATE(synths_date), mode_title;`;
+export async function get_synths_paiements_jr({ having = "" }) {
+  try {
+    const sql = `SELECT
+                  DATE(pmt.date_reg) AS synths_date,
+                  mtp.intitule AS mode_paiement,
+                  ROUND(SUM(pmt.montant), 2) AS montant
+                FROM
+                  paiement_tier AS pmt
+                JOIN methode_paiement AS mtp ON pmt.id_method = mtp.id
+                GROUP BY
+                  mtp.id, mode_paiement, DATE(pmt.date_reg)
+                ${having} `;
+    const synths = await new Promise((resolve, reject) =>
+      connection.query(sql, (error, results) =>
+        error ? reject(error) : resolve(results)
+      )
+    );
+
+    return JSON.stringify(synths);
+  } catch (error) {
+    console.error("Could not execute query:", error);
+    return new NextResponse(
+      { error: "Could not execute query" },
+      { status: 500 }
+    );
+  }
+}
+export async function get_synths_montant_en_caisse_jr({ having = "" }) {
   try {
     const sql = `
-                  SELECT
-                  DATE(synths_date) AS synths_date,
-                  COALESCE(SUM(total_espace_encaisse),
-                  0) AS total_espace_encaisse,
-                  COALESCE(SUM(total_operation_caisse),
-                  0) AS total_operation_caisse,
-                  SUM(
-                      COALESCE(total_espace_encaisse, 0) + COALESCE(total_operation_caisse, 0)
-                  ) AS montant_en_caisse,
-                  COALESCE(SUM(chiffre_affaires_ht),
-                  0) AS chiffre_affaires_ht,
-                  COALESCE(SUM(total_tva),
-                  0) AS total_tva,
-                  COALESCE(SUM(chiffre_affaires_ttc),
-                  0) AS chiffre_affaires_ttc,
-                  COALESCE(SUM(nbr_tickets),
-                  0) AS nbr_tickets,
-                  COALESCE(SUM(panier_moyen_ttc),
-                  0) AS panier_moyen_ttc
-              FROM
-                  (
-                  SELECT
-                      ROUND(SUM(pm.montant),
-                      2) AS total_espace_encaisse,
-                      NULL AS total_operation_caisse,
-                      dce.date_doc AS synths_date,
-                      NULL AS chiffre_affaires_ht,
-                      NULL AS total_tva,
-                      NULL AS chiffre_affaires_ttc,
-                      NULL AS nbr_tickets,
-                      NULL AS panier_moyen_ttc
-                  FROM
-                      docentete AS dce
-                  JOIN paiement_caisse AS pm
-                  ON
-                      pm.id_doc = dce.id
-                  JOIN paiement_tier AS pmt
-                  ON
-                      pmt.id = pm.id_paiement
-                  LEFT JOIN methode_paiement AS mtp
-                  ON
-                      mtp.id = pmt.id_method
-                  WHERE
-                      dce.idtypedoc = 21 AND mtp.id = 2
-                  GROUP BY
-                      dce.date_doc
-                  UNION ALL
-              SELECT NULL AS
-                  total_espace_encaisse,
-                  ROUND(
-                      SUM(
-                          CASE WHEN retrait = 1 THEN - montant WHEN depot = 1 THEN montant ELSE 0
-                      END
-                  ),
-                  2
-              ) AS total_operation_caisse,
-              date_et_heur AS synths_date,
-              NULL AS chiffre_affaires_ht,
-              NULL AS total_tva,
-              NULL AS chiffre_affaires_ttc,
-              NULL AS nbr_tickets,
-              NULL AS panier_moyen_ttc
-              FROM
-                  mouvementcaisse
-              GROUP BY
-                  date_et_heur
-              UNION ALL
-              SELECT NULL AS
-                  total_espace_encaisse,
-                  NULL AS total_operation_caisse,
+                SELECT
+                    COALESCE(total_espace_encaisse, 0) AS total_espace_encaisse,
+                    COALESCE(total_operation_caisse, 0) AS total_operation_caisse,
+                    SUM(
+                        COALESCE(total_espace_encaisse, 0) + COALESCE(total_operation_caisse, 0)
+                    ) AS montant_en_caisse,
+                    DATE(synths_date) AS synths_date
+                FROM
+                    (
+                    SELECT
+                        ROUND(SUM(pm.montant),
+                        2) AS total_espace_encaisse,
+                        NULL AS total_operation_caisse,
+                        dce.date_doc AS synths_date
+                    FROM
+                        docentete AS dce
+                    JOIN paiement_caisse AS pm
+                    ON
+                        pm.id_doc = dce.id
+                    JOIN paiement_tier AS pmt
+                    ON
+                        pmt.id = pm.id_paiement
+                    LEFT JOIN methode_paiement AS mtp
+                    ON
+                        mtp.id = pmt.id_method
+                    WHERE
+                        dce.idtypedoc = 21 AND mtp.id = 2
+                    GROUP BY
+                        dce.date_doc
+                    UNION ALL
+                SELECT NULL AS
+                    total_espace_encaisse,
+                    ROUND(
+                        SUM(
+                            CASE WHEN retrait = 1 THEN - montant WHEN depot = 1 THEN montant ELSE 0
+                        END
+                    ),
+                    2
+                ) AS total_operation_caisse,
+                date_et_heur AS synths_date
+                FROM
+                    mouvementcaisse
+                GROUP BY
+                    DATE(date_et_heur)
+                ) AS subquery
+                GROUP BY
+                    DATE(synths_date) ${having} `;
+    const synths = await new Promise((resolve, reject) =>
+      connection.query(sql, (error, results) =>
+        error ? reject(error) : resolve(results)
+      )
+    );
+
+    return JSON.stringify(synths);
+  } catch (error) {
+    console.error("Could not execute query:", error);
+    return new NextResponse(
+      { error: "Could not execute query" },
+      { status: 500 }
+    );
+  }
+}
+export async function get_synths_chiffre_affaires_jr({ having = "" }) {
+  try {
+    const sql = `
+                SELECT 
                   date_doc AS synths_date,
                   SUM(mntht) AS chiffre_affaires_ht,
                   ROUND(SUM(mnttva),
@@ -391,14 +324,10 @@ GROUP BY
                       SUM(mntttc) / COUNT(Num_doc),
                       2
                   ) AS panier_moyen_ttc
-              FROM
+                FROM
                   docentete
-              GROUP BY
-                  date_doc
-              ) AS subquery
-                
-              GROUP BY
-                  DATE(synths_date) ${having} `;
+                GROUP BY
+                  date_doc ${having} `;
     const synths = await new Promise((resolve, reject) =>
       connection.query(sql, (error, results) =>
         error ? reject(error) : resolve(results)

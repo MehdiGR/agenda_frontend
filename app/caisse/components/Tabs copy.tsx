@@ -2,21 +2,19 @@
 // Tabs.tsx
 import React, { useState, ReactElement } from "react";
 
-interface TabsProps {
-  label: string;
-  content: ReactElement;
-}
-// const TablePanel = ({ content }: { content: ReactElement }) => {
-const TablePanel = ({ content }: { content: ReactElement }) => {
-  return <div className="w-full h-full">{content} </div>;
+// interface TabsProps {
+//   children: ReactElement[];
+// }
+const TablePanel = ({ content }: any) => {
+  <div className="w-full h-full">{content} </div>;
 };
-const Tabs = ({ tabs }: { tabs: TabsProps[] }) => {
+const Tabs = ({ children }: { children: React.ReactNode }) => {
   const [activeTab, setActiveTab] = useState(0);
 
   return (
     <div>
       <div className="flex md:justify-center lg:justify-start">
-        {tabs.map((tab: any, index: number) => (
+        {React.Children.toArray(children).map((child: any, index: number) => (
           <button
             key={index}
             className={`py-2 px-4 focus:outline-none ${
@@ -26,13 +24,11 @@ const Tabs = ({ tabs }: { tabs: TabsProps[] }) => {
             }`}
             onClick={() => setActiveTab(index)}
           >
-            {tab["label"]}
+            {child.props["aria-label"]}
           </button>
         ))}
       </div>
-      <div className="mt-4">
-        <TablePanel content={tabs[activeTab].content} />
-      </div>
+      <div className="mt-4">{React.Children.toArray(children)[activeTab]}</div>
     </div>
     // <div>{children}</div>
   );

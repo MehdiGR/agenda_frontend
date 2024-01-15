@@ -68,7 +68,7 @@ export default async function Caisse({
 
   return (
     // lg:overflow-y-hidden min-w-min
-    <div className="h-screen   ">
+    <div className="h-screen  ">
       <Container
         clients={clients}
         collaborateurs={collaborateurs}

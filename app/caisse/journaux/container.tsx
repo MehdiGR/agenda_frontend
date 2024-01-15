@@ -4,50 +4,73 @@ import React, { useState } from "react";
 import Tabs from "../components/Tabs";
 import Tickets from "./components/tickets";
 import OperationCaisse from "./components/operationcaisse";
-import Encaissements from "./components/encaissements";
+import Encaissements from "./components/Encaissement/encaissements";
 import Synths from "./components/synthese";
+import { useRouter } from "next/navigation"; // Replace with your actual import path
+import { useSearchParams, usePathname } from "next/navigation";
 
 export default function Container({
   tickets,
-  operationCaisse,
   encaissements,
+  operation_caisse,
   synths,
+  valueDate,
 }: any) {
   const [selectedDate, setSelectedDate] = useState(new Date());
+  console.log("date", selectedDate);
+  // Inside your component
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const params = new URLSearchParams(searchParams.toString());
+  const pathname = usePathname();
 
   const handleNextDay = () => {
-    setSelectedDate(
-      (prevDate) => new Date(prevDate.setDate(prevDate.getDate() + 1))
-    );
+    setSelectedDate((prev) => {
+      const nextDay = new Date(prev);
+      nextDay.setDate(nextDay.getDate() + 1);
+      params.set("date", nextDay.toISOString().split("T")[0]); // changed to nextDay
+      router.push(`${pathname}?${params.toString()}`);
+      return nextDay;
+    });
   };
 
   const handlePreviousDay = () => {
-    setSelectedDate(
-      (prevDate) => new Date(prevDate.setDate(prevDate.getDate() - 1))
-    );
+    setSelectedDate((prev) => {
+      const previousDay = new Date(prev);
+      previousDay.setDate(previousDay.getDate() - 1);
+      params.set("date", previousDay.toISOString().split("T")[0]); // changed to previousDay
+
+      // Update the URL
+      router.push(`${pathname}?${params.toString()}`);
+      return previousDay;
+    });
   };
 
-  const handleDateChange = (event: any) => {
-    setSelectedDate(new Date(event.target.value));
+  const handleDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSelectedDate(() => {
+      const newSelectedDate = new Date(event.target.value);
+      params.set("date", newSelectedDate.toISOString().split("T")[0]);
+      router.push(`${pathname}?${params.toString()}`);
+      return newSelectedDate;
+    });
   };
   const tabs = [
     {
       label: "Tickets",
-      content: <Tickets data={tickets} valueDate={selectedDate} />,
+      content: <Tickets data={tickets} />,
     },
     {
       label: "Opération de caisse",
-      content: (
-        <OperationCaisse data={operationCaisse} valueDate={selectedDate} />
-      ),
+      content: <OperationCaisse data={operation_caisse} />,
     },
     {
       label: "Encaissements",
-      content: <Encaissements data={encaissements} valueDate={selectedDate} />,
+      content: <Encaissements data={encaissements} />,
     },
     {
       label: "Synthèse",
-      content: <Synths data={synths} valueDate={selectedDate} />,
+      content: <Synths data={synths} />,
     },
   ];
   return (

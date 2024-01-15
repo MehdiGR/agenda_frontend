@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import ModalDetailTK from "../../components/Modals/modaldetailticket";
 import { CiEdit } from "react-icons/ci";
 
-export default function Tickets({ data, valueDate }: any) {
+export default function Tickets({ data }: any) {
   const [tickets, setTickets] = useState([]);
   const [ticketId, setTicketId] = useState<any>(null);
 
@@ -17,18 +17,21 @@ export default function Tickets({ data, valueDate }: any) {
     modalState(false);
     setTicketId(null);
   };
-  useEffect(() => {
-    setTickets(
-      data.filter((tickets: any) => {
-        const ticketDate = new Date(tickets?.date_creation);
+  // useEffect(() => {
+  //   setTickets(
+  //     data.filter((tickets: any) => {
+  //       const ticketDate = new Date(tickets?.date_creation);
 
-        return (
-          ticketDate.toISOString().slice(0, 10) ===
-          valueDate.toISOString().slice(0, 10)
-        );
-      })
-    );
-  }, [data, valueDate]);
+  //       return (
+  //         ticketDate.toISOString().slice(0, 10) ===
+  //         valueDate.toISOString().slice(0, 10)
+  //       );
+  //     })
+  //   );
+  // }, [data, valueDate]);
+  useEffect(() => {
+    setTickets(data);
+  }, [data]);
   return (
     <div className="space-y-4">
       <div className="p-2"></div>

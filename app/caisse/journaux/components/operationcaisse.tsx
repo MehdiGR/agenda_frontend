@@ -9,33 +9,42 @@ import {
   removeMouvement,
 } from "@/app/lib/ticket/ticketActions";
 
-export default function OperationCaisse({ data, valueDate }: any) {
+export default function OperationCaisse({ data }: any) {
   const [isOprModalOpen, setModalOprIsOpen] = useState(false);
   const [operationType, setOperationType] = useState({ title: "", value: "" });
-  const [operationsCaisse, setOperationsCaisse] = useState([]);
+  const [operationsCaisse, setOperationsCaisse] = useState(data);
+  // useEffect(() => {
+  // useEffect(() => {
+  // let isActive = true; // Flag to prevent state update if component unmounts
+
+  //   const fetchOperations = async () => {
+  //     try {
+  //       const data = await get_operation_caisse({
+  //         where: ` WHERE id_caisse = 1 AND  DATE(date_et_heur) = "${valueDate
+  //           .toISOString()
+  //           .slice(0, 10)}"`,
+  //       });
+  //       if (isActive) {
+  //         setOperationsCaisse(JSON.parse(data as string));
+  //       }
+  //     } catch (error) {
+  //       if (isActive) {
+  //         setOperationsCaisse([]);
+  //         console.log("Error fetching data:", error);
+  //       }
+  //     }
+  //   };
+
+  //   fetchOperations();
+
+  //   // Cleanup function to set isActive to false when component unmounts
+  //   return () => {
+  //     isActive = false;
+  //   };
+  // }, [valueDate]);
   useEffect(() => {
-    // setOperationsCaisse(
-    //   // data.filter((operationCaisse: any) => {
-    //   //   const date_creation = new Date(operationCaisse?.date_creation);
-
-    //   //   return (
-    //   //     date_creation.toISOString().slice(0, 10) ===
-    //   //     valueDate.toISOString().slice(0, 10)
-    //   //   );
-    //   // })
-    // );
-    get_operation_caisse({
-      where: ` WHERE id_caisse = 1 "`,
-    })
-      .then((data) => {
-        setOperationsCaisse(JSON.parse(data as string)[0]);
-      })
-      .catch((error) => {
-        setOperationsCaisse({});
-        console.log("Error fetching data:", error);
-      });
-  }, [valueDate]);
-
+    setOperationsCaisse(data);
+  }, [data]);
   const openOprModal = (type: any) => {
     setOperationType({ title: type.title, value: type.value });
     setModalOprIsOpen(true);
