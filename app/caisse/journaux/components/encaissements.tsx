@@ -1,10 +1,31 @@
 "use client";
-import React from "react";
+import { useEffect, useRef, useState } from "react";
+import { useDownloadExcel } from "react-export-table-to-excel";
+import { useSearchParams } from "next/navigation";
 
-export default function TableEncaissement({ tickets }: any) {
+export default function Encaissements({ data }: any) {
+  const [tickets, setTickets] = useState(data);
+  useEffect(() => {
+    setTickets(data);
+  }, [data]);
+  const searchParams = useSearchParams();
+  const date =
+    searchParams.get("date") || new Date().toISOString().slice(0, 10);
+  const tableRef = useRef(null);
+  const { onDownload } = useDownloadExcel({
+    currentTableRef: tableRef.current,
+    filename: `encaissement_${date}`,
+    // sheet: "/",
+  });
   return (
-    <div>
-      <table className="w-full overflow-auto ">
+    <div className="space-y-4">
+      <button
+        className="bg-green-500 text-white px-4 py-2 rounded flex ml-auto "
+        onClick={onDownload}
+      >
+        Exporter
+      </button>
+      <table className="w-full overflow-auto " ref={tableRef}>
         <thead className="bg-slate-800 text-white">
           <tr>
             <th className="p-4  rounded-tl-lg">N° Ticket</th>

@@ -65,7 +65,7 @@ const Navbar = ({ children }: { children: React.ReactNode }) => {
             className=" px-6 text-slate-900 font-semibold h-[50px] leading-[50px] hover:bg-slate-900 hover:text-white transition cursor-pointer"
             onClick={() => setIsMenuOpen(false)}
           >
-            <Link href="/synthese_ventes">Synthèse des ventes</Link>
+            <Link href="/caisse/synthese_ventes">Synthèse des ventes</Link>
           </div>
         </div>
         <div className="lg:hidden flex item-center px-4 h-full">

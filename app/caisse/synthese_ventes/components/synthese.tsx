@@ -1,4 +1,5 @@
 "use client";
+import { get_synths_paiements } from "@/app/lib/ticket/ticketActions";
 import React, { useEffect, useState } from "react";
 
 export default function Synths({ data }: any) {
@@ -7,8 +8,35 @@ export default function Synths({ data }: any) {
   useEffect(() => {
     setSynth(data);
   }, [data]);
+  // useEffect(() => {
+  //   const foundSynth = data.find((item: any) => {
+  //     const synthDate = new Date(item?.synths_date);
+  //     return (
+  //       synthDate.toISOString().slice(0, 10) ===
+  //       valueDate.toISOString().slice(0, 10)
+  //     );
+  //   });
+  //   console.log(foundSynth);
+  //   setSynth(foundSynth || {}); // Update the state with the found object or an empty object if not found
+  // }, [data, valueDate]); // Dependencies array for the useEffect hook
+  // useEffect(() => {
+  //   // async function fetchData() {
+  //   Promise.all([
+  //     get_synths_paiements({
+  //       having: ` HAVING DATE(synths_date)="${valueDate
+  //         .toISOString()
+  //         .slice(0, 10)}"`,
+  //     })
+  //       .then((data) => {
+  //         setSynth(JSON.parse(data as string)[0]);
+  //       })
+  //       .catch((error) => {
+  //         setSynth({});
+  //         console.log("Error fetching data:", error);
+  //       }),
+  //   ]);
+  // }, [valueDate]);
 
-  let totalMontant = 0;
   return (
     <div className="space-y-4 border border-gray-300 p-4">
       <div className="p-2"></div>
@@ -85,50 +113,23 @@ export default function Synths({ data }: any) {
         </table>
         <table className="flex-1">
           <tr>
-            {synth.paiements?.map((paiement: any, index: number) => {
-              totalMontant = totalMontant + paiement?.montant;
-              return (
-                <td
-                  key={index}
-                  className="border border-gray-300 flex justify-between p-4"
-                >
-                  <p className="text-gray-600">
-                    {paiement?.mode_paiement.charAt(0).toUpperCase() +
-                      paiement?.mode_paiement.slice(1)}
-                    :{" "}
-                  </p>
-
-                  <p className="font-bold text-gray-600">
-                    {paiement?.montant} <span className="currency">DH</span>
-                  </p>
-                </td>
-              );
-            })}
-
-            <td className="border border-gray-300 flex justify-between p-4">
-              <p className="text-gray-600 font-bold">Total : </p>
+            {synth.paiements?.map((paiement: any, index: number) => (
+              <td
+                key={index}
+                className="border border-gray-300 flex justify-between p-4"
+              >
+                <p className="text-gray-600">{paiement?.mode_paiement} : </p>
+                <p className="font-bold text-gray-600">
+                  {paiement?.montant} <span className="currency">DH</span>
+                </p>
+              </td>
+            ))}
+            {/* <td className="border border-gray-300 flex justify-between p-4">
+              <p className="font-bold text-gray-600">Carte bancaire : </p>
               <p className="font-bold text-gray-600">
-                {totalMontant} <span className="currency">DH</span>
+                0.00 <span className="currency">DH</span>
               </p>
-            </td>
-
-            <td className="border border-gray-300 flex justify-between p-4">
-              <p className="text-gray-600 ">
-                Dont paiement de ticket antérieur :
-              </p>
-              <p className="font-bold text-gray-600">
-                <span className="currency">0 DH</span>
-              </p>
-            </td>
-            <td className="border border-gray-300 flex justify-between p-4">
-              <p className="text-gray-600 ">En attente de paiement :</p>
-              <p className="font-bold text-gray-600">
-                {Number(
-                  (synth?.chiffre_affaires_ttc - totalMontant || 0).toFixed(2)
-                )}
-                <span className="currency"> DH</span>
-              </p>
-            </td>
+            </td> */}
           </tr>
         </table>
       </div>

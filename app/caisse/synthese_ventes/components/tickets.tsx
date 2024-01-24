@@ -1,15 +1,15 @@
 "use client";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import ModalDetailTK from "../../components/Modals/modaldetailticket";
 import { CiEdit } from "react-icons/ci";
-import { useDownloadExcel } from "react-export-table-to-excel";
-import { useSearchParams } from "next/navigation";
-import { SiMicrosoftexcel } from "react-icons/si";
 
 export default function Tickets({ data }: any) {
   const [tickets, setTickets] = useState([]);
   const [ticketId, setTicketId] = useState<any>(null);
 
+  // useEffect(() => {
+  //   if (ticketId !== null) openDetailTKModal();
+  // }, [ticketId]);
   const openDetailTKModal = (modalState: any) => {
     modalState(true);
   };
@@ -17,28 +17,24 @@ export default function Tickets({ data }: any) {
     modalState(false);
     setTicketId(null);
   };
+  // useEffect(() => {
+  //   setTickets(
+  //     data.filter((tickets: any) => {
+  //       const ticketDate = new Date(tickets?.date_creation);
 
+  //       return (
+  //         ticketDate.toISOString().slice(0, 10) ===
+  //         valueDate.toISOString().slice(0, 10)
+  //       );
+  //     })
+  //   );
+  // }, [data, valueDate]);
   useEffect(() => {
     setTickets(data);
   }, [data]);
-  const searchParams = useSearchParams();
-  const date =
-    searchParams.get("date") || new Date().toISOString().slice(0, 10);
-  const tableRef = useRef(null);
-  const { onDownload } = useDownloadExcel({
-    currentTableRef: tableRef.current,
-    filename: `tickets_${date}`,
-  });
   return (
     <div className="space-y-4">
-      <button
-        className="bg-green-500 text-white px-4 py-2 rounded flex ml-auto"
-        onClick={onDownload}
-      >
-        <SiMicrosoftexcel size={22} className="mr-2 font-semibold" />{" "}
-        <span className="">Exporter</span>
-      </button>
-      {/* <div className="p-2"></div> */}
+      <div className="p-2"></div>
       <table className="w-full overflow-auto ">
         <thead className="bg-slate-800 text-white">
           <tr>

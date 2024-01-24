@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import Tabs from "../components/Tabs";
 import Tickets from "./components/tickets";
 import OperationCaisse from "./components/operationcaisse";
-import Encaissements from "./components/encaissements";
+import Encaissements from "./components/Encaissement/encaissements";
 import Synths from "./components/synthese";
 import { useRouter } from "next/navigation"; // Replace with your actual import path
 import { useSearchParams, usePathname } from "next/navigation";
@@ -64,10 +64,7 @@ export default function Container({
       label: "Opération de caisse",
       content: <OperationCaisse data={operation_caisse} />,
     },
-    {
-      label: "Encaissements",
-      content: <Encaissements data={encaissements} />,
-    },
+
     {
       label: "Synthèse",
       content: <Synths data={synths} />,

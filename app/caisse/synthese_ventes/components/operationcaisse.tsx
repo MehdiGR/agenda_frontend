@@ -1,21 +1,46 @@
 "use client";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { FaDownload, FaUpload } from "react-icons/fa";
 import { BiSolidBank } from "react-icons/bi";
-import ModalOperationCaisse from "./Modals/modaloperationcaisse";
 import { RiProhibitedLine } from "react-icons/ri";
 import {
   get_operation_caisse,
   removeMouvement,
 } from "@/app/lib/ticket/ticketActions";
-import { useDownloadExcel } from "react-export-table-to-excel";
-import { useSearchParams } from "next/navigation";
 
 export default function OperationCaisse({ data }: any) {
   const [isOprModalOpen, setModalOprIsOpen] = useState(false);
   const [operationType, setOperationType] = useState({ title: "", value: "" });
   const [operationsCaisse, setOperationsCaisse] = useState(data);
+  // useEffect(() => {
+  // useEffect(() => {
+  // let isActive = true; // Flag to prevent state update if component unmounts
 
+  //   const fetchOperations = async () => {
+  //     try {
+  //       const data = await get_operation_caisse({
+  //         where: ` WHERE id_caisse = 1 AND  DATE(date_et_heur) = "${valueDate
+  //           .toISOString()
+  //           .slice(0, 10)}"`,
+  //       });
+  //       if (isActive) {
+  //         setOperationsCaisse(JSON.parse(data as string));
+  //       }
+  //     } catch (error) {
+  //       if (isActive) {
+  //         setOperationsCaisse([]);
+  //         console.log("Error fetching data:", error);
+  //       }
+  //     }
+  //   };
+
+  //   fetchOperations();
+
+  //   // Cleanup function to set isActive to false when component unmounts
+  //   return () => {
+  //     isActive = false;
+  //   };
+  // }, [valueDate]);
   useEffect(() => {
     setOperationsCaisse(data);
   }, [data]);
@@ -28,14 +53,7 @@ export default function OperationCaisse({ data }: any) {
     setModalOprIsOpen(false);
     setOperationType({ title: "", value: "" }); // Reset the operation type when the modal is closed
   };
-  const searchParams = useSearchParams();
-  const date =
-    searchParams.get("date") || new Date().toISOString().slice(0, 10);
-  const tableRef = useRef(null);
-  const { onDownload } = useDownloadExcel({
-    currentTableRef: tableRef.current,
-    filename: `operation_caisse_${date}`,
-  });
+
   return (
     <div className="space-y-4">
       <div className="flex gap-4">
@@ -65,14 +83,7 @@ export default function OperationCaisse({ data }: any) {
           <BiSolidBank />
           Remise en banque
         </button>
-        <button
-          className="bg-green-500 text-white px-4 py-2 rounded ml-auto"
-          onClick={onDownload}
-        >
-          Exporter
-        </button>
       </div>
-
       <table className="w-full overflow-auto ">
         <thead className="bg-slate-800 text-white">
           <tr className="">
@@ -126,11 +137,6 @@ export default function OperationCaisse({ data }: any) {
             ))}
         </tbody>
       </table>
-      <ModalOperationCaisse
-        closeModal={closeCreateTKModal}
-        modalIsOpen={isOprModalOpen}
-        operationType={operationType} // Pass the operation type to the modal
-      />
     </div>
   );
 }
