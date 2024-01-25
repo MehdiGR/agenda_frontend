@@ -1,83 +1,108 @@
 "use client";
-import DateNavigation from "@/app/components/datenavigation";
 import React, { useState } from "react";
 import Tabs from "../components/Tabs";
-import Tickets from "./components/tickets";
-import OperationCaisse from "./components/operationcaisse";
-import Encaissements from "./components/Encaissement/encaissements";
-import Synths from "./components/synthese";
+
 import { useRouter } from "next/navigation"; // Replace with your actual import path
 import { useSearchParams, usePathname } from "next/navigation";
+import ChiffreAffaire from "./components/chiffreaffaire";
+import MonthYearSelector from "./components/DateFilterComponent";
+import { number } from "yup";
 
-export default function Container({
-  tickets,
-  encaissements,
-  operation_caisse,
-  synths,
-  valueDate,
-}: any) {
-  const [selectedDate, setSelectedDate] = useState(new Date());
-  console.log("date", selectedDate);
-  // Inside your component
+export default function Container({ chiffre_affaires }: any) {
+  const [selectedMonth, setSelectedMonth] = useState("Janvier");
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  //  array of months
+  const months = [
+    "Janvier",
+    "Février",
+    "Mars",
+    "Avril",
+    "Mai",
+    "Juin",
+    "Juillet",
+    "Août",
+    "Septembre",
+    "Octobre",
+    "Novembre",
+    "Décembre",
+  ];
+  //array of years
+  const years = Array.from(
+    { length: new Date().getFullYear() - 2021 + 1 },
+    (_, i) => 2021 + i
+  );
+
   const router = useRouter();
   const searchParams = useSearchParams();
 
   const params = new URLSearchParams(searchParams.toString());
   const pathname = usePathname();
 
-  const handleNextDay = () => {
-    setSelectedDate((prev) => {
-      const nextDay = new Date(prev);
-      nextDay.setDate(nextDay.getDate() + 1);
-      params.set("date", nextDay.toISOString().split("T")[0]); // changed to nextDay
+  const handleNextMonth = () => {
+    setSelectedMonth((prev) => {
+      let nextMonthIndex = months.indexOf(prev) + 1;
+      // if (nextMonthIndex >= months.length) {
+      //   nextMonthIndex = 0; // Reset to January
+      // }
+      params.set(
+        "date",
+        selectedYear +
+          "-" +
+          (Number(nextMonthIndex) + 1).toString().padStart(2, "0") +
+          "-" +
+          "01"
+      ); // changed to nextDay
       router.push(`${pathname}?${params.toString()}`);
-      return nextDay;
+      return months[nextMonthIndex];
     });
   };
 
-  const handlePreviousDay = () => {
-    setSelectedDate((prev) => {
-      const previousDay = new Date(prev);
-      previousDay.setDate(previousDay.getDate() - 1);
-      params.set("date", previousDay.toISOString().split("T")[0]); // changed to previousDay
-
-      // Update the URL
+  const handlePreviousMonth = () => {
+    setSelectedMonth((prev) => {
+      let previousMonthIndex = months.indexOf(prev) - 1;
+      if (previousMonthIndex < 0) {
+        previousMonthIndex = months.length - 1; // Go to December
+      }
+      params.set(
+        "date",
+        selectedYear +
+          "-" +
+          (Number(previousMonthIndex) + 1).toString().padStart(2, "0") +
+          "-" +
+          "01"
+      ); // changed to nextDay
       router.push(`${pathname}?${params.toString()}`);
-      return previousDay;
+      return months[previousMonthIndex];
     });
   };
-
-  const handleDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSelectedDate(() => {
-      const newSelectedDate = new Date(event.target.value);
-      params.set("date", newSelectedDate.toISOString().split("T")[0]);
-      router.push(`${pathname}?${params.toString()}`);
-      return newSelectedDate;
-    });
+  const handleMonthChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedMonth(event.target.value);
   };
+  const handleYearChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const newYear = parseInt(event.target.value);
+    if (!isNaN(newYear) && years.includes(newYear)) {
+      setSelectedYear(newYear);
+    }
+  };
+
   const tabs = [
     {
-      label: "Tickets",
-      content: <Tickets data={tickets} />,
-    },
-    {
-      label: "Opération de caisse",
-      content: <OperationCaisse data={operation_caisse} />,
-    },
-
-    {
-      label: "Synthèse",
-      content: <Synths data={synths} />,
+      label: "Chiffre d'affaires",
+      content: <ChiffreAffaire dataProps={chiffre_affaires} />,
     },
   ];
   return (
     <div className="">
       <div className="flex justify-center ">
-        <DateNavigation
-          selectedDate={selectedDate}
-          handlePreviousDay={handlePreviousDay}
-          handleNextDay={handleNextDay}
-          handleDateChange={handleDateChange}
+        <MonthYearSelector
+          months={months}
+          years={years}
+          selectedMonth={selectedMonth}
+          selectedYear={selectedYear}
+          handleNextMonth={handleNextMonth}
+          handlePreviousMonth={handlePreviousMonth}
+          handleMonthChange={handleMonthChange}
+          handleYearChange={handleYearChange}
         />
       </div>
       <br />

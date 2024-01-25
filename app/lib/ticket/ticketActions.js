@@ -343,6 +343,56 @@ export async function get_synths_chiffre_affaires_jr({ having = "" }) {
     );
   }
 }
+export async function get_synths_chiffre_affaires({ date = "" }) {
+  try {
+    const sql = `
+                WITH RECURSIVE
+                DateSequence AS(
+                SELECT
+                    '${date}' AS date_sequence,
+                    LAST_DAY('${date}') AS last_day
+                UNION ALL
+            SELECT
+                DATE_ADD(date_sequence, INTERVAL 1 DAY),
+                IF(
+                    LAST_DAY(date_sequence) > CURDATE(), CURDATE(), LAST_DAY(date_sequence))
+                FROM
+                    DateSequence
+                WHERE
+                    DATE_ADD(date_sequence, INTERVAL 1 DAY) <= IF(
+                        LAST_DAY(date_sequence) > CURDATE(), CURDATE(), LAST_DAY(date_sequence)))
+                    SELECT
+                        DATE_FORMAT(ds.date_sequence, '%Y-%m-%d') AS day,
+                        COALESCE(ROUND(dce.mntht, 2),
+                        0) AS mntht,
+                        COALESCE(ROUND(dce.mntttc, 2),
+                        0) AS mntttc,
+                        CASE WHEN dce.cloture = 1 THEN "cloture" ELSE "ouvert"
+                    END AS Statut
+                FROM
+                    DateSequence ds
+                LEFT JOIN docentete dce ON
+                    DATE(dce.date_doc) = ds.date_sequence
+                    LEFT JOIN docligne as dcl on dcl.iddocument=dce.id 
+                GROUP BY
+                    DAY
+                ORDER BY
+                    DAY`;
+    const synths = await new Promise((resolve, reject) =>
+      connection.query(sql, (error, results) =>
+        error ? reject(error) : resolve(results)
+      )
+    );
+
+    return JSON.stringify(synths);
+  } catch (error) {
+    console.error("Could not execute query:", error);
+    return new NextResponse(
+      { error: "Could not execute query" },
+      { status: 500 }
+    );
+  }
+}
 
 async function executeQuery(sql, values) {
   return new Promise((resolve, reject) => {
