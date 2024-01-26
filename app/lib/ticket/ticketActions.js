@@ -343,9 +343,15 @@ export async function get_synths_chiffre_affaires_jr({ having = "" }) {
     );
   }
 }
-export async function get_synths_chiffre_affaires({ date = "" }) {
+export async function get_synths_chiffre_affaires({
+  date = "",
+  vue_type = "",
+}) {
   try {
-    const sql = `
+    let sql = "";
+
+    if (vue_type == "Monthly") {
+      sql = `
                 WITH RECURSIVE
                 DateSequence AS(
                 SELECT
@@ -378,6 +384,33 @@ export async function get_synths_chiffre_affaires({ date = "" }) {
                     DAY
                 ORDER BY
                     DAY`;
+    } else if (vue_type == "Yearly") {
+      sql = `SELECT 
+      m.month_name as Month,    
+        SUM(mntttc) AS Total_TTC,
+          SUM(mntht) AS Total_HT
+      FROM 
+          docentete as dce
+          JOIN 
+          (SELECT 1 AS month_number, 'Janvier' AS month_name UNION ALL
+           SELECT 2, 'Février' UNION ALL
+           SELECT 3, 'Mars' UNION ALL
+           SELECT 4, 'Avril' UNION ALL
+           SELECT 5, 'Mai' UNION ALL
+           SELECT 6, 'Juin' UNION ALL
+           SELECT 7, 'Juillet' UNION ALL
+           SELECT 8, 'Août' UNION ALL
+           SELECT 9, 'Septembre' UNION ALL
+           SELECT 10, 'Octobre' UNION ALL
+           SELECT 11, 'Novembre' UNION ALL
+           SELECT 12, 'Décembre') m 
+           on MONTH(date_doc)=m.month_number and YEAR(dce.date_doc) = ${date}
+      GROUP BY 
+         m.month_number,
+          m.month_name
+      ORDER BY 
+          MIN(date_doc);`;
+    }
     const synths = await new Promise((resolve, reject) =>
       connection.query(sql, (error, results) =>
         error ? reject(error) : resolve(results)

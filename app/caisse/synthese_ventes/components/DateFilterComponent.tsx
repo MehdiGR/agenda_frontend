@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { MdNavigateBefore, MdNavigateNext } from "react-icons/md";
+import { useSearchParams, usePathname, useRouter } from "next/navigation";
 
 interface MonthYearSelectorProps {
   months: string[];
@@ -8,8 +9,11 @@ interface MonthYearSelectorProps {
   selectedYear: number;
   handlePreviousMonth: () => void;
   handleNextMonth: () => void;
-  handleMonthChange: (event: React.ChangeEvent<HTMLSelectElement>) => void;
-  handleYearChange: (event: React.ChangeEvent<HTMLSelectElement>) => void;
+  handleMonthChange: () => void;
+  handleYearChange: () => void;
+  handleNextYear: () => void;
+  handlePreviousYear: () => void;
+  viewType: string; // Pas
 }
 
 const MonthYearSelector: React.FC<MonthYearSelectorProps> = ({
@@ -21,12 +25,38 @@ const MonthYearSelector: React.FC<MonthYearSelectorProps> = ({
   handleNextMonth,
   handleMonthChange,
   handleYearChange,
+  handleNextYear,
+  handlePreviousYear,
+  viewType, // Pass the viewType prop here
 }) => {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const params = new URLSearchParams(searchParams.toString());
+  const pathname = usePathname();
+  const [viewTypeState, setViewType] = useState(viewType);
+
   return (
     <div className=" ">
+      <select
+        className="border border-gray-200 p-2 mr-6 rounded-sm"
+        value={viewTypeState}
+        onChange={(e) => {
+          setViewType(e.target.value);
+          params.set("view_type", e.target.value);
+          router.push(`${pathname}?${params.toString()}`);
+        }}
+      >
+        <option value="monthly">Monthly</option>
+        <option value="yearly">Yearly</option>
+      </select>
       <button
         className="bg-slate-800 p-2 rounded-sm text-white"
-        onClick={handlePreviousMonth}
+        onClick={
+          viewType == "monthly"
+            ? () => handlePreviousMonth()
+            : () => handlePreviousYear()
+        }
         disabled={selectedMonth === "Janvier"}
       >
         <MdNavigateBefore />
@@ -55,7 +85,9 @@ const MonthYearSelector: React.FC<MonthYearSelectorProps> = ({
       </select>
       <button
         className="bg-slate-800 p-2 ml-2 rounded-sm text-white "
-        onClick={handleNextMonth}
+        onClick={
+          viewType == "monthly" ? () => handleNextMonth : () => handleNextYear()
+        }
         disabled={selectedMonth === "Décembre"}
       >
         <MdNavigateNext />

@@ -2,13 +2,12 @@
 import React, { useState } from "react";
 import Tabs from "../components/Tabs";
 
-import { useRouter } from "next/navigation"; // Replace with your actual import path
-import { useSearchParams, usePathname } from "next/navigation";
+import { useSearchParams, usePathname, useRouter } from "next/navigation";
 import ChiffreAffaire from "./components/chiffreaffaire";
 import MonthYearSelector from "./components/DateFilterComponent";
 import { number } from "yup";
 
-export default function Container({ chiffre_affaires }: any) {
+export default function Container({ chiffre_affaires, viewType }: any) {
   const [selectedMonth, setSelectedMonth] = useState("Janvier");
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   //  array of months
@@ -75,6 +74,23 @@ export default function Container({ chiffre_affaires }: any) {
       return months[previousMonthIndex];
     });
   };
+  const handleNextYear = () => {
+    setSelectedYear((prev) => {
+      let nextYear = prev + 1;
+      params.set("date", nextYear + "-01-01");
+      router.push(`${pathname}?${params.toString()}`);
+      return nextYear;
+    });
+  };
+
+  const handlePreviousYear = () => {
+    setSelectedYear((prev) => {
+      let previousYear = prev - 1;
+      params.set("date", previousYear + "-01-01");
+      router.push(`${pathname}?${params.toString()}`);
+      return previousYear;
+    });
+  };
   const handleMonthChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedMonth(event.target.value);
   };
@@ -103,6 +119,9 @@ export default function Container({ chiffre_affaires }: any) {
           handlePreviousMonth={handlePreviousMonth}
           handleMonthChange={handleMonthChange}
           handleYearChange={handleYearChange}
+          handleNextYear={handleNextYear}
+          handlePreviousYear={handlePreviousYear}
+          viewType={viewType} // Pass the viewType prop here
         />
       </div>
       <br />

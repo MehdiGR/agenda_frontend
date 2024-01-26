@@ -8,6 +8,7 @@ export default async function Journaux({
   searchParams: any;
 }) {
   const valueDate = searchParams?.date;
+  const vue_type = searchParams?.vue_type;
   console.log("searchParams", valueDate);
   // return null;
   // Check if the 'date' parameter is provided and is a valid date
@@ -17,18 +18,26 @@ export default async function Journaux({
   }
   // Convert the string to a Date object
   // const validDate = new Date(valueDate);
-  const validDate = valueDate ? new Date(valueDate) : new Date();
+  const validDate = valueDate
+    ? new Date(valueDate)
+    : new Date(
+        `${new Date().getFullYear()}-${String(
+          new Date().getMonth() + 1
+        ).padStart(2, "0")}-01`
+      );
+  const validType = vue_type ? vue_type : "Monthly";
   console.log("validDate", validDate);
   const chiffre_affaires = JSON.parse(
     (await get_synths_chiffre_affaires({
       date: validDate?.toISOString().split("T")[0],
+      vue_type: validType,
     })) as string
   );
   console.log(chiffre_affaires);
 
   return (
     <div className="p-14">
-      <Container chiffre_affaires={chiffre_affaires} />
+      <Container chiffre_affaires={chiffre_affaires} viewType={validType} />
     </div>
   );
 }
