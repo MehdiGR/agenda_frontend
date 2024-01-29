@@ -345,71 +345,69 @@ export async function get_synths_chiffre_affaires_jr({ having = "" }) {
 }
 export async function get_synths_chiffre_affaires({
   date = "",
-  vue_type = "",
+  viewType = "",
 }) {
   try {
     let sql = "";
 
-    if (vue_type == "Monthly") {
+    if (viewType == "monthly") {
       sql = `
-                WITH RECURSIVE
-                DateSequence AS(
-                SELECT
-                    '${date}' AS date_sequence,
-                    LAST_DAY('${date}') AS last_day
-                UNION ALL
-            SELECT
-                DATE_ADD(date_sequence, INTERVAL 1 DAY),
-                IF(
-                    LAST_DAY(date_sequence) > CURDATE(), CURDATE(), LAST_DAY(date_sequence))
-                FROM
-                    DateSequence
-                WHERE
-                    DATE_ADD(date_sequence, INTERVAL 1 DAY) <= IF(
-                        LAST_DAY(date_sequence) > CURDATE(), CURDATE(), LAST_DAY(date_sequence)))
-                    SELECT
-                        DATE_FORMAT(ds.date_sequence, '%Y-%m-%d') AS day,
-                        COALESCE(ROUND(dce.mntht, 2),
-                        0) AS mntht,
-                        COALESCE(ROUND(dce.mntttc, 2),
-                        0) AS mntttc,
-                        CASE WHEN dce.cloture = 1 THEN "cloture" ELSE "ouvert"
-                    END AS Statut
-                FROM
-                    DateSequence ds
-                LEFT JOIN docentete dce ON
-                    DATE(dce.date_doc) = ds.date_sequence
-                    LEFT JOIN docligne as dcl on dcl.iddocument=dce.id 
-                GROUP BY
-                    DAY
-                ORDER BY
-                    DAY`;
-    } else if (vue_type == "Yearly") {
+      WITH RECURSIVE DateSequence AS (
+        SELECT 
+            '${date}' AS date_sequence,
+            LAST_DAY('${date}') AS last_day
+        UNION ALL
+        SELECT 
+            DATE_ADD(date_sequence, INTERVAL 1 DAY) AS date_sequence,
+            IF(LAST_DAY(date_sequence) > CURDATE(), CURDATE(), LAST_DAY(date_sequence)) AS last_day
+        FROM 
+            DateSequence
+        WHERE 
+            DATE_ADD(date_sequence, INTERVAL 1 DAY) <= IF(LAST_DAY(date_sequence) > CURDATE(), CURDATE(), LAST_DAY(date_sequence))
+    )
+    SELECT 
+        DATE_FORMAT(ds.date_sequence, '%Y-%m-%d') AS day,
+        COALESCE(ROUND(SUM(dce.mntht), 2), 0) AS total_ht,
+        COALESCE(ROUND(SUM(dce.mntttc), 2), 0) AS total_ttc,
+        CASE 
+            WHEN MAX(dce.cloture) = 1 THEN "cloture" 
+            ELSE "ouvert" 
+        END AS statut
+    FROM 
+        DateSequence ds
+    LEFT JOIN docentete dce ON DATE(dce.date_doc) = ds.date_sequence
+    WHERE 
+        ds.date_sequence <= CURDATE()
+    GROUP BY 
+        day
+    ORDER BY 
+        day;`;
+    } else if (viewType == "yearly") {
       sql = `SELECT 
-      m.month_name as Month,    
-        SUM(mntttc) AS Total_TTC,
-          SUM(mntht) AS Total_HT
-      FROM 
-          docentete as dce
-          JOIN 
-          (SELECT 1 AS month_number, 'Janvier' AS month_name UNION ALL
-           SELECT 2, 'Février' UNION ALL
-           SELECT 3, 'Mars' UNION ALL
-           SELECT 4, 'Avril' UNION ALL
-           SELECT 5, 'Mai' UNION ALL
-           SELECT 6, 'Juin' UNION ALL
-           SELECT 7, 'Juillet' UNION ALL
-           SELECT 8, 'Août' UNION ALL
-           SELECT 9, 'Septembre' UNION ALL
-           SELECT 10, 'Octobre' UNION ALL
-           SELECT 11, 'Novembre' UNION ALL
-           SELECT 12, 'Décembre') m 
-           on MONTH(date_doc)=m.month_number and YEAR(dce.date_doc) = ${date}
-      GROUP BY 
-         m.month_number,
-          m.month_name
-      ORDER BY 
-          MIN(date_doc);`;
+         m.month_name as month_name,    
+         ROUND(SUM(mntttc),2) AS total_ttc,
+         ROUND(SUM(mntht),2) AS total_ht
+    FROM 
+        docentete as dce
+        JOIN 
+        (SELECT 1 AS month_number, 'Janvier' AS month_name UNION ALL
+         SELECT 2, 'Février' UNION ALL
+         SELECT 3, 'Mars' UNION ALL
+         SELECT 4, 'Avril' UNION ALL
+         SELECT 5, 'Mai' UNION ALL
+         SELECT 6, 'Juin' UNION ALL
+         SELECT 7, 'Juillet' UNION ALL
+         SELECT 8, 'Août' UNION ALL
+         SELECT 9, 'Septembre' UNION ALL
+         SELECT 10, 'Octobre' UNION ALL
+         SELECT 11, 'Novembre' UNION ALL
+         SELECT 12, 'Décembre') m 
+         on MONTH(date_doc)=m.month_number and YEAR(dce.date_doc) = '${date}'
+    GROUP BY 
+       m.month_number,
+        m.month_name
+    ORDER BY 
+        MIN(date_doc);`;
     }
     const synths = await new Promise((resolve, reject) =>
       connection.query(sql, (error, results) =>

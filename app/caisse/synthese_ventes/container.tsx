@@ -4,10 +4,14 @@ import Tabs from "../components/Tabs";
 
 import { useSearchParams, usePathname, useRouter } from "next/navigation";
 import ChiffreAffaire from "./components/chiffreaffaire";
-import MonthYearSelector from "./components/DateFilterComponent";
+import MonthYearSelector from "./components/monthyearselector";
 import { number } from "yup";
 
-export default function Container({ chiffre_affaires, viewType }: any) {
+export default function Container({
+  chiffre_affaires,
+  viewType,
+  valueDate,
+}: any) {
   const [selectedMonth, setSelectedMonth] = useState("Janvier");
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   //  array of months
@@ -104,7 +108,13 @@ export default function Container({ chiffre_affaires, viewType }: any) {
   const tabs = [
     {
       label: "Chiffre d'affaires",
-      content: <ChiffreAffaire dataProps={chiffre_affaires} />,
+      content: (
+        <ChiffreAffaire
+          dataProps={chiffre_affaires}
+          viewType={viewType}
+          date={valueDate}
+        />
+      ),
     },
   ];
   return (

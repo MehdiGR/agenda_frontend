@@ -1,15 +1,16 @@
 "use client";
 import React, { useEffect, useState } from "react";
+import ChartComponent from "./chart";
 
-export default function ChiffreAffaire({ dataProps }: any) {
+export default function ChiffreAffaire({ dataProps, viewType, date }: any) {
   const [data, setData] = useState([]);
-  console.log(dataProps);
 
   useEffect(() => {
     setData(dataProps);
   }, [dataProps]);
   return (
     <div className="space-y-4">
+      <ChartComponent viewType={viewType} date={"2024-01-01"} />
       <div className="p-2"></div>
       <table className="w-full overflow-auto ">
         <thead className="bg-slate-800 text-white">
@@ -28,10 +29,12 @@ export default function ChiffreAffaire({ dataProps }: any) {
               key={index}
               className="p-16 even:bg-gray-200 odd:bg-gray-100 font-medium hover:bg-gray-300 transition "
             >
-              <td className="p-4 text-slate-800">{data?.day}</td>
-              <td className="p-4 text-slate-800">{Number(data?.mntht)}</td>
+              <td className="p-4 text-slate-800">
+                {data?.day ?? data?.month_name}
+              </td>
+              <td className="p-4 text-slate-800">{Number(data?.total_ht)}</td>
               {/* <td className="p-4 text-slate-800">{Number(data?.mnttva)}</td> */}
-              <td className="p-4 text-slate-800">{Number(data?.mntttc)}</td>
+              <td className="p-4 text-slate-800">{Number(data?.total_ttc)}</td>
               <td className="p-4 text-slate-800">{data.statut}</td>
             </tr>
           ))}

@@ -9,8 +9,8 @@ interface MonthYearSelectorProps {
   selectedYear: number;
   handlePreviousMonth: () => void;
   handleNextMonth: () => void;
-  handleMonthChange: () => void;
-  handleYearChange: () => void;
+  handleMonthChange: (event: React.ChangeEvent<HTMLSelectElement>) => void;
+  handleYearChange: (event: React.ChangeEvent<HTMLSelectElement>) => void;
   handleNextYear: () => void;
   handlePreviousYear: () => void;
   viewType: string; // Pas
@@ -27,23 +27,28 @@ const MonthYearSelector: React.FC<MonthYearSelectorProps> = ({
   handleYearChange,
   handleNextYear,
   handlePreviousYear,
-  viewType, // Pass the viewType prop here
+  viewType,
 }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
 
   const params = new URLSearchParams(searchParams.toString());
   const pathname = usePathname();
-  const [viewTypeState, setViewType] = useState(viewType);
+  const [viewTypeState, setViewType] = useState("monthly"); // Initialize state with 'monthly'
+  useEffect(() => {
+    console.log("useEffect", viewType);
+    setViewType(viewType);
+  }, [viewType]);
 
   return (
     <div className=" ">
+      {/* <p>{viewTypeState}</p> */}
       <select
         className="border border-gray-200 p-2 mr-6 rounded-sm"
         value={viewTypeState}
         onChange={(e) => {
           setViewType(e.target.value);
-          params.set("view_type", e.target.value);
+          params.set("viewType", e.target.value);
           router.push(`${pathname}?${params.toString()}`);
         }}
       >
@@ -53,7 +58,7 @@ const MonthYearSelector: React.FC<MonthYearSelectorProps> = ({
       <button
         className="bg-slate-800 p-2 rounded-sm text-white"
         onClick={
-          viewType == "monthly"
+          viewTypeState == "monthly"
             ? () => handlePreviousMonth()
             : () => handlePreviousYear()
         }
@@ -86,7 +91,9 @@ const MonthYearSelector: React.FC<MonthYearSelectorProps> = ({
       <button
         className="bg-slate-800 p-2 ml-2 rounded-sm text-white "
         onClick={
-          viewType == "monthly" ? () => handleNextMonth : () => handleNextYear()
+          viewTypeState == "monthly"
+            ? () => handleNextMonth()
+            : () => handleNextYear()
         }
         disabled={selectedMonth === "Décembre"}
       >
