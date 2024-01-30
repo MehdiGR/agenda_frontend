@@ -6,12 +6,17 @@ export default function ChiffreAffaire({ dataProps, viewType, date }: any) {
   const [data, setData] = useState([]);
 
   useEffect(() => {
-    setData(dataProps);
-  }, [dataProps]);
+    let filteredData = dataProps;
+    if (viewType === "yearly") {
+      filteredData = dataProps.filter((item: any) => item.total_ttc !== null);
+    }
+    setData(filteredData);
+  }, [dataProps, viewType]);
   return (
-    <div className="space-y-4">
-      <ChartComponent viewType={viewType} date={"2024-01-01"} />
-      <div className="p-2"></div>
+    <div className="space-y-4 ">
+      <div className="p-2 w-full  h-[500px]">
+        <ChartComponent viewType={viewType} date={"2024-01-01"} />
+      </div>
       <table className="w-full overflow-auto ">
         <thead className="bg-slate-800 text-white">
           <tr>

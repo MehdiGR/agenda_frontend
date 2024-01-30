@@ -1,31 +1,22 @@
 import React, { useState, useEffect } from "react";
-import { Line } from "react-chartjs-2";
+import { Bar } from "react-chartjs-2";
 import { get_synths_chiffre_affaires } from "@/app/lib/ticket/ticketActions";
 import {
   Chart,
   ChartData,
   CategoryScale,
   LinearScale,
-  PointElement,
-  LineElement,
+  BarElement,
   Title,
   Tooltip,
   Legend,
 } from "chart.js";
 
 // Register Chart.js components
-Chart.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend
-);
+Chart.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 // Define the type for your chart data
-type ChartDataType = ChartData<"line", number[], string>;
+type ChartDataType = ChartData<"bar", number[], string>;
 
 const ChartComponent = ({
   viewType,
@@ -58,8 +49,7 @@ const ChartComponent = ({
           {
             label: "Total TTC",
             data: total_ttc,
-            borderColor: "rgb(255, 99, 132)",
-            tension: 0.1,
+            backgroundColor: "#43766C",
           },
         ],
       });
@@ -69,27 +59,27 @@ const ChartComponent = ({
   }, [viewType, date]);
 
   return (
-    <Line
+    <Bar
       data={chartData}
       options={{
         elements: {
-          line: {
-            fill: false, // Ensure the area under the line is not filled
+          bar: {
+            borderWidth: 1,
           },
           point: {
-            radius: 0, // Hide the points to emphasize the line itself
+            radius: 0,
           },
         },
         scales: {
           x: {
             type: "category",
             grid: {
-              display: false, // Optionally hide the grid lines for the X-axis
+              display: false,
             },
           },
           y: {
             grid: {
-              display: false, // Optionally hide the grid lines for the Y-axis
+              display: false,
             },
           },
         },

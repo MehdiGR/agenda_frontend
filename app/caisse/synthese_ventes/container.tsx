@@ -102,6 +102,8 @@ export default function Container({
     const newYear = parseInt(event.target.value);
     if (!isNaN(newYear) && years.includes(newYear)) {
       setSelectedYear(newYear);
+      params.set("date", newYear + "-01-01");
+      router.push(`${pathname}?${params.toString()}`);
     }
   };
 

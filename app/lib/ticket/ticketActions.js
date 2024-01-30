@@ -389,7 +389,7 @@ export async function get_synths_chiffre_affaires({
          ROUND(SUM(mntht),2) AS total_ht
     FROM 
         docentete as dce
-        JOIN 
+        RIGHT JOIN 
         (SELECT 1 AS month_number, 'Janvier' AS month_name UNION ALL
          SELECT 2, 'Février' UNION ALL
          SELECT 3, 'Mars' UNION ALL
@@ -407,7 +407,7 @@ export async function get_synths_chiffre_affaires({
        m.month_number,
         m.month_name
     ORDER BY 
-        MIN(date_doc);`;
+        m.month_number;`;
     }
     const synths = await new Promise((resolve, reject) =>
       connection.query(sql, (error, results) =>

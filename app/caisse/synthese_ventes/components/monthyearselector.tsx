@@ -39,7 +39,10 @@ const MonthYearSelector: React.FC<MonthYearSelectorProps> = ({
     console.log("useEffect", viewType);
     setViewType(viewType);
   }, [viewType]);
-
+  const isFirstMonth = selectedMonth === months[0];
+  const isLastMonth = selectedMonth === months[months.length - 1];
+  const isFirstYear = selectedYear === years[0];
+  const isLastYear = selectedYear === years[years.length - 1];
   return (
     <div className=" ">
       {/* <p>{viewTypeState}</p> */}
@@ -62,7 +65,7 @@ const MonthYearSelector: React.FC<MonthYearSelectorProps> = ({
             ? () => handlePreviousMonth()
             : () => handlePreviousYear()
         }
-        disabled={selectedMonth === "Janvier"}
+        disabled={viewTypeState === "monthly" ? isFirstMonth : isFirstYear}
       >
         <MdNavigateBefore />
       </button>
@@ -95,7 +98,7 @@ const MonthYearSelector: React.FC<MonthYearSelectorProps> = ({
             ? () => handleNextMonth()
             : () => handleNextYear()
         }
-        disabled={selectedMonth === "Décembre"}
+        disabled={viewTypeState === "monthly" ? isLastMonth : isLastYear}
       >
         <MdNavigateNext />
       </button>
