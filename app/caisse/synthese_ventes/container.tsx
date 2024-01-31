@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import Tabs from "../components/Tabs";
 
 import { useSearchParams, usePathname, useRouter } from "next/navigation";
-import ChiffreAffaire from "./components/chiffreaffaire";
+import ChiffreAffaire from "./components/chiffreaffaire/table";
 import MonthYearSelector from "./components/monthyearselector";
 import { number } from "yup";
 
@@ -96,7 +96,18 @@ export default function Container({
     });
   };
   const handleMonthChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedMonth(event.target.value);
+    const month = event.target.value;
+    const monthIndex = months.indexOf(event.target.value);
+    setSelectedMonth(month);
+    params.set(
+      "date",
+      selectedYear +
+        "-" +
+        (Number(monthIndex) + 1).toString().padStart(2, "0") +
+        "-" +
+        "01"
+    ); // changed to nextDay
+    router.push(`${pathname}?${params.toString()}`);
   };
   const handleYearChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const newYear = parseInt(event.target.value);

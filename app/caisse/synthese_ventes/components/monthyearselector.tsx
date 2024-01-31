@@ -47,7 +47,7 @@ const MonthYearSelector: React.FC<MonthYearSelectorProps> = ({
     <div className=" ">
       {/* <p>{viewTypeState}</p> */}
       <select
-        className="border border-gray-200 p-2 mr-6 rounded-sm"
+        className="border border-gray-200 p-2 mr-6 rounded-sm "
         value={viewTypeState}
         onChange={(e) => {
           setViewType(e.target.value);
@@ -70,7 +70,9 @@ const MonthYearSelector: React.FC<MonthYearSelectorProps> = ({
         <MdNavigateBefore />
       </button>
       <select
-        className="border border-gray-200 p-2 ml-2 rounded-sm"
+        className={`border border-gray-200 p-2 ml-2 rounded-sm ${
+          viewTypeState == "yearly" ? "hidden" : ""
+        }`}
         value={selectedMonth}
         onChange={handleMonthChange}
       >

@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import ChartComponent from "./chart";
+import ChartComponent from "./charts";
 
 export default function ChiffreAffaire({ dataProps, viewType, date }: any) {
   const [data, setData] = useState([]);
@@ -14,9 +14,7 @@ export default function ChiffreAffaire({ dataProps, viewType, date }: any) {
   }, [dataProps, viewType]);
   return (
     <div className="space-y-4 ">
-      <div className="p-2 w-full  h-[500px]">
-        <ChartComponent viewType={viewType} date={"2024-01-01"} />
-      </div>
+      <ChartComponent viewType={viewType} date={"2024-01-01"} />
       <table className="w-full overflow-auto ">
         <thead className="bg-slate-800 text-white">
           <tr>

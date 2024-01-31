@@ -6,46 +6,33 @@ import puppeteer from "puppeteer";
 
 // import { NextResponse } from "next/server";
 
-export async function get_encaissements({ where = "" }) {
+export async function get_encaissements({ where = "", params = [] }) {
   try {
     const sql = `
-    SELECT
-      dce.id AS ticketId,
-      clt.nom AS client,
-      Num_doc AS Num_ticket,
-      DATE(dce.date_doc) AS date_creation,
-      (pm.montant),
-      mtp.intitule as mode_paiement,
-      clb.nom AS vendeur 
-    FROM
-        docentete AS dce
-    JOIN client clt ON
-        clt.id = dce.tier_doc
-    JOIN collaborateur clb ON
-        clt.idCollab = clb.id_collaborateur
-    JOIN paiement_caisse AS pm
-    ON
-        pm.id_doc = dce.id
-    JOIN paiement_tier AS pmt
-    ON
-        pmt.id = pm.id_paiement
-    LEFT JOIN methode_paiement AS mtp
-    ON
-        mtp.id = pmt.id_method
-   ${where} `;
-    //  LEFT JOIN paiement_tier AS pmt
-    //  ON
-    //      pmt.id = pm.id_paiement
-    //  LEFT JOIN methode_paiement AS mdp
-    //  ON
-    //      mdp.id = pmt.id_method
-    const tickets = await new Promise((resolve, reject) =>
-      connection.query(sql, (error, results) =>
-        error ? reject(error) : resolve(results)
+      SELECT
+        dce.id AS ticketId,
+        clt.nom AS client,
+        Num_doc AS Num_ticket,
+        DATE(dce.date_doc) AS date_creation,
+        pm.montant,
+        mtp.intitule as mode_paiement,
+        clb.nom AS vendeur 
+      FROM
+          docentete AS dce
+      JOIN client clt ON clt.id = dce.tier_doc
+      JOIN collaborateur clb ON clt.idCollab = clb.id_collaborateur
+      JOIN paiement_caisse AS pm ON pm.id_doc = dce.id
+      JOIN paiement_tier AS pmt ON pmt.id = pm.id_paiement
+      LEFT JOIN methode_paiement AS mtp ON mtp.id = pmt.id_method
+      ${where}`;
+
+    const encaissements = await new Promise((resolve, reject) =>
+      connection.query(sql, params, (error, results) =>
+        error ? reject(error) : resolve(JSON.stringify(results))
       )
     );
 
-    return JSON.stringify(tickets);
+    return encaissements;
   } catch (error) {
     console.error("Could not execute query:", error);
     return new NextResponse(
@@ -54,35 +41,30 @@ export async function get_encaissements({ where = "" }) {
     );
   }
 }
-export async function get_tickets({ where = "" }) {
+export async function get_tickets({ where = "", params = [] }) {
   try {
     const sql = `
-            SELECT
-                dce.id as ticketId,
-                dce.mntht,
-                dce.mnttva,
-                dce.mntttc,
-                clt.nom as client,
-                Num_doc as Num_ticket,
-                (dce.mntttc - (
-                    SELECT COALESCE(SUM(pm.montant), 0)
-                    FROM paiement_caisse as pm
-                    WHERE dce.id = pm.id_doc
-                )) as restePayer ,
-                Date(dce.date_doc) AS date_creation
-            FROM
-                docentete AS dce
-            JOIN client clt ON
-                clt.id = dce.tier_doc
-   ${where} `;
-    //  LEFT JOIN paiement_tier AS pmt
-    //  ON
-    //      pmt.id = pm.id_paiement
-    //  LEFT JOIN methode_paiement AS mdp
-    //  ON
-    //      mdp.id = pmt.id_method
+      SELECT
+        dce.id as ticketId,
+        dce.mntht,
+        dce.mnttva,
+        dce.mntttc,
+        clt.nom as client,
+        Num_doc as Num_ticket,
+        (dce.mntttc - (
+            SELECT COALESCE(SUM(pm.montant), 0)
+            FROM paiement_caisse as pm
+            WHERE dce.id = pm.id_doc
+        )) as restePayer ,
+        Date(dce.date_doc) AS date_creation
+      FROM
+        docentete AS dce
+      JOIN client clt ON
+        clt.id = dce.tier_doc
+      ${where}`;
+
     const tickets = await new Promise((resolve, reject) =>
-      connection.query(sql, (error, results) =>
+      connection.query(sql, params, (error, results) =>
         error ? reject(error) : resolve(results)
       )
     );
@@ -188,27 +170,27 @@ export async function get_ticket_paiements({ where = "" }) {
     );
   }
 }
-export async function get_operation_caisse({ where = "" }) {
+export async function get_operation_caisse({ where = "", params = [] }) {
   try {
-    // will be update 'id utilisateur' when implement authentication
     const sql = `SELECT
-                      id,
-                      DATE(date_et_heur) AS date_creation,
-                      id_utilisateur AS utilisateur,
-                      commentaire,
-                      ROUND(montant,2) AS montant,
-                      'Enregistrer' AS statut,
-                      CASE WHEN retrait = 1 THEN 'Retrait' WHEN depot = 1 THEN 'Depot' WHEN encaissement = 1 THEN 'Encaissement'
-                  END AS operationType
+                  id,
+                  DATE(date_et_heur) AS date_creation,
+                  id_utilisateur AS utilisateur,
+                  commentaire,
+                  ROUND(montant,2) AS montant,
+                  'Enregistrer' AS statut,
+                  CASE WHEN retrait = 1 THEN 'Retrait' WHEN depot = 1 THEN 'Depot' WHEN encaissement = 1 THEN 'Encaissement' END AS operationType
                   FROM
-                      mouvementcaisse ${where} `;
+                  mouvementcaisse
+                  ${where}`;
+
     const operation_caisse = await new Promise((resolve, reject) =>
-      connection.query(sql, (error, results) =>
-        error ? reject(error) : resolve(results)
+      connection.query(sql, params, (error, results) =>
+        error ? reject(error) : resolve(JSON.stringify(results))
       )
     );
 
-    return JSON.stringify(operation_caisse);
+    return operation_caisse;
   } catch (error) {
     console.error("Could not execute query:", error);
     return new NextResponse(
@@ -217,90 +199,27 @@ export async function get_operation_caisse({ where = "" }) {
     );
   }
 }
-export async function get_synths_paiements_jr({ having = "" }) {
-  try {
-    const sql = `SELECT
-                  DATE(pmt.date_reg) AS synths_date,
-                  mtp.intitule AS mode_paiement,
-                  ROUND(SUM(pmt.montant), 2) AS montant
-                FROM
-                  paiement_tier AS pmt
-                JOIN methode_paiement AS mtp ON pmt.id_method = mtp.id
-                GROUP BY
-                  mtp.id, mode_paiement, DATE(pmt.date_reg)
-                ${having} `;
-    const synths = await new Promise((resolve, reject) =>
-      connection.query(sql, (error, results) =>
-        error ? reject(error) : resolve(results)
-      )
-    );
-
-    return JSON.stringify(synths);
-  } catch (error) {
-    console.error("Could not execute query:", error);
-    return new NextResponse(
-      { error: "Could not execute query" },
-      { status: 500 }
-    );
-  }
-}
-export async function get_synths_montant_en_caisse_jr({ having = "" }) {
+export async function get_synths_paiements_jr({ having = "", params = [] }) {
   try {
     const sql = `
-                SELECT
-                    COALESCE(total_espace_encaisse, 0) AS total_espace_encaisse,
-                    COALESCE(total_operation_caisse, 0) AS total_operation_caisse,
-                    SUM(
-                        COALESCE(total_espace_encaisse, 0) + COALESCE(total_operation_caisse, 0)
-                    ) AS montant_en_caisse,
-                    DATE(synths_date) AS synths_date
-                FROM
-                    (
-                    SELECT
-                        ROUND(SUM(pm.montant),
-                        2) AS total_espace_encaisse,
-                        NULL AS total_operation_caisse,
-                        dce.date_doc AS synths_date
-                    FROM
-                        docentete AS dce
-                    JOIN paiement_caisse AS pm
-                    ON
-                        pm.id_doc = dce.id
-                    JOIN paiement_tier AS pmt
-                    ON
-                        pmt.id = pm.id_paiement
-                    LEFT JOIN methode_paiement AS mtp
-                    ON
-                        mtp.id = pmt.id_method
-                    WHERE
-                        dce.idtypedoc = 21 AND mtp.id = 2
-                    GROUP BY
-                        dce.date_doc
-                    UNION ALL
-                SELECT NULL AS
-                    total_espace_encaisse,
-                    ROUND(
-                        SUM(
-                            CASE WHEN retrait = 1 THEN - montant WHEN depot = 1 THEN montant ELSE 0
-                        END
-                    ),
-                    2
-                ) AS total_operation_caisse,
-                date_et_heur AS synths_date
-                FROM
-                    mouvementcaisse
-                GROUP BY
-                    DATE(date_et_heur)
-                ) AS subquery
-                GROUP BY
-                    DATE(synths_date) ${having} `;
-    const synths = await new Promise((resolve, reject) =>
-      connection.query(sql, (error, results) =>
-        error ? reject(error) : resolve(results)
+      SELECT
+        DATE(pmt.date_reg) AS synths_date,
+        mtp.intitule AS mode_paiement,
+        ROUND(SUM(pmt.montant), 2) AS montant
+      FROM
+        paiement_tier AS pmt
+      JOIN methode_paiement AS mtp ON pmt.id_method = mtp.id
+      GROUP BY
+        mtp.id, mode_paiement, DATE(pmt.date_reg)
+      ${having}`;
+
+    const paiements = await new Promise((resolve, reject) =>
+      connection.query(sql, params, (error, results) =>
+        error ? reject(error) : resolve(JSON.stringify(results))
       )
     );
 
-    return JSON.stringify(synths);
+    return paiements;
   } catch (error) {
     console.error("Could not execute query:", error);
     return new NextResponse(
@@ -309,32 +228,78 @@ export async function get_synths_montant_en_caisse_jr({ having = "" }) {
     );
   }
 }
-export async function get_synths_chiffre_affaires_jr({ having = "" }) {
+export async function get_synths_montant_en_caisse_jr({
+  having = "",
+  params = [],
+}) {
   try {
     const sql = `
-                SELECT 
-                  date_doc AS synths_date,
-                  SUM(mntht) AS chiffre_affaires_ht,
-                  ROUND(SUM(mnttva),
-                  2) AS total_tva,
-                  ROUND(SUM(mntttc),
-                  2) AS chiffre_affaires_ttc,
-                  COUNT(Num_doc) AS nbr_tickets,
-                  ROUND(
-                      SUM(mntttc) / COUNT(Num_doc),
-                      2
-                  ) AS panier_moyen_ttc
-                FROM
-                  docentete
-                GROUP BY
-                  date_doc ${having} `;
-    const synths = await new Promise((resolve, reject) =>
-      connection.query(sql, (error, results) =>
-        error ? reject(error) : resolve(results)
+      SELECT
+        COALESCE(total_espace_encaisse, 0) AS total_espace_encaisse,
+        COALESCE(total_operation_caisse, 0) AS total_operation_caisse,
+        SUM(COALESCE(total_espace_encaisse, 0) + COALESCE(total_operation_caisse, 0)) AS montant_en_caisse,
+        DATE(synths_date) AS synths_date
+      FROM (
+        SELECT
+          ROUND(SUM(pm.montant), 2) AS total_espace_encaisse,
+          NULL AS total_operation_caisse,
+          dce.date_doc AS synths_date
+        FROM docentete AS dce
+        JOIN paiement_caisse AS pm ON pm.id_doc = dce.id
+        JOIN paiement_tier AS pmt ON pmt.id = pm.id_paiement
+        LEFT JOIN methode_paiement AS mtp ON mtp.id = pmt.id_method
+        WHERE dce.idtypedoc = 21 AND mtp.id = 2
+        GROUP BY dce.date_doc
+        UNION ALL
+        SELECT NULL AS total_espace_encaisse,
+          ROUND(SUM(CASE WHEN retrait = 1 THEN -montant WHEN depot = 1 THEN montant ELSE 0 END), 2) AS total_operation_caisse,
+          date_et_heur AS synths_date
+        FROM mouvementcaisse
+        GROUP BY DATE(date_et_heur)
+      ) AS subquery
+      GROUP BY DATE(synths_date) ${having}`;
+
+    const montant_en_caisse = await new Promise((resolve, reject) =>
+      connection.query(sql, params, (error, results) =>
+        error ? reject(error) : resolve(JSON.stringify(results))
       )
     );
 
-    return JSON.stringify(synths);
+    return montant_en_caisse;
+  } catch (error) {
+    console.error("Could not execute query:", error);
+    return new NextResponse(
+      { error: "Could not execute query" },
+      { status: 500 }
+    );
+  }
+}
+export async function get_synths_chiffre_affaires_jr({
+  having = "",
+  params = [],
+}) {
+  try {
+    const sql = `
+      SELECT
+        date_doc AS synths_date,
+        SUM(mntht) AS chiffre_affaires_ht,
+        ROUND(SUM(mnttva), 2) AS total_tva,
+        ROUND(SUM(mntttc), 2) AS chiffre_affaires_ttc,
+        COUNT(Num_doc) AS nbr_tickets,
+        ROUND(SUM(mntttc) / COUNT(Num_doc), 2) AS panier_moyen_ttc
+      FROM
+        docentete
+      GROUP BY
+        date_doc
+      ${having}`;
+
+    const synths = await new Promise((resolve, reject) =>
+      connection.query(sql, params, (error, results) =>
+        error ? reject(error) : resolve(JSON.stringify(results))
+      )
+    );
+
+    return synths;
   } catch (error) {
     console.error("Could not execute query:", error);
     return new NextResponse(
@@ -349,13 +314,14 @@ export async function get_synths_chiffre_affaires({
 }) {
   try {
     let sql = "";
+    let queryParams = [];
 
     if (viewType == "monthly") {
       sql = `
       WITH RECURSIVE DateSequence AS (
         SELECT 
-            '${date}' AS date_sequence,
-            LAST_DAY('${date}') AS last_day
+            ? AS date_sequence,
+            LAST_DAY(?) AS last_day
         UNION ALL
         SELECT 
             DATE_ADD(date_sequence, INTERVAL 1 DAY) AS date_sequence,
@@ -382,6 +348,7 @@ export async function get_synths_chiffre_affaires({
         day
     ORDER BY 
         day;`;
+      queryParams = [date, date];
     } else if (viewType == "yearly") {
       sql = `SELECT 
          m.month_name as month_name,    
@@ -402,15 +369,17 @@ export async function get_synths_chiffre_affaires({
          SELECT 10, 'Octobre' UNION ALL
          SELECT 11, 'Novembre' UNION ALL
          SELECT 12, 'Décembre') m 
-         on MONTH(date_doc)=m.month_number and YEAR(dce.date_doc) = '${date}'
+         on MONTH(date_doc)=m.month_number and YEAR(dce.date_doc) = ?
     GROUP BY 
        m.month_number,
         m.month_name
     ORDER BY 
         m.month_number;`;
+      queryParams = [date];
     }
+
     const synths = await new Promise((resolve, reject) =>
-      connection.query(sql, (error, results) =>
+      connection.query(sql, queryParams, (error, results) =>
         error ? reject(error) : resolve(results)
       )
     );
