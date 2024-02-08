@@ -320,21 +320,26 @@ export async function get_synths_chiffre_affaires({
       sql = `
       WITH RECURSIVE DateSequence AS (
         SELECT 
-            ? AS date_sequence,
-            LAST_DAY(?) AS last_day
+            ? AS date_sequence, -- Replace with the start date
+            LAST_DAY(?) AS last_day -- Replace with the start date or another date to determine the last day of the month
         UNION ALL
         SELECT 
             DATE_ADD(date_sequence, INTERVAL 1 DAY) AS date_sequence,
-            IF(LAST_DAY(date_sequence) > CURDATE(), CURDATE(), LAST_DAY(date_sequence)) AS last_day
+            LAST_DAY(date_sequence) AS last_day
         FROM 
             DateSequence
         WHERE 
-            DATE_ADD(date_sequence, INTERVAL 1 DAY) <= IF(LAST_DAY(date_sequence) > CURDATE(), CURDATE(), LAST_DAY(date_sequence))
+            DATE_ADD(date_sequence, INTERVAL 1 DAY) <= LAST_DAY(date_sequence)
     )
     SELECT 
         DATE_FORMAT(ds.date_sequence, '%Y-%m-%d') AS day,
-        COALESCE(ROUND(SUM(dce.mntht), 2), 0) AS total_ht,
-        COALESCE(ROUND(SUM(dce.mntttc), 2), 0) AS total_ttc,
+        COALESCE(ROUND(SUM(DISTINCT dce.mntht), 2), 0) AS total_ht,
+        COALESCE(ROUND(SUM(DISTINCT dce.mntttc), 2), 0) AS total_ttc,
+        COALESCE(ROUND(SUM(CASE WHEN art.idTypeArticle = 3 THEN dcl.total_ttc ELSE 0 END), 2), 0) AS total_prestations,
+        COALESCE(ROUND(SUM(CASE WHEN art.idTypeArticle = 2 THEN dcl.total_ttc ELSE 0 END), 2), 0) AS total_products,
+        COALESCE(ROUND(SUM(CASE WHEN art.code_tauxtvaVente = "v0" THEN dcl.total_ttc ELSE 0 END), 2), 0) AS total_ttc_v0,
+        COALESCE(ROUND(SUM(CASE WHEN art.code_tauxtvaVente = "v20" THEN dcl.total_ttc ELSE 0 END), 2), 0) AS total_ttc_v20,
+        COALESCE(ROUND(SUM(CASE WHEN art.code_tauxtvaVente = "v21" THEN dcl.total_ttc ELSE 0 END), 2), 0) AS total_ttc_v21,
         CASE 
             WHEN MAX(dce.cloture) = 1 THEN "cloture" 
             ELSE "ouvert" 
@@ -342,12 +347,15 @@ export async function get_synths_chiffre_affaires({
     FROM 
         DateSequence ds
     LEFT JOIN docentete dce ON DATE(dce.date_doc) = ds.date_sequence
+    LEFT JOIN docligne dcl ON dcl.iddocument = dce.id
+    LEFT JOIN article art ON art.id = dcl.idproduit
     WHERE 
         ds.date_sequence <= CURDATE()
     GROUP BY 
         day
     ORDER BY 
-        day;`;
+        day;
+    `;
       queryParams = [date, date];
     } else if (viewType == "yearly") {
       sql = `SELECT 
@@ -377,6 +385,65 @@ export async function get_synths_chiffre_affaires({
         m.month_number;`;
       queryParams = [date];
     }
+
+    const synths = await new Promise((resolve, reject) =>
+      connection.query(sql, queryParams, (error, results) =>
+        error ? reject(error) : resolve(results)
+      )
+    );
+
+    return JSON.stringify(synths);
+  } catch (error) {
+    console.error("Could not execute query:", error);
+    return new NextResponse(
+      { error: "Could not execute query" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function get_total_sales_by_article_type({ date = "" }) {
+  try {
+    let sql = "";
+    let queryParams = [];
+
+    sql = `
+      SELECT 
+        ROUND(SUM(CASE WHEN art.idTypeArticle = 3 THEN dcl.total_ttc ELSE 0 END),2) AS total_prestations,
+        ROUND(SUM(CASE WHEN art.idTypeArticle = 2 THEN dcl.total_ttc ELSE 0 END),2) AS total_products
+      FROM docentete dce
+      LEFT JOIN docligne dcl ON dcl.iddocument = dce.id
+      LEFT JOIN article art ON art.id = dcl.idproduit
+      WHERE YEAR(dce.date_doc) = YEAR(?)
+        AND MONTH(dce.date_doc) = MONTH(?);`;
+    const sql2 = `SELECT
+              'prestations' AS type,
+              COALESCE(ROUND(SUM(dcl.total_ttc), 2), 0) AS total_amount,
+              COALESCE(ROUND(SUM(dce.mntht), 2), 0) AS total_ht,
+              COALESCE(ROUND(SUM(dce.mnttva), 2), 0) AS total_tva,
+              COALESCE(ROUND(SUM(dce.mntttc), 2), 0) AS total_ttc
+          FROM
+              docentete dce
+          JOIN docligne dcl ON dcl.iddocument = dce.id
+          JOIN article art ON art.id = dcl.idproduit
+          WHERE
+              YEAR(dce.date_doc) = 2024 AND MONTH(dce.date_doc) = 2 AND
+              art.idTypeArticle = 3
+          UNION ALL
+          SELECT
+              'produits' AS type,
+              COALESCE(ROUND(SUM(dcl.total_ttc), 2), 0) AS total_amount,
+              COALESCE(ROUND(SUM(dce.mntht), 2), 0) AS total_ht,
+              COALESCE(ROUND(SUM(dce.mnttva), 2), 0) AS total_tva,
+              COALESCE(ROUND(SUM(dce.mntttc), 2), 0) AS total_ttc
+          FROM
+              docentete dce
+          JOIN docligne dcl ON dcl.iddocument = dce.id
+          JOIN article art ON art.id = dcl.idproduit
+          WHERE
+              YEAR(dce.date_doc) = 2024 AND MONTH(dce.date_doc) = 2 AND
+              art.idTypeArticle = 2;`;
+    queryParams = [date, date];
 
     const synths = await new Promise((resolve, reject) =>
       connection.query(sql, queryParams, (error, results) =>

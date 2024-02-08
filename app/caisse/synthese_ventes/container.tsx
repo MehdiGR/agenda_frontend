@@ -3,18 +3,17 @@ import React, { useState } from "react";
 import Tabs from "../components/Tabs";
 
 import { useSearchParams, usePathname, useRouter } from "next/navigation";
-import ChiffreAffaire from "./components/chiffreaffaire/table";
+import ChiffreAffaire from "./components/chiffreaffaire/main";
 import MonthYearSelector from "./components/monthyearselector";
 import { number } from "yup";
 
 export default function Container({
-  chiffre_affaires,
+  salesData,
+  salesByArticleType,
   viewType,
   valueDate,
 }: any) {
-  const [selectedMonth, setSelectedMonth] = useState("Janvier");
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
-  //  array of months
+  console.log("the valid date is ", valueDate);
   const months = [
     "Janvier",
     "Février",
@@ -29,6 +28,14 @@ export default function Container({
     "Novembre",
     "Décembre",
   ];
+  const today = new Date(); // Note: getMonth() returns a zero-based index (0-11)
+  const currentMonthIndex = today.getMonth(); // Note: getMonth() returns a zero-based index (0-11)
+  const currentMonth = months[currentMonthIndex];
+  const currentYear = today.getFullYear();
+
+  const [selectedMonth, setSelectedMonth] = useState(currentMonth);
+  const [selectedYear, setSelectedYear] = useState(currentYear);
+  //  array of months
   //array of years
   const years = Array.from(
     { length: new Date().getFullYear() - 2021 + 1 },
@@ -123,10 +130,19 @@ export default function Container({
       label: "Chiffre d'affaires",
       content: (
         <ChiffreAffaire
-          dataProps={chiffre_affaires}
+          salesData={salesData}
+          salesByArticleType={salesByArticleType}
           viewType={viewType}
           date={valueDate}
         />
+      ),
+    },
+    {
+      label: "Détail chiffres",
+      content: (
+        <div>
+          <h1>detail</h1>
+        </div>
       ),
     },
   ];

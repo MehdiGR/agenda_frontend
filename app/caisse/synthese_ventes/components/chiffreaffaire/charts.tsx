@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Bar, Pie } from "react-chartjs-2";
-import { get_synths_chiffre_affaires } from "@/app/lib/ticket/ticketActions";
+import {
+  get_synths_chiffre_affaires,
+  get_total_sales_by_article_type,
+} from "@/app/lib/ticket/ticketActions";
 import {
   Chart,
   ChartData,
@@ -31,12 +34,13 @@ type ChartDataType = ChartData<"bar", number[], string>;
 type PieChartDataType = ChartData<"pie", number[], string>;
 
 const ChartComponent = ({
-  viewType,
-  date,
+  salesData,
+  salesByArticleType,
 }: {
-  viewType: string;
-  date: string;
+  salesData: any;
+  salesByArticleType: any;
 }) => {
+  // console.log("date", date);
   // Use the ChartDataType for your chartData state
   const [chartData, setChartData] = useState<ChartDataType>({
     labels: [],
@@ -53,46 +57,36 @@ const ChartComponent = ({
     ],
   });
   useEffect(() => {
-    const fetchData = async () => {
-      const response = await get_synths_chiffre_affaires({
-        date,
-        viewType,
-      });
-      const data = JSON.parse(response as string);
+    const labels = salesData.map((item: any) => item.day || item.month_name);
+    const total_ht = salesData.map((item: any) => item.total_ht);
+    const total_ttc = salesData.map((item: any) => item.total_ttc);
+    setChartData({
+      labels,
+      datasets: [
+        {
+          label: "Total TTC",
+          data: total_ttc,
+          backgroundColor: "#44A9A8",
+        },
+      ],
+    });
 
-      const labels = data.map((item: any) => item.day || item.month_name);
-      const total_ht = data.map((item: any) => item.total_ht);
-      const total_ttc = data.map((item: any) => item.total_ttc);
-      console.log("total_ttc", total_ttc);
-      setChartData({
-        labels,
-        datasets: [
-          {
-            label: "Total TTC",
-            data: total_ttc,
-            backgroundColor: "#44A9A8",
-          },
-        ],
-      });
-    };
-    const fetchPieData = async () => {
-      const total_prestation = 100;
-      const total_produits = 100;
-      setPieChartData({
-        labels: ["Total Prestation", "Total Produits"],
-        datasets: [
-          {
-            data: [total_prestation, total_produits],
-            backgroundColor: ["#44A9A8", "#D9D9D9"],
-            hoverBackgroundColor: ["#43766C", "#D9D9D9"],
-          },
-        ],
-      });
-    };
-
-    fetchData();
-    fetchPieData();
-  }, [viewType, date]);
+    // Pie Chart
+    const {
+      total_prestations: total_prestation,
+      total_products: total_produits,
+    } = salesByArticleType[0];
+    setPieChartData({
+      labels: ["Total Prestations", "Total Produits"],
+      datasets: [
+        {
+          data: [total_prestation, total_produits],
+          backgroundColor: ["#44A9A8", "#D9D9D9"],
+          hoverBackgroundColor: ["#43766C", "#D9D9D9"],
+        },
+      ],
+    });
+  }, [salesData, salesByArticleType]);
 
   return (
     <div className="flex flex-wrap  justify-around gap-10 w-full ">

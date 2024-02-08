@@ -1,4 +1,7 @@
-import { get_synths_chiffre_affaires } from "@/app/lib/ticket/ticketActions";
+import {
+  get_synths_chiffre_affaires,
+  get_total_sales_by_article_type,
+} from "@/app/lib/ticket/ticketActions";
 import Container from "./container";
 import { revalidatePath } from "next/cache";
 
@@ -27,19 +30,27 @@ export default async function Journaux({
       );
   const validType = viewType ? viewType : "monthly";
   console.log("validType", validType);
-  const chiffre_affaires = JSON.parse(
+
+  const salesData = JSON.parse(
     (await get_synths_chiffre_affaires({
       date: validDate?.toISOString().split("T")[0],
       viewType: validType,
     })) as string
   );
-
+  const salesByArticleType = JSON.parse(
+    (await get_total_sales_by_article_type({
+      date: validDate?.toISOString().split("T")[0],
+    })) as string
+  );
+  // Format the date as a string in the 'YYYY-MM-DD' format
+  const formattedValidDate = validDate.toISOString().split("T")[0];
   return (
     <div className="p-14">
       <Container
-        chiffre_affaires={chiffre_affaires}
+        salesData={salesData}
+        salesByArticleType={salesByArticleType}
         viewType={validType}
-        date={validDate}
+        valueDate={formattedValidDate}
       />
     </div>
   );

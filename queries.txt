@@ -1,0 +1,123 @@
+WITH RECURSIVE DateSequence AS (
+    SELECT 
+        "2024-02-01" AS date_sequence,
+        LAST_DAY("2024-02-01") AS last_day
+    UNION ALL
+    SELECT 
+        DATE_ADD(date_sequence, INTERVAL 1 DAY) AS date_sequence,
+        IF(LAST_DAY(date_sequence) > CURDATE(), CURDATE(), LAST_DAY(date_sequence)) AS last_day
+    FROM 
+        DateSequence
+    WHERE 
+        DATE_ADD(date_sequence, INTERVAL 1 DAY) <= IF(LAST_DAY(date_sequence) > CURDATE(), CURDATE(), LAST_DAY(date_sequence))
+)
+SELECT 
+    DATE_FORMAT(ds.date_sequence, '%Y-%m-%d') AS day,
+    COALESCE(ROUND(SUM(dce.mntht), 2), 0) AS total_ht,
+    COALESCE(ROUND(SUM(dce.mntttc), 2), 0) AS total_ttc,
+    COALESCE(ROUND(SUM(CASE WHEN art.code_tauxtvaVente = "v20" THEN dcl.total_ttc ELSE 0 END), 2), 0) AS total_ttc_v20,
+    CASE 
+        WHEN MAX(dce.cloture) = 1 THEN "cloture" 
+        ELSE "ouvert" 
+    END AS statut
+FROM 
+    DateSequence ds
+LEFT JOIN docentete dce ON DATE(dce.date_doc) = ds.date_sequence
+LEFT JOIN (
+    SELECT 
+        dcl.iddocument,
+        dcl.total_ttc,
+        art.code_tauxtvaVente
+    FROM 
+        docligne dcl
+    LEFT JOIN article art ON art.id = dcl.idarticle
+) AS dcl ON dcl.iddocument = dce.id
+WHERE 
+    ds.date_sequence <= CURDATE()
+GROUP BY 
+    day
+ORDER BY 
+    day;
+
+
+
+***********************************************
+
+
+WITH RECURSIVE DateSequence AS (
+    SELECT 
+        "2024-02-01" AS date_sequence, -- Replace with the start date
+        LAST_DAY("2024-02-01") AS last_day -- Replace with the start date or another date to determine the last day of the month
+    UNION ALL
+    SELECT 
+        DATE_ADD(date_sequence, INTERVAL 1 DAY) AS date_sequence,
+        IF(LAST_DAY(date_sequence) > CURDATE(), CURDATE(), LAST_DAY(date_sequence)) AS last_day
+    FROM 
+        DateSequence
+    WHERE 
+        DATE_ADD(date_sequence, INTERVAL 1 DAY) <= IF(LAST_DAY(date_sequence) > CURDATE(), CURDATE(), LAST_DAY(date_sequence))
+)
+SELECT 
+    DATE_FORMAT(ds.date_sequence, '%Y-%m-%d') AS day,
+    COALESCE(ROUND(SUM(dce.mntht), 2), 0) AS total_ht,
+    COALESCE(ROUND(SUM(dce.mntttc), 2), 0) AS total_ttc,
+    COALESCE(ROUND(SUM(dcl.total_ttc_v20), 2), 0) AS total_ttc_v20,
+    CASE 
+        WHEN MAX(dce.cloture) = 1 THEN "cloture" 
+        ELSE "ouvert" 
+    END AS statut
+FROM 
+    DateSequence ds
+LEFT JOIN docentete dce ON DATE(dce.date_doc) = ds.date_sequence
+LEFT JOIN (
+    SELECT 
+        dcl.iddocument,
+        CASE 
+            WHEN art.code_tauxtvaVente = "v20" THEN dcl.total_ttc 
+            ELSE 0 
+        END AS total_ttc_v20
+    FROM 
+        docligne dcl
+    INNER JOIN article art ON art.id = dcl.idarticle -- Ensure this join is correct and that the article table has the code_tauxtvaVente column
+) AS dcl ON dcl.iddocument = dce.id
+WHERE 
+    ds.date_sequence <= CURDATE()
+GROUP BY 
+    day
+ORDER BY 
+    day;
+//last 
+
+WITH RECURSIVE DateSequence AS (
+    SELECT 
+        "2024-01-01" AS date_sequence, -- Replace with the start date
+        LAST_DAY("2024-01-01") AS last_day -- Replace with the start date or another date to determine the last day of the month
+    UNION ALL
+    SELECT 
+        DATE_ADD(date_sequence, INTERVAL 1 DAY) AS date_sequence,
+        LAST_DAY(date_sequence) AS last_day
+    FROM 
+        DateSequence
+    WHERE 
+        DATE_ADD(date_sequence, INTERVAL 1 DAY) <= LAST_DAY(date_sequence)
+)
+SELECT 
+    DATE_FORMAT(ds.date_sequence, '%Y-%m-%d') AS day,
+    COALESCE(ROUND(SUM(DISTINCT dce.mntht), 2), 0) AS total_ht,
+    COALESCE(ROUND(SUM(DISTINCT dce.mntttc), 2), 0) AS total_ttc,
+    COALESCE(ROUND(SUM(CASE WHEN art.code_tauxtvaVente = "v20" THEN dcl.total_ttc ELSE 0 END), 2), 0) AS total_ttc_v20,
+    CASE 
+        WHEN MAX(dce.cloture) = 1 THEN "cloture" 
+        ELSE "ouvert" 
+    END AS statut
+FROM 
+    DateSequence ds
+LEFT JOIN docentete dce ON DATE(dce.date_doc) = ds.date_sequence
+LEFT JOIN docligne dcl ON dcl.iddocument = dce.id
+LEFT JOIN article art ON art.id = dcl.idproduit
+WHERE 
+    ds.date_sequence <= CURDATE()
+GROUP BY 
+    day
+ORDER BY 
+    day;
