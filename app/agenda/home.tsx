@@ -104,22 +104,44 @@ export default function Home({
     }
   };
   const handleEventDrop = (arg: any) => {
-    const dateTimeString = arg.event.start;
-    let date = new Date(dateTimeString);
+    const eventId = arg.event._def.extendedProps.eventIndex;
+    console.log("events ", events);
+    const eventStart = arg.event._instance.range.start.toISOString();
+    const eventEnd = arg.event._instance.range.end.toISOString();
 
-    // const dateObj = new Date(arg.event.start);
-    let hours = date.getHours().toString().padStart(2, "0");
-    let minutes = date.getMinutes().toString().padStart(2, "0");
-    let formattedDate = date.toISOString().split("T")[0];
-    const newDate = {
-      dateDB: formattedDate,
-      hourDB: { label: hours, value: hours },
-      minutesDB: { label: minutes, value: minutes },
-    };
-    // setDateTime(newDate);
+    // Find the index of the event being dropped
+    const index = events.findIndex(
+      (event: any) => event.eventIndex === eventId
+    );
+    // console.log("index", index);
+    // return;
+    if (index !== -1) {
+      // Create an updated event with the new resource ID and title
+      const updatedEvent = {
+        ...events[index],
+        resourceId: arg.event._def.resourceIds[0],
+        resourceTitle: arg.event._def.title,
+        start: eventStart.slice(0, 16),
+        end: eventEnd.slice(0, 16),
+        isTemp: false,
+      };
+
+      console.log("updatedEvent", updatedEvent);
+      // return;
+      // Update the event in the events array
+      manageEvents([{ action: "update", payload: { updatedEvent, index } }]);
+
+      // Set the active update section and editing flag
+      // setActiveUpdateSection(true);
+      setOnEditingEvent(true);
+    } else {
+      console.error("Event with the given ID not found in the events array.");
+    }
   };
+
   const updatedIndices = useRef(false);
   const handleUpdateEvent = (info: any) => {
+    alert("update");
     if (info.event.extendedProps.idRes && !onEditingEvent) {
       const idRes = info.event.extendedProps.idRes;
       const Indices = events
@@ -133,6 +155,45 @@ export default function Home({
       return;
     }
   };
+  function handleEventResize(event) {
+    console.log("Updated event:", event);
+
+    const eventId = event.extendedProps.eventIndex;
+    console.log("events ", events);
+    // Access the event's start and end times
+    const eventStart = event.start.toISOString();
+    const eventEnd = event.end.toISOString();
+    return;
+    // Find the index of the event being dropped
+    const index = events.findIndex(
+      (event: any) => event.eventIndex === eventId
+    );
+    // console.log("index", index);
+    // return;
+    if (index !== -1) {
+      // Create an updated event with the new resource ID and title
+      const updatedEvent = {
+        ...events[index],
+        resourceId: event.resourceIds[0],
+        resourceTitle: event.title,
+        start: eventStart.slice(0, 16),
+        end: eventEnd.slice(0, 16),
+        isTemp: false,
+      };
+
+      console.log("updatedEvent", updatedEvent);
+      // return;
+      // Update the event in the events array
+      manageEvents([{ action: "update", payload: { updatedEvent, index } }]);
+
+      // Set the active update section and editing flag
+      // setActiveUpdateSection(true);
+      setOnEditingEvent(true);
+    } else {
+      console.error("Event with the given ID not found in the events array.");
+    }
+  }
+
   // useEffect(() => {
   //   if (updatedIndices.current) {
   //     console.log("first");
@@ -168,6 +229,7 @@ export default function Home({
         handleAddEvent={handleAddEvent}
         handleEventDrop={handleEventDrop}
         handleUpdateEvent={handleUpdateEvent}
+        handleEventResize={handleEventResize}
         agendas={agendas}
       />
     </div>

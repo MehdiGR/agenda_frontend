@@ -1839,7 +1839,7 @@ CREATE TABLE `methode_paiement` (
 
 INSERT INTO `methode_paiement` (`id`, `intitule`, `icon`, `active`) VALUES
 (1, 'Carte Bancaire', '', 1),
-(2, 'espace', '2.png', 1),
+(2, 'espece', '2.png', 1),
 (3, 'Chéque', '', 1),
 (4, 'effet', '', 1),
 (5, 'invitation', '15.png', 1),

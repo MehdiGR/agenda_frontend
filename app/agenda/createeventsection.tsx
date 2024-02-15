@@ -22,7 +22,6 @@ import {
 import {
   openModal,
   formatDuration,
-  handleOptionChangeTypeClt,
   cancelCreationEvent,
 } from "@/app/js/agenda_fn";
 import { useStore } from "@/app/store/store";
@@ -72,7 +71,7 @@ export default function CreateEventSection({
   const [selectedHourDB, selectedMinutesDB] =
     selectedEventFirst?.start.split("T")[1]?.split(":") || [];
 
-  const [clientIsRef, setIsRef] = useState(true);
+  const [clientIsRef, setIsRefClient] = useState(true);
   const [selectedClientType, setSelectedClientType] = useState("client_ref");
   const [clientOptions, setClientOptions] = useState(
     clients.map((client: any) => {
@@ -84,15 +83,29 @@ export default function CreateEventSection({
       return { value: agenda.id, label: agenda.nom };
     })
   );
+  const handleOptionChangeTypeClt = (changeEvent: any) => {
+    let value = changeEvent.target.value;
+    value == "client_ref" ? setIsRefClient(true) : setIsRefClient(false);
+    setSelectedClientType(value);
+  };
   // const [selectedClient, setSelectedClient] = useState(null);
   // const [selectedAgenda, setSelectedAgenda] = useState();
 
   const schema = yup.object().shape({
+    // client: yup
+    //   .object()
+    //   .shape({
+    //     label: yup.string().required("Sélectionnez un client"),
+    //     value: yup.string().required(),
+    //   })
+    //   .required(),
     client: yup
       .object()
       .shape({
-        label: yup.string().required("Sélectionnez un client"),
-        value: yup.string().required(),
+        label: !clientIsRef
+          ? yup.string().nullable()
+          : yup.string().required("Sélectionnez un client"),
+        value: !clientIsRef ? yup.string().nullable() : yup.string().required(),
       })
       .required(),
     dateRes: yup.string().required(),
@@ -146,6 +159,7 @@ export default function CreateEventSection({
   const submitTypeRef = useRef("");
 
   const router = useRouter();
+
   const handleSaveReservat: any = async (data: any) => {
     // if (submitTypeRef.current === "encaisser") {
     //   console.log("Encaisser button was clicked");
@@ -153,6 +167,8 @@ export default function CreateEventSection({
     // return;
     // saveReservat(data);
     // startTransition(async () => {
+    console.log("data", data);
+    return;
     const insertedIdTicket = await saveReservation({
       ...data,
       duree: totalDuration,
@@ -212,6 +228,11 @@ export default function CreateEventSection({
       });
     }
   }, [selectedEventAgendaPrestationArr, setValue, getValues]);
+  useEffect(() => {
+    if (!clientIsRef) {
+      setValue("client", { label: null, value: null });
+    }
+  }, [clientIsRef, setValue]);
 
   return (
     <div
@@ -230,22 +251,18 @@ export default function CreateEventSection({
             id="client_ref"
             value="client_ref"
             checked={selectedClientType === "client_ref"}
-            onChange={(event) =>
-              handleOptionChangeTypeClt(event, setIsRef, setSelectedClientType)
-            }
+            onChange={(event) => handleOptionChangeTypeClt(event)}
           />
-          <label htmlFor="client_ref">client référencer</label>
+          <label htmlFor="client_ref">Client référencer</label>
           <input
             type="radio"
             name="client_type"
             id="client_psg"
             value="client_psg"
             checked={selectedClientType === "client_psg"}
-            onChange={(event) =>
-              handleOptionChangeTypeClt(event, setIsRef, setSelectedClientType)
-            }
+            onChange={(event) => handleOptionChangeTypeClt(event)}
           />
-          <label htmlFor="client_psg">client de passage</label>
+          <label htmlFor="client_psg">Client de passage</label>
         </div>
         <div>
           <ModalClient villes={villes} collaborateurs={collaborateurs} />
@@ -261,16 +278,8 @@ export default function CreateEventSection({
                   {...field}
                   instanceId="select_client"
                   placeholder="Sélectionnez un Client"
-                  // defaultValue={{
-                  //   label: agenda_prestationArr[0]?.client.label || "0",
-                  //   value: agenda_prestationArr[0]?.client.value || "0",
-                  // }}
-
                   options={clientOptions}
-                  // value={selectedClient}
-                  {...(clientIsRef == true
-                    ? { disabled: false }
-                    : { disabled: true })}
+                  isDisabled={!clientIsRef}
                   styles={{
                     ...selectDefaultStyle,
                     container: (provided) => ({
@@ -280,7 +289,7 @@ export default function CreateEventSection({
                       width: "100%",
                     }),
                   }}
-                  // onChange={handleOptionChangeClt}
+                  value={!clientIsRef ? null : field.value}
                 />
               )}
             />

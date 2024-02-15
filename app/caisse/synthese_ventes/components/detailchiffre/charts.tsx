@@ -1,9 +1,16 @@
-import React, { useState, useEffect } from "react";
-import { Pie } from "react-chartjs-2";
-import { get_total_sales_by_article_type } from "@/app/lib/ticket/ticketActions";
+import React, { useState } from "react";
+import { Bar, Pie } from "react-chartjs-2";
+import {
+  get_synths_chiffre_affaires,
+  get_total_sales_by_article_type,
+} from "@/app/lib/ticket/ticketActions";
 import {
   Chart,
   ChartData,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
   Tooltip,
   Legend,
   PieController,
@@ -11,9 +18,19 @@ import {
 } from "chart.js";
 
 // Register Chart.js components
-Chart.register(Tooltip, Legend, PieController, ArcElement);
+Chart.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  PieController,
+  ArcElement
+);
 
 // Define the type for your chart data
+type ChartDataType = ChartData<"bar", number[], string>;
 type PieChartDataType = ChartData<"pie", number[], string>;
 
 const ChartComponent = ({
@@ -21,45 +38,32 @@ const ChartComponent = ({
 }: {
   salesByArticleType: any;
 }) => {
-  const [pieChartData, setPieChartData] = useState<PieChartDataType>({
-    labels: ["Total Prestation", "Total Produits"],
+  // Pie Chart
+  const total_prestation = salesByArticleType[0].total_ttc;
+  const total_produits = salesByArticleType[1].total_ttc;
+  const pieChartData: PieChartDataType = {
+    labels: ["Total Prestations", "Total Produits"],
     datasets: [
       {
-        data: [0, 0],
-        backgroundColor: ["#43766C", "#D9D9D9"],
+        data: [total_prestation, total_produits],
+        backgroundColor: ["#44A9A8", "#D9D9D9"],
         hoverBackgroundColor: ["#43766C", "#D9D9D9"],
       },
     ],
-  });
-  useEffect(() => {
-    // Pie Chart
-    const {
-      total_prestations: total_prestation,
-      total_products: total_produits,
-    } = salesByArticleType[0];
-    setPieChartData({
-      labels: ["Total Prestations", "Total Produits"],
-      datasets: [
-        {
-          data: [total_prestation, total_produits],
-          backgroundColor: ["#44A9A8", "#D9D9D9"],
-          hoverBackgroundColor: ["#43766C", "#D9D9D9"],
-        },
-      ],
-    });
-  }, [salesByArticleType]);
+  };
 
   return (
-    <div
-      className="flex-1 bg-gray-600 flex justify-center w-full h-i"
-      style={{ height: "300px", width: "500px" }}
-    >
+    <div className="bg-gray-600 flex justify-center w-[400px] h-[300px]">
       <Pie
         className=" p-6 rounded-md "
         data={pieChartData}
         options={{
+          animation: {
+            duration: 0, // Disable animations
+          },
           responsive: true,
-          maintainAspectRatio: true,
+          maintainAspectRatio: false, // Adjusted to render correctly according to the parent size
+          aspectRatio: 1, // You can adjust this value to meet your specific aspect ratio requirements
           plugins: {
             legend: {
               labels: {

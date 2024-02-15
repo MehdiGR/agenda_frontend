@@ -6,14 +6,21 @@ import { useSearchParams, usePathname, useRouter } from "next/navigation";
 import ChiffreAffaire from "./components/chiffreaffaire/main";
 import MonthYearSelector from "./components/monthyearselector";
 import { number } from "yup";
+import DetailChiffre from "./components/detailchiffre/main";
+import Tickets from "./components/tickets/main";
+import Reglements from "./components/reglements/main";
+import FondsCaisse from "./components/fondscaisse/main";
+import DetailTVA from "./components/detailtva/main";
 
 export default function Container({
   salesData,
   salesByArticleType,
+  ticketsData,
+  reglementsData,
+  fondsCaisseData,
+  detailTvaData,
   viewType,
-  valueDate,
 }: any) {
-  console.log("the valid date is ", valueDate);
   const months = [
     "Janvier",
     "Février",
@@ -129,25 +136,61 @@ export default function Container({
     {
       label: "Chiffre d'affaires",
       content: (
-        <ChiffreAffaire
-          salesData={salesData}
-          salesByArticleType={salesByArticleType}
-          viewType={viewType}
-          date={valueDate}
-        />
+        <div className="border p-4 overflow-auto">
+          <ChiffreAffaire
+            salesData={salesData}
+            salesByArticleType={salesByArticleType}
+            viewType={viewType}
+          />
+        </div>
       ),
     },
     {
       label: "Détail chiffres",
       content: (
-        <div>
-          <h1>detail</h1>
+        <div className="border p-4  overflow-auto">
+          <DetailChiffre
+            salesByArticleType={salesByArticleType}
+            viewType={viewType}
+          />
+        </div>
+      ),
+    },
+    {
+      label: "Tickets",
+      content: (
+        <div className="border p-4  overflow-auto">
+          <Tickets ticketsData={ticketsData} viewType={viewType} />
+        </div>
+      ),
+    },
+    {
+      label: "Règlements",
+      content: (
+        <div className="border p-4  overflow-auto">
+          <Reglements reglementsData={reglementsData} viewType={viewType} />
+        </div>
+      ),
+    },
+    {
+      label: "Fonds de caisse",
+      content: (
+        <div className="border p-4  overflow-auto">
+          <FondsCaisse fondsCaisseData={fondsCaisseData} viewType={viewType} />
+        </div>
+      ),
+    },
+    {
+      label: "Détail TVA",
+      content: (
+        <div className="border p-4  overflow-auto">
+          <DetailTVA detailTvaData={detailTvaData} viewType={viewType} />
         </div>
       ),
     },
   ];
   return (
-    <div className="">
+    <div className=" ">
       <div className="flex justify-center ">
         <MonthYearSelector
           months={months}

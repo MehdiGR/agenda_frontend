@@ -26,7 +26,7 @@ export default function Synths({ data }: any) {
             <td className="border border-gray-300 flex justify-between p-4">
               <p className="text-gray-600">Espèces encaissées : </p>
               <p className="font-bold text-gray-600">
-                {synth?.total_espace_encaisse || 0}
+                {synth?.total_espece_encaisse || 0}
                 <span className="currency"> DH</span>
               </p>
             </td>

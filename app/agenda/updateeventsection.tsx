@@ -55,6 +55,7 @@ export default function UpdateEventSection({
   // Get the first selected event or null if there are no selected events
   const selectedEventFirst =
     EventsIndices.length > 0 ? events[EventsIndices[0]] : null;
+  // console.log("first event", selectedEventFirst);
 
   // Get the last selected event or null if there are no selected events
   const selectedEventLast =

@@ -9,7 +9,6 @@ import {
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import Select from "react-select";
-import { handleOptionChangeTypeClt } from "@/app/js/agenda_fn";
 import { useStore_new2 } from "../../store/store_new2";
 import { IoMdClose } from "react-icons/io";
 import { IoTicketOutline } from "react-icons/io5";
@@ -47,7 +46,7 @@ export default function CaisseForm({
   const searchParams = useSearchParams();
   const params = new URLSearchParams(searchParams.toString());
 
-  const [clientIsRef, setIsRef] = useState(true);
+  const [clientIsRef, setIsRefClient] = useState(true);
   const [selectedClient, setSelectedClient] = useState({
     label: ticketLines[0]?.client,
     value: ticketLines[0]?.idClient,
@@ -79,10 +78,12 @@ export default function CaisseForm({
 
   const pathname = usePathname();
 
-  const inputRefs = {
-    input1: useRef(),
-    input2: useRef(),
-    input3: useRef(),
+  const inputRefs: {
+    [key: string]: React.MutableRefObject<HTMLInputElement | null>;
+  } = {
+    input1: useRef<HTMLInputElement | null>(null),
+    input2: useRef<HTMLInputElement | null>(null),
+    input3: useRef<HTMLInputElement | null>(null),
   };
   const [clientOptions, setClientOptions] = useState(
     clients.map((client: any) => {
@@ -92,15 +93,19 @@ export default function CaisseForm({
 
   const handleOptionChangeTypeClt = (changeEvent: any) => {
     let value = changeEvent.target.value;
-    value == "client_ref" ? setIsRef(true) : setIsRef(false);
+    value == "client_ref" ? setIsRefClient(true) : setIsRefClient(false);
     setSelectedClientType(value);
   };
+
   // handle click button in the calculator
-  const handleClickCalculator = (buttonValue) => {
-    const focusedInputRef = inputRefs[document.activeElement.id];
-    return;
-    if (focusedInputRef.current) {
-      focusedInputRef.current.value += buttonValue;
+  const handleClickCalculator = (buttonValue: any) => {
+    console.log("buttonValue", buttonValue);
+    const activeElement = document.activeElement;
+    if (activeElement && inputRefs[activeElement.id]) {
+      const focusedInputRef = inputRefs[activeElement.id];
+      if (focusedInputRef.current) {
+        focusedInputRef.current.value += buttonValue;
+      }
     }
   };
   const handleClickPause = async () => {
@@ -118,8 +123,10 @@ export default function CaisseForm({
     client: yup
       .object()
       .shape({
-        label: yup.string().required("Sélectionnez un client"),
-        value: yup.string().required(),
+        label: !clientIsRef
+          ? yup.string().nullable()
+          : yup.string().required("Sélectionnez un client"),
+        value: !clientIsRef ? yup.string().nullable() : yup.string().required(),
       })
       .required(),
     collaborateur: yup
@@ -158,7 +165,11 @@ export default function CaisseForm({
     setSelectedClient(selected);
     setValue("client", selected);
   };
-
+  useEffect(() => {
+    if (!clientIsRef) {
+      setValue("client", { label: null, value: null });
+    }
+  }, [clientIsRef, setValue]);
   useEffect(() => {
     CalculateMontantRendu();
   }, [PaiementsDeCommande]);
@@ -290,7 +301,7 @@ export default function CaisseForm({
                 checked={selectedClientType === "client_ref"}
                 onChange={(event) => handleOptionChangeTypeClt(event)}
               />
-              <label htmlFor="client_ref">client référencer</label>
+              <label htmlFor="client_ref">Client référencer</label>
               <input
                 type="radio"
                 name="client_type"
@@ -299,7 +310,7 @@ export default function CaisseForm({
                 checked={selectedClientType === "client_psg"}
                 onChange={(event) => handleOptionChangeTypeClt(event)}
               />
-              <label htmlFor="client_psg">client de passage</label>
+              <label htmlFor="client_psg">Client de passage</label>
             </div>
             <div className=" font-semibold flex gap-3  flex-1 xl:justify-end mr-10 ">
               {ticketLines[0]?.Num_ticket != null && (
@@ -324,10 +335,8 @@ export default function CaisseForm({
                     instanceId="select_client"
                     placeholder="Sélectionnez un Clients"
                     options={clientOptions}
-                    value={selectedClient}
-                    {...(clientIsRef == true
-                      ? { disabled: false }
-                      : { disabled: true })}
+                    value={!clientIsRef ? null : selectedClient}
+                    isDisabled={!clientIsRef}
                     styles={{
                       ...selectDefaultStyle,
                       container: (provided) => ({
@@ -558,9 +567,9 @@ export default function CaisseForm({
             <button
               type="button"
               className="bg-orange-500 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded"
-              onClick={() => addPaiementItem({ title: "Espace", id: 2 })}
+              onClick={() => addPaiementItem({ title: "Espece", id: 2 })}
             >
-              espace
+              espece
             </button>
             <button
               type="button"
@@ -667,19 +676,6 @@ export default function CaisseForm({
                         ...provided,
                         borderTopLeftRadius: "0px !important",
                         borderBottomLeftRadius: "0px !important",
-                        width: "300px",
-                      }),
-                    }}
-                    onChange={(value) => {
-                      setSelectedResponsable(value);
-                      field.onChange(value);
-                    }}
-                    styles={{
-                      ...selectDefaultStyle,
-                      container: (provided) => ({
-                        ...provided,
-                        borderTopRightRadius: "0px !important",
-                        borderBottomRightRadius: "0px !important",
                         width: "300px",
                       }),
                     }}

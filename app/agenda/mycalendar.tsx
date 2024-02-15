@@ -14,6 +14,7 @@ export default function MyCalendar({
   handleAddEvent,
   handleEventDrop,
   handleUpdateEvent,
+  handleEventResize,
   agendas,
 }: any) {
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -49,6 +50,7 @@ export default function MyCalendar({
   useEffect(() => {
     // console.log("events", events);
     if (calendarApi) {
+      calendarApi.gotoDate(selectedDate);
     }
   }, [events, selectedDate]);
 
@@ -103,6 +105,12 @@ export default function MyCalendar({
           eventStartEditable={true} // Disable dragging from the start point
           eventOverlap={true}
           eventClick={handleUpdateEvent}
+          eventResize={(resizeInfo) => {
+            // Your custom logic for handling the event duration change
+            console.log("Event has been resized:", resizeInfo.event);
+            // Call your handler function to update the event in your application state or backend
+            handleEventResize(resizeInfo.event);
+          }}
         />
       </div>
     </div>

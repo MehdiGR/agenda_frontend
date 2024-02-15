@@ -46,23 +46,24 @@ export async function get_tickets({ where = "", params = [] }) {
     const sql = `
       SELECT
         dce.id as ticketId,
-        dce.mntht,
-        dce.mnttva,
-        dce.mntttc,
+        ROUND(dce.mntht,2) as total_ht,
+        ROUND(dce.mnttva,2) as total_tva,
+        ROUND(dce.mntttc,2) as total_ttc,
         clt.nom as client,
         Num_doc as Num_ticket,
-        (dce.mntttc - (
-            SELECT COALESCE(SUM(pm.montant), 0)
-            FROM paiement_caisse as pm
-            WHERE dce.id = pm.id_doc
-        )) as restePayer ,
+        CASE WHEN dce.id in (SELECT id_doc FROM paiement_caisse)THEN "Encaissé" ELSE "" END as statut,
+        GREATEST(ROUND(dce.mntttc - (
+          SELECT COALESCE(SUM(pm.montant), 0)
+          FROM paiement_caisse as pm
+          WHERE dce.id = pm.id_doc
+      ),2),0) as restePayer,
         Date(dce.date_doc) AS date_creation
       FROM
         docentete AS dce
       JOIN client clt ON
         clt.id = dce.tier_doc
       ${where}`;
-
+    console.log(params);
     const tickets = await new Promise((resolve, reject) =>
       connection.query(sql, params, (error, results) =>
         error ? reject(error) : resolve(results)
@@ -235,13 +236,13 @@ export async function get_synths_montant_en_caisse_jr({
   try {
     const sql = `
       SELECT
-        COALESCE(total_espace_encaisse, 0) AS total_espace_encaisse,
+        COALESCE(total_espece_encaisse, 0) AS total_espece_encaisse,
         COALESCE(total_operation_caisse, 0) AS total_operation_caisse,
-        SUM(COALESCE(total_espace_encaisse, 0) + COALESCE(total_operation_caisse, 0)) AS montant_en_caisse,
+        SUM(COALESCE(total_espece_encaisse, 0) + COALESCE(total_operation_caisse, 0)) AS montant_en_caisse,
         DATE(synths_date) AS synths_date
       FROM (
         SELECT
-          ROUND(SUM(pm.montant), 2) AS total_espace_encaisse,
+          ROUND(SUM(pm.montant), 2) AS total_espece_encaisse,
           NULL AS total_operation_caisse,
           dce.date_doc AS synths_date
         FROM docentete AS dce
@@ -251,9 +252,9 @@ export async function get_synths_montant_en_caisse_jr({
         WHERE dce.idtypedoc = 21 AND mtp.id = 2
         GROUP BY dce.date_doc
         UNION ALL
-        SELECT NULL AS total_espace_encaisse,
+        SELECT NULL AS total_espece_encaisse,
           ROUND(SUM(CASE WHEN retrait = 1 THEN -montant WHEN depot = 1 THEN montant ELSE 0 END), 2) AS total_operation_caisse,
-          date_et_heur AS synths_date
+          date_et_heur AS synths_date 
         FROM mouvementcaisse
         GROUP BY DATE(date_et_heur)
       ) AS subquery
@@ -333,13 +334,14 @@ export async function get_synths_chiffre_affaires({
     )
     SELECT 
         DATE_FORMAT(ds.date_sequence, '%Y-%m-%d') AS day,
+        COALESCE(ROUND(SUM(CASE WHEN art.idTypeArticle = 3 THEN dcl.prix ELSE 0 END), 2), 0) AS total_prestations,
+        COALESCE(ROUND(SUM(CASE WHEN art.idTypeArticle = 2 THEN dcl.prix ELSE 0 END), 2), 0) AS total_products,
         COALESCE(ROUND(SUM(DISTINCT dce.mntht), 2), 0) AS total_ht,
+
+        COALESCE(ROUND(SUM(CASE WHEN art.code_tauxtvaVente = "v0" THEN (dcl.total_ttc-dcl.prix) ELSE 0 END), 2), 0) AS total_tva_v0,
+        COALESCE(ROUND(SUM(CASE WHEN art.code_tauxtvaVente = "v20" THEN (dcl.total_ttc-dcl.prix) ELSE 0 END), 2), 0) AS total_tva_v20,
+        COALESCE(ROUND(SUM(CASE WHEN art.code_tauxtvaVente = "v21" THEN (dcl.total_ttc-dcl.prix) ELSE 0 END), 2), 0) AS total_tva_v21,
         COALESCE(ROUND(SUM(DISTINCT dce.mntttc), 2), 0) AS total_ttc,
-        COALESCE(ROUND(SUM(CASE WHEN art.idTypeArticle = 3 THEN dcl.total_ttc ELSE 0 END), 2), 0) AS total_prestations,
-        COALESCE(ROUND(SUM(CASE WHEN art.idTypeArticle = 2 THEN dcl.total_ttc ELSE 0 END), 2), 0) AS total_products,
-        COALESCE(ROUND(SUM(CASE WHEN art.code_tauxtvaVente = "v0" THEN dcl.total_ttc ELSE 0 END), 2), 0) AS total_ttc_v0,
-        COALESCE(ROUND(SUM(CASE WHEN art.code_tauxtvaVente = "v20" THEN dcl.total_ttc ELSE 0 END), 2), 0) AS total_ttc_v20,
-        COALESCE(ROUND(SUM(CASE WHEN art.code_tauxtvaVente = "v21" THEN dcl.total_ttc ELSE 0 END), 2), 0) AS total_ttc_v21,
         CASE 
             WHEN MAX(dce.cloture) = 1 THEN "cloture" 
             ELSE "ouvert" 
@@ -360,10 +362,22 @@ export async function get_synths_chiffre_affaires({
     } else if (viewType == "yearly") {
       sql = `SELECT 
          m.month_name as month_name,    
-         ROUND(SUM(mntttc),2) AS total_ttc,
-         ROUND(SUM(mntht),2) AS total_ht
+         COALESCE(ROUND(SUM(CASE WHEN art.idTypeArticle = 3 THEN dcl.prix ELSE 0 END), 2), 0) AS total_prestations,
+         COALESCE(ROUND(SUM(CASE WHEN art.idTypeArticle = 2 THEN dcl.prix ELSE 0 END), 2), 0) AS total_products,
+         ROUND(SUM(dcl.prix),2) AS total_ht,
+         COALESCE(ROUND(SUM(CASE WHEN art.code_tauxtvaVente = "v0" THEN (dcl.total_ttc-dcl.prix) ELSE 0 END), 2), 0) AS total_tva_v0,
+         COALESCE(ROUND(SUM(CASE WHEN art.code_tauxtvaVente = "v20" THEN (dcl.total_ttc-dcl.prix) ELSE 0 END), 2), 0) AS total_tva_v20,
+         COALESCE(ROUND(SUM(CASE WHEN art.code_tauxtvaVente = "v21" THEN (dcl.total_ttc-dcl.prix) ELSE 0 END), 2), 0) AS total_tva_v21,
+         COALESCE(ROUND(SUM(dcl.total_ttc),2),0) AS total_ttc,
+
+         CASE 
+            WHEN MAX(dce.cloture) = 1 THEN "cloture" 
+            ELSE "ouvert" 
+        END AS statut
     FROM 
         docentete as dce
+        LEFT JOIN docligne as dcl ON dcl.iddocument = dce.id 
+        LEFT JOIN article AS art ON art.id = dcl.idproduit
         RIGHT JOIN 
         (SELECT 1 AS month_number, 'Janvier' AS month_name UNION ALL
          SELECT 2, 'Février' UNION ALL
@@ -402,48 +416,161 @@ export async function get_synths_chiffre_affaires({
   }
 }
 
-export async function get_total_sales_by_article_type({ date = "" }) {
+export async function get_total_sales_by_article_type({
+  where = "",
+  params = [],
+}) {
+  try {
+    const sql = `SELECT
+              'prestations' AS type,
+            COALESCE(ROUND(SUM(dcl.prix), 2), 0) AS total_ht,
+              COALESCE(ROUND(SUM(dcl.total_ttc - dcl.prix), 2), 0) AS total_tva,
+              COALESCE(ROUND(SUM(dcl.total_ttc), 2), 0) AS total_ttc
+          FROM
+              docentete dce
+          JOIN docligne dcl ON dcl.iddocument = dce.id
+          JOIN article art ON art.id = dcl.idproduit
+          ${where} AND art.idTypeArticle = 3
+          UNION ALL
+          SELECT
+              'produits' AS type,
+              COALESCE(ROUND(SUM(dcl.prix), 2), 0) AS total_ht,
+              COALESCE(ROUND(SUM(dcl.total_ttc - dcl.prix), 2), 0) AS total_tva,
+              COALESCE(ROUND(SUM(dcl.total_ttc), 2), 0) AS total_ttc
+          FROM
+              docentete dce
+          JOIN docligne dcl ON dcl.iddocument = dce.id
+          JOIN article art ON art.id = dcl.idproduit
+          ${where} AND  art.idTypeArticle = 2; `;
+    const synths = await new Promise((resolve, reject) =>
+      connection.query(sql, params, (error, results) =>
+        error ? reject(error) : resolve(results)
+      )
+    );
+
+    return JSON.stringify(synths);
+  } catch (error) {
+    console.error("Could not execute query:", error);
+    return new NextResponse(
+      { error: "Could not execute query" },
+      { status: 500 }
+    );
+  }
+}
+export async function get_synths_detail_tva({ date = "", viewType = "" }) {
   try {
     let sql = "";
     let queryParams = [];
 
-    sql = `
-      SELECT 
-        ROUND(SUM(CASE WHEN art.idTypeArticle = 3 THEN dcl.total_ttc ELSE 0 END),2) AS total_prestations,
-        ROUND(SUM(CASE WHEN art.idTypeArticle = 2 THEN dcl.total_ttc ELSE 0 END),2) AS total_products
-      FROM docentete dce
-      LEFT JOIN docligne dcl ON dcl.iddocument = dce.id
-      LEFT JOIN article art ON art.id = dcl.idproduit
-      WHERE YEAR(dce.date_doc) = YEAR(?)
-        AND MONTH(dce.date_doc) = MONTH(?);`;
-    const sql2 = `SELECT
-              'prestations' AS type,
-              COALESCE(ROUND(SUM(dcl.total_ttc), 2), 0) AS total_amount,
-              COALESCE(ROUND(SUM(dce.mntht), 2), 0) AS total_ht,
-              COALESCE(ROUND(SUM(dce.mnttva), 2), 0) AS total_tva,
-              COALESCE(ROUND(SUM(dce.mntttc), 2), 0) AS total_ttc
-          FROM
-              docentete dce
-          JOIN docligne dcl ON dcl.iddocument = dce.id
-          JOIN article art ON art.id = dcl.idproduit
-          WHERE
-              YEAR(dce.date_doc) = 2024 AND MONTH(dce.date_doc) = 2 AND
-              art.idTypeArticle = 3
-          UNION ALL
-          SELECT
-              'produits' AS type,
-              COALESCE(ROUND(SUM(dcl.total_ttc), 2), 0) AS total_amount,
-              COALESCE(ROUND(SUM(dce.mntht), 2), 0) AS total_ht,
-              COALESCE(ROUND(SUM(dce.mnttva), 2), 0) AS total_tva,
-              COALESCE(ROUND(SUM(dce.mntttc), 2), 0) AS total_ttc
-          FROM
-              docentete dce
-          JOIN docligne dcl ON dcl.iddocument = dce.id
-          JOIN article art ON art.id = dcl.idproduit
-          WHERE
-              YEAR(dce.date_doc) = 2024 AND MONTH(dce.date_doc) = 2 AND
-              art.idTypeArticle = 2;`;
-    queryParams = [date, date];
+    if (viewType == "monthly") {
+      sql = `
+      WITH RECURSIVE DateSequence AS (
+        SELECT 
+           ? AS date_sequence, -- Replace with the start date
+            LAST_DAY(?) AS last_day -- Replace with the start date or another date to determine the last day of the month
+        UNION ALL
+        SELECT 
+            DATE_ADD(date_sequence, INTERVAL 1 DAY) AS date_sequence,
+            LAST_DAY(date_sequence) AS last_day
+        FROM 
+            DateSequence
+        WHERE 
+            DATE_ADD(date_sequence, INTERVAL 1 DAY) <= LAST_DAY(date_sequence)
+    )
+    SELECT 
+        DATE_FORMAT(ds.date_sequence, '%Y-%m-%d') AS day,
+    
+        -- prestations tva
+        COALESCE(ROUND(SUM(CASE WHEN art.idTypeArticle = 3 AND art.code_tauxtvaVente="v0" THEN (dcl.total_ttc-dcl.prix) ELSE 0 END), 2), 0) AS total_prestations_tva_0, 
+        COALESCE(ROUND(SUM(CASE WHEN art.idTypeArticle = 3 AND art.code_tauxtvaVente="v20" THEN (dcl.total_ttc-dcl.prix) ELSE 0 END), 2), 0) AS total_prestations_tva_20,
+        COALESCE(ROUND(SUM(CASE WHEN art.idTypeArticle = 3 AND art.code_tauxtvaVente="v21" THEN (dcl.total_ttc-dcl.prix) ELSE 0 END), 2), 0) AS total_prestations_tva_21,
+        
+        -- produits tva
+        COALESCE(ROUND(SUM(CASE WHEN art.idTypeArticle = 2 AND art.code_tauxtvaVente="v0" THEN (dcl.total_ttc-dcl.prix) ELSE 0 END), 2), 0) AS total_produits_tva_0,
+        COALESCE(ROUND(SUM(CASE WHEN art.idTypeArticle = 2 AND art.code_tauxtvaVente="v20" THEN (dcl.total_ttc-dcl.prix) ELSE 0 END), 2), 0) AS total_produits_tva_20,
+        COALESCE(ROUND(SUM(CASE WHEN art.idTypeArticle = 2 AND art.code_tauxtvaVente="v21" THEN (dcl.total_ttc-dcl.prix) ELSE 0 END), 2), 0) AS total_produits_tva_21,
+
+        COALESCE(ROUND(SUM(DISTINCT dce.mntht), 2), 0) AS total_ht,
+
+        -- global tva 
+        COALESCE(ROUND(SUM(CASE WHEN art.code_tauxtvaVente = "v0" THEN (dcl.total_ttc-dcl.prix) ELSE 0 END), 2), 0) AS total_tva_v0,
+        COALESCE(ROUND(SUM(CASE WHEN art.code_tauxtvaVente = "v20" THEN (dcl.total_ttc-dcl.prix) ELSE 0 END), 2), 0) AS total_tva_v20,
+        COALESCE(ROUND(SUM(CASE WHEN art.code_tauxtvaVente = "v21" THEN (dcl.total_ttc-dcl.prix) ELSE 0 END), 2), 0) AS total_tva_v21,
+        
+        COALESCE(ROUND(SUM(DISTINCT dce.mntttc), 2), 0) AS total_ttc,
+
+        CASE 
+            WHEN MAX(dce.cloture) = 1 THEN "cloture" 
+            ELSE "ouvert" 
+        END AS statut
+    FROM 
+        DateSequence ds
+    LEFT JOIN docentete dce ON DATE(dce.date_doc) = ds.date_sequence
+    LEFT JOIN docligne dcl ON dcl.iddocument = dce.id
+    LEFT JOIN article art ON art.id = dcl.idproduit
+    WHERE 
+        ds.date_sequence <= CURDATE()
+    GROUP BY 
+        day
+    ORDER BY 
+        day;
+    `;
+      queryParams = [date, date];
+    } else if (viewType == "yearly") {
+      sql = `SELECT 
+              m.month_name as month_name, 
+              -- prestations
+              COALESCE(ROUND(SUM(CASE WHEN art.idTypeArticle = 3 THEN dcl.prix ELSE 0 END), 2), 0) AS total_prestations,
+              
+              -- prestations tva
+            COALESCE(ROUND(SUM(CASE WHEN art.idTypeArticle = 3 AND art.code_tauxtvaVente="v0" THEN (dcl.total_ttc-dcl.prix)  ELSE 0 END), 2), 0) AS total_prestations_tva_0,
+            COALESCE(ROUND(SUM(CASE WHEN art.idTypeArticle = 3 AND art.code_tauxtvaVente="v20" THEN (dcl.total_ttc-dcl.prix) ELSE 0 END), 2), 0) AS total_prestations_tva_20,
+            COALESCE(ROUND(SUM(CASE WHEN art.idTypeArticle = 3 AND art.code_tauxtvaVente="v21" THEN (dcl.total_ttc-dcl.prix) ELSE 0 END), 2), 0) AS total_prestations_tva_21,
+              
+              -- produits
+              COALESCE(ROUND(SUM(CASE WHEN art.idTypeArticle = 2 THEN dcl.prix ELSE 0 END), 2), 0) AS total_products,
+              
+              -- produits tva
+            COALESCE(ROUND(SUM(CASE WHEN art.idTypeArticle = 2 AND art.code_tauxtvaVente="v0" THEN (dcl.total_ttc-dcl.prix) ELSE 0 END), 2), 0) AS total_produits_tva_0,
+            COALESCE(ROUND(SUM(CASE WHEN art.idTypeArticle = 2 AND art.code_tauxtvaVente="v20" THEN (dcl.total_ttc-dcl.prix) ELSE 0 END), 2), 0) AS total_produits_tva_20,
+            COALESCE(ROUND(SUM(CASE WHEN art.idTypeArticle = 2 AND art.code_tauxtvaVente="v21" THEN (dcl.total_ttc-dcl.prix) ELSE 0 END), 2), 0) AS total_produits_tva_21,
+            
+              ROUND(SUM(dcl.prix),2) AS total_ht,
+              -- global tva 
+              COALESCE(ROUND(SUM(CASE WHEN art.code_tauxtvaVente = "v0" THEN (dcl.total_ttc-dcl.prix) ELSE 0 END), 2), 0) AS total_tva_v0,
+              COALESCE(ROUND(SUM(CASE WHEN art.code_tauxtvaVente = "v20" THEN (dcl.total_ttc-dcl.prix) ELSE 0 END), 2), 0) AS total_tva_v20,
+              COALESCE(ROUND(SUM(CASE WHEN art.code_tauxtvaVente = "v21" THEN (dcl.total_ttc-dcl.prix) ELSE 0 END), 2), 0) AS total_tva_v21,
+              COALESCE(ROUND(SUM(dcl.total_ttc),2),0) AS total_ttc,
+
+              CASE 
+                WHEN MAX(dce.cloture) = 1 THEN "cloture" 
+                ELSE "ouvert" 
+            END AS statut
+        FROM 
+            docentete as dce
+            LEFT JOIN docligne as dcl ON dcl.iddocument = dce.id 
+            LEFT JOIN article AS art ON art.id = dcl.idproduit
+            RIGHT JOIN 
+            (SELECT 1 AS month_number, 'Janvier' AS month_name UNION ALL
+              SELECT 2, 'Février' UNION ALL
+              SELECT 3, 'Mars' UNION ALL
+              SELECT 4, 'Avril' UNION ALL
+              SELECT 5, 'Mai' UNION ALL
+              SELECT 6, 'Juin' UNION ALL
+              SELECT 7, 'Juillet' UNION ALL
+              SELECT 8, 'Août' UNION ALL
+              SELECT 9, 'Septembre' UNION ALL
+              SELECT 10, 'Octobre' UNION ALL
+              SELECT 11, 'Novembre' UNION ALL
+              SELECT 12, 'Décembre') m 
+              on MONTH(date_doc)=m.month_number and YEAR(dce.date_doc) = ?
+        GROUP BY 
+            m.month_number,
+            m.month_name
+        ORDER BY 
+            m.month_number;`;
+      queryParams = [date];
+    }
 
     const synths = await new Promise((resolve, reject) =>
       connection.query(sql, queryParams, (error, results) =>
@@ -460,7 +587,6 @@ export async function get_total_sales_by_article_type({ date = "" }) {
     );
   }
 }
-
 async function executeQuery(sql, values) {
   return new Promise((resolve, reject) => {
     connection.query(sql, values, function (err, result, fields) {
@@ -472,7 +598,219 @@ async function executeQuery(sql, values) {
     });
   });
 }
+export async function get_synths_reglement({ date = "", viewType = "" }) {
+  try {
+    let sql = "";
+    let queryParams = [];
 
+    if (viewType == "monthly") {
+      sql = `
+            WITH RECURSIVE
+          DateSequence AS(
+          SELECT
+              ? AS date_sequence,
+              -- Replace with the start date
+              LAST_DAY(?) AS last_day -- Replace with the start date or another date to determine the last day of the month
+          UNION ALL
+          SELECT
+              DATE_ADD(date_sequence, INTERVAL 1 DAY) AS date_sequence,
+              LAST_DAY(date_sequence) AS last_day
+          FROM
+              DateSequence
+          WHERE
+              DATE_ADD(date_sequence, INTERVAL 1 DAY) <= LAST_DAY(date_sequence)
+          )
+          SELECT
+              DATE_FORMAT(ds.date_sequence, '%Y-%m-%d') AS day,
+              ROUND(SUM(CASE WHEN id_method = 1 THEN montant ELSE 0 END),2) AS total_carte_bancaire,
+              ROUND(SUM(CASE WHEN id_method = 2 THEN montant ELSE 0 END),2) AS total_espece,
+              ROUND(SUM(CASE WHEN id_method = 3 THEN montant ELSE 0 END),2) AS total_cheque,
+              ROUND(
+                SUM(CASE WHEN pt.id_method = 1 THEN pt.montant ELSE 0 END) +
+                SUM(CASE WHEN pt.id_method = 2 THEN pt.montant ELSE 0 END) +
+                SUM(CASE WHEN pt.id_method = 3 THEN pt.montant ELSE 0 END) 
+                ,
+                2
+            ) AS line_total
+          FROM
+              DateSequence ds
+          LEFT JOIN paiement_tier AS pt
+          ON
+              ds.date_sequence = DATE(pt.date_reg)
+          WHERE
+              ds.date_sequence <= CURDATE()
+          GROUP BY
+              DAY
+          ORDER BY
+              DAY;
+    `;
+      queryParams = [date, date];
+    } else if (viewType == "yearly") {
+      sql = `SELECT 
+                m.month_name as month_name,    
+                ROUND(SUM(CASE WHEN id_method = 1 THEN montant ELSE 0 END),2) AS total_carte_bancaire,
+                ROUND(SUM(CASE WHEN id_method = 2 THEN montant ELSE 0 END),2) AS total_espece,
+                ROUND(SUM(CASE WHEN id_method = 3 THEN montant ELSE 0 END),2) AS total_cheque,
+                ROUND(
+                  SUM(CASE WHEN pt.id_method = 1 THEN pt.montant ELSE 0 END) +
+                  SUM(CASE WHEN pt.id_method = 2 THEN pt.montant ELSE 0 END) +
+                  SUM(CASE WHEN pt.id_method = 3 THEN pt.montant ELSE 0 END) 
+                  ,
+                  2
+              ) AS line_total
+              FROM
+                (SELECT 1 AS month_number, 'Janvier' AS month_name UNION ALL
+                SELECT 2, 'Février' UNION ALL
+                SELECT 3, 'Mars' UNION ALL
+                SELECT 4, 'Avril' UNION ALL
+                SELECT 5, 'Mai' UNION ALL
+                SELECT 6, 'Juin' UNION ALL
+                SELECT 7, 'Juillet' UNION ALL
+                SELECT 8, 'Août' UNION ALL
+                SELECT 9, 'Septembre' UNION ALL
+                SELECT 10, 'Octobre' UNION ALL
+                SELECT 11, 'Novembre' UNION ALL
+                SELECT 12, 'Décembre') m 
+              LEFT JOIN paiement_tier AS pt
+                ON MONTH(pt.date_reg) = m.month_number AND YEAR(pt.date_reg) = ?
+            
+              GROUP BY 
+                m.month_number,
+                m.month_name
+              ORDER BY 
+                m.month_number`;
+      queryParams = [date];
+    }
+
+    const synths = await new Promise((resolve, reject) =>
+      connection.query(sql, queryParams, (error, results) =>
+        error ? reject(error) : resolve(results)
+      )
+    );
+
+    return JSON.stringify(synths);
+  } catch (error) {
+    console.error("Could not execute query:", error);
+    return new NextResponse(
+      { error: "Could not execute query" },
+      { status: 500 }
+    );
+  }
+}
+export async function get_synths_fonds_caisse({ date = "", viewType = "" }) {
+  try {
+    let sql = "";
+    let queryParams = [];
+
+    if (viewType == "monthly") {
+      sql = `
+      WITH RECURSIVE
+          DateSequence AS(
+          SELECT
+              ? AS date_sequence,
+              -- Replace with the start date
+              LAST_DAY(?) AS last_day -- Replace with the start date or another date to determine the last day of the month
+          UNION ALL
+      SELECT
+          DATE_ADD(date_sequence, INTERVAL 1 DAY) AS date_sequence,
+          LAST_DAY(date_sequence) AS last_day
+      FROM
+          DateSequence
+      WHERE
+          DATE_ADD(date_sequence, INTERVAL 1 DAY) <= LAST_DAY(date_sequence)
+      )
+      SELECT
+          DATE_FORMAT(ds.date_sequence, '%Y-%m-%d') AS day,
+          ROUND(SUM(CASE WHEN retrait = 1 THEN mc.montant ELSE 0 END), 2) AS total_retrait,
+          ROUND(SUM(CASE WHEN depot = 1 THEN mc.montant ELSE 0 END), 2) AS total_depot,
+          ROUND(SUM(CASE WHEN remise_en_banque = 1 THEN mc.montant ELSE 0 END), 2) AS total_remise_en_bq,
+          ROUND(SUM(DISTINCT CASE WHEN t2.id_method = 2 THEN t2.montant ELSE 0 END), 2) AS total_espece,
+          ROUND(
+            SUM(CASE WHEN mc.retrait = 1 THEN mc.montant ELSE 0 END) +
+            SUM(CASE WHEN mc.depot = 1 THEN mc.montant ELSE 0 END) +
+            SUM(CASE WHEN mc.remise_en_banque = 1 THEN mc.montant ELSE 0 END) +
+            SUM(DISTINCT CASE WHEN t2.id_method = 2 THEN t2.montant ELSE 0 END),
+            2
+        ) AS line_total
+      FROM
+          DateSequence ds
+      LEFT JOIN mouvementcaisse AS mc
+          ON DATE(mc.date_et_heur) = ds.date_sequence
+
+      LEFT JOIN paiement_tier AS t2
+      ON
+        ds.date_sequence = DATE(t2.date_reg)
+      WHERE
+          ds.date_sequence <= CURDATE()
+      GROUP BY
+          DAY
+      ORDER BY
+          DAY;
+    `;
+      queryParams = [date, date];
+    } else if (viewType == "yearly") {
+      sql = `SELECT 
+              m.month_name as month_name,    
+              ROUND(SUM(CASE WHEN mc.retrait = 1 THEN mc.montant ELSE 0 END), 2) AS total_retrait,
+              ROUND(SUM(CASE WHEN mc.depot = 1 THEN mc.montant ELSE 0 END), 2) AS total_depot,
+              ROUND(SUM(CASE WHEN mc.remise_en_banque = 1 THEN mc.montant ELSE 0 END), 2) AS total_remise_en_bq,
+              COALESCE(pt.total_espece, 0) AS total_espece,
+              ROUND(
+                SUM(CASE WHEN mc.retrait = 1 THEN mc.montant ELSE 0 END) +
+                SUM(CASE WHEN mc.depot = 1 THEN mc.montant ELSE 0 END) +
+                SUM(CASE WHEN mc.remise_en_banque = 1 THEN mc.montant ELSE 0 END) +
+                COALESCE(pt.total_espece, 0),
+                2
+            ) AS line_total
+            FROM
+              (SELECT 1 AS month_number, 'Janvier' AS month_name UNION ALL
+              SELECT 2, 'Février' UNION ALL
+              SELECT 3, 'Mars' UNION ALL
+              SELECT 4, 'Avril' UNION ALL
+              SELECT 5, 'Mai' UNION ALL
+              SELECT 6, 'Juin' UNION ALL
+              SELECT 7, 'Juillet' UNION ALL
+              SELECT 8, 'Août' UNION ALL
+              SELECT 9, 'Septembre' UNION ALL
+              SELECT 10, 'Octobre' UNION ALL
+              SELECT 11, 'Novembre' UNION ALL
+              SELECT 12, 'Décembre') m 
+            LEFT JOIN mouvementcaisse AS mc
+              ON MONTH(mc.date_et_heur) = m.month_number AND YEAR(mc.date_et_heur) = ?
+            LEFT JOIN (
+              SELECT 
+                MONTH(date_reg) AS month_number,
+                ROUND(SUM(CASE WHEN id_method = 2 THEN montant ELSE 0 END),2) AS total_espece
+              FROM 
+                paiement_tier
+              WHERE 
+                YEAR(date_reg) = ?
+              GROUP BY 
+                MONTH(date_reg)
+            ) pt ON m.month_number = pt.month_number
+            GROUP BY 
+              m.month_number,
+              m.month_name
+            ORDER BY 
+              m.month_number;`;
+      queryParams = [date];
+    }
+
+    const synths = await new Promise((resolve, reject) =>
+      connection.query(sql, queryParams, (error, results) =>
+        error ? reject(error) : resolve(results)
+      )
+    );
+
+    return JSON.stringify(synths);
+  } catch (error) {
+    console.error("Could not execute query:", error);
+    return new NextResponse(
+      { error: "Could not execute query" },
+      { status: 500 }
+    );
+  }
+}
 async function checkExistingRecord(line_id) {
   const sql = "SELECT * FROM ligne_res WHERE id=?";
   const values = [line_id];
