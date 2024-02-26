@@ -134,7 +134,7 @@ export async function saveReservation(data) {
       const duree_line = duration_hours * 60 + duration_minutes;
 
       const existingRecord = await checkExistingRecord(agenda_prest.line_id);
-
+      console.log("existingRecord", existingRecord);
       if (existingRecord) {
         const removedRecord = agenda_prest?.removedRow;
         if (removedRecord) {
@@ -219,6 +219,8 @@ async function executeQuery(sql, values) {
 async function checkExistingRecord(line_id) {
   const sql = "SELECT * FROM ligne_res WHERE id=?";
   const values = [line_id];
+  console.log("sql", sql);
+  console.log("values", values);
 
   return new Promise((resolve, reject) => {
     connection.query(sql, values, function (err, result, fields) {
@@ -296,7 +298,7 @@ async function addTicketLignes(data) {
       item.designation,
       item?.qte,
       item.prixVente,
-      1,
+      item.tva_id,
       item.prixVente,
       item.prixTTC,
     ];

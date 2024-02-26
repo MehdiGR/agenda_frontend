@@ -53,7 +53,7 @@ export default function CaisseForm({
   });
   // const [PaiementsDeCommande, setPaiementsDeCommande] = useState([]);
 
-  const [resteAPayer, setResteAPayer] = useState<number>();
+  const [resteAPayer, setResteAPayer] = useState<number>(0);
   useEffect(() => {
     // Calculate the sum of montant of all existing items
     const sumOfMontants = PaiementsDeCommande.reduce(
@@ -78,12 +78,79 @@ export default function CaisseForm({
 
   const pathname = usePathname();
 
-  const inputRefs: {
-    [key: string]: React.MutableRefObject<HTMLInputElement | null>;
-  } = {
-    input1: useRef<HTMLInputElement | null>(null),
-    input2: useRef<HTMLInputElement | null>(null),
-    input3: useRef<HTMLInputElement | null>(null),
+  // const inputRefs: {
+  //   [key: string]: any;
+  // } = {
+  //   input1: useRef<HTMLInputElement | null>(null),
+  //   input2: useRef<HTMLInputElement | null>(null),
+  //   input3: useRef<HTMLInputElement | null>(null),
+  // };
+
+  // const [inputValues, setInputValues] = useState({
+  //   input: "", // Use a single variable to handle all inputs
+  // });
+  const [focusedInput, setFocusedInput] = useState<{
+    index: number;
+    inputType: string;
+  } | null>(null);
+  // const inputRefs = useRef([]);
+  const inputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
+
+  const handleInputFocus = (index: number, inputType: string) => {
+    setFocusedInput({ index, inputType });
+  };
+  // handle calculator button click
+  // const handleClickCalculator = (value: string) => {
+  //   if (
+  //     focusedInput &&
+  //     inputRefs.current[`${focusedInput.inputType}${focusedInput.index}`]
+  //   ) {
+  //     const currentInput = inputRefs.current[
+  //       `${focusedInput.inputType}${focusedInput.index}`
+  //     ] as HTMLInputElement;
+  //     currentInput.value = currentInput.value
+  //       ? currentInput.value + value
+  //       : value;
+  //   }
+  // };
+
+  const handleClickCalculator = (value: string) => {
+    if (
+      focusedInput &&
+      inputRefs.current[`${focusedInput.inputType}${focusedInput.index}`]
+    ) {
+      const currentInput = inputRefs.current[
+        `${focusedInput.inputType}${focusedInput.index}`
+      ] as HTMLInputElement;
+      const previousValue = currentInput.value;
+      currentInput.value = currentInput.value
+        ? currentInput.value + value
+        : value;
+
+      // Create a new event object to simulate the change event
+      const event = new Event("change", { bubbles: true });
+
+      // Dispatch the event to trigger the onChange handler
+      currentInput.dispatchEvent(event);
+
+      // If you need to update the state or perform other actions after the change, you can do so here
+      // For example, if you have a state update function for the input value, you can call it with the new value
+      // setInputValue(currentInput.value);
+    }
+  };
+
+  // handle calculator clear button
+  const handleClearClick = (): void => {
+    if (
+      focusedInput !== null &&
+      inputRefs.current[`${focusedInput.inputType}${focusedInput.index}`]
+    ) {
+      (
+        inputRefs.current[
+          `${focusedInput.inputType}${focusedInput.index}`
+        ] as HTMLInputElement
+      ).value = "";
+    }
   };
   const [clientOptions, setClientOptions] = useState(
     clients.map((client: any) => {
@@ -97,17 +164,6 @@ export default function CaisseForm({
     setSelectedClientType(value);
   };
 
-  // handle click button in the calculator
-  const handleClickCalculator = (buttonValue: any) => {
-    console.log("buttonValue", buttonValue);
-    const activeElement = document.activeElement;
-    if (activeElement && inputRefs[activeElement.id]) {
-      const focusedInputRef = inputRefs[activeElement.id];
-      if (focusedInputRef.current) {
-        focusedInputRef.current.value += buttonValue;
-      }
-    }
-  };
   const handleClickPause = async () => {
     updateTicket({
       properties: ["mise_en_attente"],
@@ -373,6 +429,8 @@ export default function CaisseForm({
                 </tr>
               ) : (
                 ticketLines.map((item: any, index: number) => {
+                  const inputId = `input${index}`;
+
                   return (
                     <tr key={index}>
                       <td className="text-center py-4">{item.Designation}</td>
@@ -411,7 +469,9 @@ export default function CaisseForm({
                           {...register(`prestations[${index}].qte` as any)}
                           className="w-20 p-1 border border-gray-400 rounded-md"
                           type="number"
-                          value={item.qte || 1}
+                          defaultValue={item.qte || 1}
+                          ref={(el) => (inputRefs.current[`qte${index}`] = el)}
+                          onFocus={() => handleInputFocus(index, "qte")}
                           onChange={(e) =>
                             CalculateTikeLineTotal({
                               index,
@@ -429,6 +489,10 @@ export default function CaisseForm({
                           className="w-20 p-1 border border-gray-400 rounded-md"
                           type="text"
                           pattern="[0-9.]*"
+                          ref={(el) =>
+                            (inputRefs.current[`remise${index}`] = el)
+                          }
+                          onFocus={() => handleInputFocus(index, "remise")}
                           onInput={(event) => {
                             const input = event.target as HTMLInputElement;
                             input.value = input.value
@@ -533,9 +597,7 @@ export default function CaisseForm({
               //     .replace(/,/g, ".")
               //     .replace(/[^0-9.]/g, "");
               // }}
-              onFocus={() => inputRefs[`input3`].current.focus()}
-              ref={inputRefs[`input3`]}
-              onChange={() => {
+              onChange={(e) => {
                 setValue("totalPriceTTC", Number(totalTTC.toFixed(2)));
                 setValue(
                   "totalPriceHT",
@@ -699,7 +761,10 @@ export default function CaisseForm({
             ></textarea>
           </div>
           <div className="pb-4">
-            <Calculator handleClickCalculator={handleClickCalculator} />
+            <Calculator
+              handleClickCalculator={handleClickCalculator}
+              handleClearClick={handleClearClick}
+            />
           </div>
         </div>
         {ticketLines.length > 0 && ticketLines[0]?.valide == null ? (

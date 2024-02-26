@@ -105,7 +105,7 @@ export default function Home({
   };
   const handleEventDrop = (arg: any) => {
     const eventId = arg.event._def.extendedProps.eventIndex;
-    console.log("events ", events);
+    console.log("eventId ", eventId);
     const eventStart = arg.event._instance.range.start.toISOString();
     const eventEnd = arg.event._instance.range.end.toISOString();
 
@@ -141,7 +141,6 @@ export default function Home({
 
   const updatedIndices = useRef(false);
   const handleUpdateEvent = (info: any) => {
-    alert("update");
     if (info.event.extendedProps.idRes && !onEditingEvent) {
       const idRes = info.event.extendedProps.idRes;
       const Indices = events
@@ -155,15 +154,37 @@ export default function Home({
       return;
     }
   };
+  const formatDate = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0"); // Months are  0-indexed
+    const day = String(date.getDate()).padStart(2, "0");
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+    const seconds = String(date.getSeconds()).padStart(2, "0");
+    const offset = "-08:00"; // Adjust this as needed
+    return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}${offset}`;
+  };
   function handleEventResize(event) {
     console.log("Updated event:", event);
 
     const eventId = event.extendedProps.eventIndex;
-    console.log("events ", events);
     // Access the event's start and end times
-    const eventStart = event.start.toISOString();
-    const eventEnd = event.end.toISOString();
-    return;
+
+    // If event.start and event.end are strings in a different format, parse them first
+    const eventStart = formatDate(event.start);
+    const eventEnd = formatDate(event.end);
+
+    // Then convert to ISO 8601 format
+    // const eventStart = eventStartDate.toISOString();
+    // const eventEnd = eventEndDate.toISOString();
+
+    // console.log("events ", events);
+
+    // console.log(eventStart, "start date");
+    // console.log(eventEnd, "end date");
+    // console.log(eventStart.slice(0, 16));
+    // console.log(eventEnd.slice(0, 16));
+    // return;
     // Find the index of the event being dropped
     const index = events.findIndex(
       (event: any) => event.eventIndex === eventId
@@ -174,8 +195,8 @@ export default function Home({
       // Create an updated event with the new resource ID and title
       const updatedEvent = {
         ...events[index],
-        resourceId: event.resourceIds[0],
-        resourceTitle: event.title,
+        // resourceId: event.resourceIds[0],
+        // resourceTitle: event.title,
         start: eventStart.slice(0, 16),
         end: eventEnd.slice(0, 16),
         isTemp: false,

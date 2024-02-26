@@ -167,8 +167,8 @@ export default function CreateEventSection({
     // return;
     // saveReservat(data);
     // startTransition(async () => {
-    console.log("data", data);
-    return;
+    // console.log("data", data);
+    // return;
     const insertedIdTicket = await saveReservation({
       ...data,
       duree: totalDuration,
@@ -177,8 +177,7 @@ export default function CreateEventSection({
       totalTax,
       submitType: submitTypeRef.current,
     });
-    // console.log(insertedId_res, "inserted_res");
-    // return;
+
     if (submitTypeRef.current === "encaisser" && insertedIdTicket) {
       router.push(`/caisse/ticket/${insertedIdTicket}`);
     }

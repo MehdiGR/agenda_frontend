@@ -42,9 +42,9 @@ export default function MyCalendar({
     building: agenda.nom,
   }));
 
-  // useEffect(() => {
-  //   console.log("events", events);
-  // }, [events]);
+  useEffect(() => {
+    console.log("events", events);
+  }, [events]);
   let calendarApi: any;
 
   useEffect(() => {

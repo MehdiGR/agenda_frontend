@@ -94,6 +94,7 @@ export async function get_ticket_lines({ where = "" }) {
                     dce.mntht,
                     dce.date_doc as date_creation,
                     dce.valide,
+                    tva.valeur AS tva_valeur,
                    
                     clt.nom AS client,
                     clt.id AS idClient,
@@ -115,6 +116,9 @@ export async function get_ticket_lines({ where = "" }) {
                 JOIN collaborateur AS clb
                 ON
                     clb.id_collaborateur = clt.idCollab
+                JOIN p_tauxtva AS tva
+                ON
+                    tva.id = dcl.idtauxtva
                 
 
      ${where}  `;

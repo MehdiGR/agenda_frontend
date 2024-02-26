@@ -22,7 +22,6 @@ import {
 import {
   openModal,
   formatDuration,
-  handleOptionChangeTypeClt,
   cancelCreationEvent,
 } from "@/app/js/agenda_fn";
 import { useStore } from "@/app/store/store";
@@ -74,7 +73,7 @@ export default function UpdateEventSection({
   const [selectedHourDB, selectedMinutesDB] =
     selectedEventFirst?.start.split("T")[1]?.split(":") || [];
 
-  const [clientIsRef, setIsRef] = useState(true);
+  const [clientIsRef, setIsRefClient] = useState(true);
   const [selectedClientType, setSelectedClientType] = useState("client_ref");
   const [clientOptions, setClientOptions] = useState(
     clients.map((client: any) => {
@@ -86,15 +85,22 @@ export default function UpdateEventSection({
       return { value: agenda.id, label: agenda.nom };
     })
   );
-
+  const handleOptionChangeTypeClt = (changeEvent: any) => {
+    let value = changeEvent.target.value;
+    value == "client_ref" ? setIsRefClient(true) : setIsRefClient(false);
+    setSelectedClientType(value);
+  };
   const schema = yup.object().shape({
     client: yup
       .object()
       .shape({
-        label: yup.string().required("Sélectionnez un client"),
-        value: yup.string().required(),
+        label: !clientIsRef
+          ? yup.string().nullable()
+          : yup.string().required("Sélectionnez un client"),
+        value: !clientIsRef ? yup.string().nullable() : yup.string().required(),
       })
       .required(),
+
     dateRes: yup.string().required(),
     hourDB: yup.object().shape({
       label: yup.string(),
@@ -107,7 +113,7 @@ export default function UpdateEventSection({
     note: yup.string(),
     agenda_prestationArr: yup.array(),
     idRes: yup.string(),
-    ticketId: yup.string(),
+    ticketId: yup.string().nullable(),
   });
   const {
     register,
@@ -155,6 +161,8 @@ export default function UpdateEventSection({
   const router = useRouter();
 
   const handleSaveReservat: any = async (data) => {
+    // console.log("submitTypeRef.current", submitTypeRef.current);
+    // return;
     // console.log("data", data);
     // return;
     // saveReservat(data)
@@ -171,11 +179,12 @@ export default function UpdateEventSection({
       router.push("/caisse/ticket/" + ticketId);
     }
   };
+
   useEffect(() => {
     // Only update the form values if they are different from the current values
     const currentValues = getValues("agenda_prestationArr");
     const updatedAgendaPrestationArr = selectedEventAgendaPrestationArr.map(
-      (item) => ({
+      (item: any) => ({
         line_id: item.line_id || "",
         start_time: item.start_time,
         id_art: item.id_art,
@@ -208,6 +217,11 @@ export default function UpdateEventSection({
       });
     }
   }, [selectedEventAgendaPrestationArr, setValue, getValues]);
+  useEffect(() => {
+    if (!clientIsRef) {
+      setValue("client", { label: null, value: null });
+    }
+  }, [clientIsRef, setValue]);
   return (
     <div
       className={`relative   h-fit w-full ${
@@ -215,7 +229,9 @@ export default function UpdateEventSection({
       }`}
     >
       <form
-        onSubmit={handleSubmit(handleSaveReservat)}
+        onSubmit={handleSubmit(handleSaveReservat, (errors) => {
+          console.log("errors", errors);
+        })}
         className=" space-y-4 h-full"
       >
         <div className="flex gap-3">
@@ -225,9 +241,7 @@ export default function UpdateEventSection({
             id="client_ref"
             value="client_ref"
             checked={selectedClientType === "client_ref"}
-            onChange={(event) =>
-              handleOptionChangeTypeClt(event, setIsRef, setSelectedClientType)
-            }
+            onChange={(event) => handleOptionChangeTypeClt(event)}
           />
           <label htmlFor="client_ref">client référencer</label>
           <input
@@ -236,9 +250,7 @@ export default function UpdateEventSection({
             id="client_psg"
             value="client_psg"
             checked={selectedClientType === "client_psg"}
-            onChange={(event) =>
-              handleOptionChangeTypeClt(event, setIsRef, setSelectedClientType)
-            }
+            onChange={(event) => handleOptionChangeTypeClt(event)}
           />
           <label htmlFor="client_psg">client de passage</label>
         </div>
@@ -262,9 +274,7 @@ export default function UpdateEventSection({
                   }}
                   options={clientOptions}
                   // value={selectedClient}
-                  {...(clientIsRef == true
-                    ? { disabled: false }
-                    : { disabled: true })}
+                  isDisabled={!clientIsRef}
                   styles={{
                     ...selectDefaultStyle,
                     container: (provided) => ({
@@ -274,6 +284,8 @@ export default function UpdateEventSection({
                       width: "100%",
                     }),
                   }}
+                  value={!clientIsRef ? null : field.value}
+
                   // onChange={handleOptionChangeClt}
                 />
               )}
@@ -442,33 +454,39 @@ export default function UpdateEventSection({
                   (item: any, index: number) => {
                     return (
                       <tr key={index}>
-                        <Controller
-                          name={`agenda_prestationArr[${index}].line_id` as any}
-                          control={control}
-                          defaultValue={item?.line_id || ""}
-                          render={({ field }) => {
-                            return <input type="hidden" {...field} />;
-                          }}
-                        />
-                        <Controller
-                          name={
-                            `agenda_prestationArr[${index}].start_time` as any
-                          }
-                          control={control}
-                          defaultValue={item.start_time}
-                          render={({ field }) => {
-                            return <input type="hidden" {...field} />;
-                          }}
-                        />
-                        <Controller
-                          name={`agenda_prestationArr[${index}].id_art` as any}
-                          control={control}
-                          defaultValue={"item.id_art"}
-                          render={({ field }) => {
-                            return <input type="hidden" {...field} />;
-                          }}
-                        />
-                        <td className="text-center py-4">{item.intitule}</td>
+                        <td className="text-center py-4">
+                          <Controller
+                            name={
+                              `agenda_prestationArr[${index}].line_id` as any
+                            }
+                            control={control}
+                            defaultValue={item?.line_id || ""}
+                            render={({ field }) => {
+                              return <input type="hidden" {...field} />;
+                            }}
+                          />
+                          <Controller
+                            name={
+                              `agenda_prestationArr[${index}].start_time` as any
+                            }
+                            control={control}
+                            defaultValue={item.start_time}
+                            render={({ field }) => {
+                              return <input type="hidden" {...field} />;
+                            }}
+                          />
+                          <Controller
+                            name={
+                              `agenda_prestationArr[${index}].id_art` as any
+                            }
+                            control={control}
+                            defaultValue={"item.id_art"}
+                            render={({ field }) => {
+                              return <input type="hidden" {...field} />;
+                            }}
+                          />
+                          {item.intitule}
+                        </td>
                         <td className="py-4">
                           <Controller
                             name={
