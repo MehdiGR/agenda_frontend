@@ -6,6 +6,10 @@ import {
   get_ticket_paiements,
 } from "@/app/lib/ticket/ticketActions";
 import { notFound } from "next/navigation";
+import { fetchClients } from "@/app/lib/client/clientActions";
+import { fetchCollaborateurs } from "@/app/lib/collaborateur/collaborateurActions";
+import { fetchAgenda } from "@/app/lib/agenda/agendaActions";
+import { fetchPrestations } from "@/app/lib/prestation/prestationActions";
 export default async function Caisse({
   params,
 }: {
@@ -36,23 +40,14 @@ export default async function Caisse({
         ? parseInt(params.slugs[1])
         : 0;
   }
-  const resClt = await fetch("http://localhost:3001/api/client", {
-    cache: "no-store",
-  });
-  const resCollab = await fetch("http://localhost:3001/api/collaborateur", {
-    cache: "no-store",
-  });
-  const resPres = await fetch("http://localhost:3001/api/prestation", {
-    cache: "no-store",
-  });
-  const resAg = await fetch("http://localhost:3001/api/agenda", {
-    cache: "no-store",
-  });
+  const clients = await fetchClients();
 
-  const agendas = await resAg.json();
-  const clients = await resClt.json();
-  const collaborateurs = await resCollab.json();
-  const prestations = await resPres.json();
+  const collaborateurs = await fetchCollaborateurs();
+
+  const prestations = await fetchPrestations();
+
+  const agendas = await fetchAgenda();
+
   // const ticketLines = await get_ticketLines({ Num_ticket: Number(ticketId) });
   let AndCondition = "";
   // if (ticketId) {

@@ -1,59 +1,34 @@
-import Link from "next/link";
 import Home from "./home";
-import { revalidatePath } from "next/cache";
-import { get_resavations } from "../lib/reservat/reservatActions";
+import { fetchAgenda } from "@/app/lib/agenda/agendaActions";
+import { fetchAgendaPrestation } from "@/app/lib/agenda_prestation/agendaPrestationActions";
+import { fetchClients } from "@/app/lib/client/clientActions";
+import { fetchCollaborateurs } from "@/app/lib/collaborateur/collaborateurActions";
+import { fetchPeriods } from "@/app/lib/periode/periodeActions";
+import { fetchPrestations } from "@/app/lib/prestation/prestationActions";
+import { fetchVilles } from "@/app/lib/ville/villeActions";
+import { get_resavations } from "@/app/lib/reservat/reservatActions";
 
 export default async function CalendarPage() {
-  // const clients = await fetch("http://localhost:3000/api/client", {
-  //   method: "GET",
-  // });
-  const resClt = await fetch("http://localhost:3000/api/client", {
-    cache: "no-store",
-  });
-  const clients = await resClt.json();
-
-  const resVls = await fetch("http://localhost:3000/api/ville", {
-    cache: "no-store",
-  });
-  const villes = await resVls.json();
-
-  const resClb = await fetch("http://localhost:3000/api/collaborateur", {
-    cache: "no-store",
-  });
-  const collaborateurs = await resClb.json();
-
-  const resPrs = await fetch("http://localhost:3000/api/prestation", {
-    cache: "no-store",
-  });
-  const prestations = await resPrs.json();
-
-  const resAgPR = await fetch("http://localhost:3000/api/agenda_prestation", {
-    cache: "no-store",
-  });
-  const agenda_prestation = await resAgPR.json();
-
-  const resAg = await fetch("http://localhost:3000/api/agenda", {
-    cache: "no-store",
-  });
-  const agendas = await resAg.json();
-
-  const resPrd = await fetch("http://localhost:3000/api/periode", {
-    cache: "no-store",
-  });
-  const periods = await resPrd.json();
-  const reservations = await get_resavations();
+  const clients = await fetchClients();
+  const villes = await fetchVilles();
+  const collaborateurs = await fetchCollaborateurs();
+  const prestations = await fetchPrestations();
+  const agenda_prestation = await fetchAgendaPrestation();
+  const agendas = await fetchAgenda();
+  const periods = await fetchPeriods();
+  const reservations = await get_resavations(); // Assuming this function is defined elsewhere
 
   return (
-    <div className="h-full  p-6">
+    <div className="h-full p-6">
       <Home
-        clients={clients}
-        villes={villes}
-        collaborateurs={collaborateurs}
-        prestations={prestations}
-        agenda_prestation={agenda_prestation}
-        agendas={agendas}
-        periods={periods}
-        reservations={JSON.parse(reservations as string)}
+        clients={JSON.parse(clients)}
+        villes={JSON.parse(villes)}
+        collaborateurs={JSON.parse(collaborateurs)}
+        prestations={JSON.parse(prestations)}
+        agenda_prestation={JSON.parse(agenda_prestation)}
+        agendas={JSON.parse(agendas)}
+        periods={JSON.parse(periods)}
+        reservations={JSON.parse(reservations)}
       />
     </div>
   );

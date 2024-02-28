@@ -46,7 +46,7 @@ export const closeModal = () => {
   setIsOpen(false);
 };
 export const saveClient = async (formData) => {
-  const response = await fetch("http://localhost:3001/api/client", {
+  const response = await fetch("http://localhost:3000/api/client", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -357,7 +357,7 @@ export const saveReservat = async (formData) => {
   // };
   console.log("formData", formData);
   return;
-  const response = await fetch("http://localhost:3001/api/reservat", {
+  const response = await fetch("http://localhost:3000/api/reservat", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

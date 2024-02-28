@@ -13,16 +13,16 @@
 //   // console.log("searchParams", searchParams);
 //   // return;
 //   const { res: idRes } = searchParams;
-//   const resClt = await fetch("http://localhost:3001/api/client", {
+//   const resClt = await fetch("http://localhost:3000/api/client", {
 //     cache: "no-store",
 //   });
-//   const resCollab = await fetch("http://localhost:3001/api/collaborateur", {
+//   const resCollab = await fetch("http://localhost:3000/api/collaborateur", {
 //     cache: "no-store",
 //   });
-//   const resPres = await fetch("http://localhost:3001/api/prestation", {
+//   const resPres = await fetch("http://localhost:3000/api/prestation", {
 //     cache: "no-store",
 //   });
-//   const resAg = await fetch("http://localhost:3001/api/agenda", {
+//   const resAg = await fetch("http://localhost:3000/api/agenda", {
 //     cache: "no-store",
 //   });
 

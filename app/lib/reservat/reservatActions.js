@@ -77,10 +77,7 @@ export async function get_resavations(id = 0) {
     return JSON.stringify(reservat);
   } catch (error) {
     console.error("Could not execute query:", error);
-    return new NextResponse(
-      JSON.stringify({ error: "Could not execute query" }),
-      { status: 500 }
-    );
+    return JSON.stringify({ error: "Could not execute query" });
   }
 }
 export async function saveReservation(data) {
