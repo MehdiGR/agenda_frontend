@@ -29,6 +29,7 @@ import { saveReservation } from "@/app/lib/reservat/reservatActions";
 import { exportStore, useStore_new2 } from "@/app/store/store_new2";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { CiNoWaitingSign } from "react-icons/ci";
 
 export default function CreateEventSection({
   clients,
@@ -36,7 +37,7 @@ export default function CreateEventSection({
   collaborateurs,
   prestations,
   agendas,
-}) {
+}: any) {
   const {
     activeCreateSection,
     setActiveCreateSection,
@@ -763,7 +764,7 @@ export default function CreateEventSection({
             onClick={() => cancelCreationEvent({ activeSection: "create" })}
             type="button"
           >
-            <img src="https://circumicons.com/icon/no_waiting_sign?size=24&fill=ffffff" />
+            <CiNoWaitingSign size={24} />
             Annuler
           </button>
 

@@ -4,7 +4,7 @@ import React from "react";
 // import "slick-carousel/slick/slick-theme.css";
 import Prestation from "./prestation";
 
-const PrestationSlider = ({ prestations }) => {
+const PrestationSlider = ({ prestations }: any) => {
   // Slider settings
   // const settings = {
   //   dots: true,

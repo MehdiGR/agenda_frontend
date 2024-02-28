@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { addPrestation } from "@/app/js/agenda_fn";
-export default function Prestation({ prestation }) {
+export default function Prestation({ prestation }: any) {
   const image = prestation.img != null ? prestation.img : "no-image-icon.png";
   return (
     <div
