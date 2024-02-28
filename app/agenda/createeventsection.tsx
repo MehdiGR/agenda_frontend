@@ -192,7 +192,7 @@ export default function CreateEventSection({
     // Only update the form values if they are different from the current values
     const currentValues = getValues("agenda_prestationArr");
     const updatedAgendaPrestationArr = selectedEventAgendaPrestationArr.map(
-      (item) => ({
+      (item: any) => ({
         line_id: "4",
         start_time: item.start_time,
         designation: item.intitule,
@@ -461,7 +461,8 @@ export default function CreateEventSection({
                     return (
                       <tr key={index}>
                         <Controller
-                          name={`agenda_prestationArr[${index}].line_id`}
+                          // name={`agenda_prestationArr[${index}].line_id`}
+                          name={fields[index].line_id}
                           control={control}
                           defaultValue={item?.line_id || ""}
                           render={({ field }) => {
@@ -469,7 +470,8 @@ export default function CreateEventSection({
                           }}
                         />
                         <Controller
-                          name={`agenda_prestationArr[${index}].start_time`}
+                          // name={`agenda_prestationArr[${index}].start_time`}
+                          name={fields[index].start_time}
                           control={control}
                           defaultValue={item.start_time}
                           render={({ field }) => {
@@ -477,9 +479,10 @@ export default function CreateEventSection({
                           }}
                         />
                         <Controller
-                          name={`agenda_prestationArr[${index}].id_art`}
+                          // name={`agenda_prestationArr[${index}].id_art`}
+                          name={fields[index].id_art}
                           control={control}
-                          defaultValue={"item.id_art"}
+                          defaultValue={item.id_art}
                           render={({ field }) => {
                             return <input type="hidden" {...field} />;
                           }}
@@ -487,7 +490,8 @@ export default function CreateEventSection({
                         <td className="text-center py-4">{item.intitule}</td>
                         <td className="py-4">
                           <Controller
-                            name={`agenda_prestationArr[${index}].agenda`}
+                            // name={`agenda_prestationArr[${index}].agenda`}
+                            name={fields[index].agenda}
                             control={control}
                             render={({ field }) => {
                               return (
@@ -615,7 +619,8 @@ export default function CreateEventSection({
                           />
                           <span className="font-medium m-2">h</span>
                           <Controller
-                            name={`agenda_prestationArr[${index}].duration_minutes`}
+                            // name={`agenda_prestationArr[${index}].duration_minutes`}
+                            name={fields[index].duration_minutes}
                             control={control}
                             render={({ field }) => {
                               return (

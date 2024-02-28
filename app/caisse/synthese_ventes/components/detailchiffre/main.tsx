@@ -15,7 +15,7 @@ export default function DetailChiffre({ salesByArticleType, viewType }: any) {
     setProducts(salesByArticleType[1]);
   }, [salesByArticleType, viewType]);
 
-  const generateNewChart = (data) => {
+  const generateNewChart = (data: any) => {
     setShowChart(true);
     setCurrentChartData(data);
   };

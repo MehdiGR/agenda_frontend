@@ -164,7 +164,7 @@ export default function Home({
     const offset = "-08:00"; // Adjust this as needed
     return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}${offset}`;
   };
-  function handleEventResize(event) {
+  function handleEventResize(event: any) {
     console.log("Updated event:", event);
 
     const eventId = event.extendedProps.eventIndex;

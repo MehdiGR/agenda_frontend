@@ -1,10 +1,11 @@
-import connection from '../db';
-import { NextResponse } from 'next/server'
+import connection from "@/app/lib/db";
+import { NextResponse } from "next/server";
 
 export async function GET() {
- try {
-    const periods = await new Promise((resolve, reject) => 
-      connection.query(`SELECT
+  try {
+    const periods = await new Promise((resolve, reject) =>
+      connection.query(
+        `SELECT
                             p.*,
                             a.nom AS agenda_nom,
                             prs.intitule as prestation
@@ -19,15 +20,17 @@ export async function GET() {
                         JOIN article AS prs
                         ON
                             prs.id = ag_p.idProduit;`,
-       (error, results) => 
-        error ? reject(error) : resolve(results)
+        (error: Error | null, results: any) =>
+          error ? reject(error) : resolve(results)
       )
     );
-  // console.log(periods)
+    // console.log(periods)
     return new NextResponse(JSON.stringify(periods));
   } catch (error) {
-    console.error('Could not execute query:', error);
-    return new NextResponse({ error: 'Could not execute query' }, { status: 500 });
+    console.error("Could not execute query:", error);
+    return new NextResponse(
+      JSON.stringify({ error: "Could not execute query" }),
+      { status: 500 }
+    );
   }
-  
 }

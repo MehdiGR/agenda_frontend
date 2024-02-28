@@ -1,6 +1,6 @@
 import { revalidatePath } from "next/cache";
 
-import connection from "../db";
+import connection from "@/app/lib/db";
 import { NextResponse } from "next/server";
 
 export async function GET(req: Request) {
@@ -43,7 +43,7 @@ export async function GET(req: Request) {
   } catch (error: any) {
     console.error("Could not execute query:", error);
     return new NextResponse(
-      { error: "Could not execute query" },
+      JSON.stringify({ error: "Could not execute query" }),
       { status: 500 }
     );
   }
@@ -142,14 +142,10 @@ export async function POST(req: Request) {
 
 async function executeQuery(sql: string, values: any[]): Promise<any> {
   return new Promise((resolve, reject) => {
-    connection.query(
-      sql,
-      values,
-      function (err: any, result: any, fields: any) {
-        if (err) reject(err);
-        resolve(result.insertId || values[values.length - 1]); // Return either the insertId or the idRes for updates
-      }
-    );
+    connection.query(sql, values, function (err: any, result: any) {
+      if (err) reject(err);
+      resolve(result.insertId || values[values.length - 1]); // Return either the insertId or the idRes for updates
+    });
   });
 }
 
@@ -158,13 +154,9 @@ async function checkExistingRecord(ligne_id: number): Promise<boolean> {
   const values = [ligne_id];
 
   return new Promise((resolve, reject) => {
-    connection.query(
-      sql,
-      values,
-      function (err: any, result: any, fields: any) {
-        if (err) reject(err);
-        resolve(result.length > 0);
-      }
-    );
+    connection.query(sql, values, function (err: any, result: any) {
+      if (err) reject(err);
+      resolve(result.length > 0);
+    });
   });
 }

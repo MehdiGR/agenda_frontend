@@ -1,6 +1,10 @@
 import Image from "next/image";
 
-export default function Prestation({ prestation, addPrestation, vendeur }) {
+export default function Prestation({
+  prestation,
+  addPrestation,
+  vendeur,
+}: any) {
   const image = prestation.img != null ? prestation.img : "no-image-icon.png";
   const data = {
     line_id: "",

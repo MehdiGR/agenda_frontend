@@ -27,7 +27,7 @@ export default function ModalDetailTK({
   isModalOpen,
   resteAPayer,
 }: any) {
-  const componentRef = useRef();
+  const componentRef = useRef<HTMLDivElement>(null);
   const downloadAsPdf = async () => {};
   const [ticketLines, setTicketLines] = useState<any>([]);
   const [PaiementsDeCommande, setPaiementsDeCommande] = useState<any>([]);

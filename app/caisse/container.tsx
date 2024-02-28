@@ -34,7 +34,8 @@ export default function Container({
 
     // Calculate the sum of montant of all existing items
     const sumOfMontants = PaiementsDeCommande.reduce(
-      (sum, item) => sum + parseFloat(item.montant),
+      (sum: number, item: { montant: string | number }) =>
+        sum + parseFloat(item.montant.toString()),
       0
     );
 

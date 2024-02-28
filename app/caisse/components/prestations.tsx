@@ -3,7 +3,11 @@ import React, { useState } from "react";
 import { CiFolderOn, CiCircleChevLeft } from "react-icons/ci";
 import Prestation from "./prestation";
 
-export default function Prestations({ prestations, addPrestation, vendeur }) {
+export default function Prestations({
+  prestations,
+  addPrestation,
+  vendeur,
+}: any) {
   const [showSubfolders, setShowSubfolders] = useState(false);
   const toggleSubfolders = () => {
     setShowSubfolders(!showSubfolders);

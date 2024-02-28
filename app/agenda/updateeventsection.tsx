@@ -36,7 +36,7 @@ export default function UpdateEventSection({
   collaborateurs,
   prestations,
   agendas,
-}) {
+}: any) {
   const {
     activeUpdateSection,
     setActiveUpdateSection,
@@ -160,7 +160,7 @@ export default function UpdateEventSection({
   const submitTypeRef = useRef("");
   const router = useRouter();
 
-  const handleSaveReservat: any = async (data) => {
+  const handleSaveReservat: any = async (data: any) => {
     // console.log("submitTypeRef.current", submitTypeRef.current);
     // return;
     // console.log("data", data);

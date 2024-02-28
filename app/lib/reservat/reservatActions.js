@@ -3,7 +3,7 @@ import { exportStore } from "@/app/store/store_new2";
 
 import { revalidatePath } from "next/cache";
 
-import connection from "../db";
+import connection from "@/app/lib/db";
 import { redirect } from "next/navigation";
 import { NextResponse } from "next/server";
 // import { NextResponse } from "next/server";
@@ -78,7 +78,7 @@ export async function get_resavations(id = 0) {
   } catch (error) {
     console.error("Could not execute query:", error);
     return new NextResponse(
-      { error: "Could not execute query" },
+      JSON.stringify({ error: "Could not execute query" }),
       { status: 500 }
     );
   }

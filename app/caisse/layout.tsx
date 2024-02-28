@@ -1,7 +1,10 @@
+import { ReactNode } from "react";
 import TicketsEnAttente from "./components/list_tickets_en_attente";
 import Navbar from "./components/navbar";
-
-export default function Layout({ children }) {
+interface LayoutProps {
+  children: ReactNode;
+}
+export default function Layout({ children }: LayoutProps) {
   return (
     <>
       <Navbar>

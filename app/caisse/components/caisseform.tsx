@@ -57,7 +57,8 @@ export default function CaisseForm({
   useEffect(() => {
     // Calculate the sum of montant of all existing items
     const sumOfMontants = PaiementsDeCommande.reduce(
-      (sum, item) => sum + parseFloat(item.montant || "0"),
+      (sum: number, item: { montant: string | number }) =>
+        sum + parseFloat(item.montant.toString() || "0"),
       0
     );
 
@@ -195,6 +196,11 @@ export default function CaisseForm({
     totalPriceTTC: yup.number(),
     totalPriceHT: yup.number(),
     totalTax: yup.number(),
+    prestations: yup.array().of(
+      yup.object().shape({
+        total_ttc: yup.number().required(),
+      })
+    ),
   });
   const {
     register,
@@ -232,7 +238,8 @@ export default function CaisseForm({
 
   const CalculateMontantRendu = () => {
     const sumOfMontants = PaiementsDeCommande.reduce(
-      (sum, item) => sum + parseFloat(item.montant),
+      (sum: number, item: { montant: string | number }) =>
+        sum + parseFloat(item.montant.toString()),
       0
     );
 
@@ -305,7 +312,7 @@ export default function CaisseForm({
   const closeDetailTKModal = (modalState: any) => {
     modalState(false);
     setTicketId(null);
-    router.replace("/caisse", { shallow: true });
+    router.replace("/caisse");
   };
   const handleCaisseForm = async (formData: any) => {
     // return;
@@ -515,7 +522,7 @@ export default function CaisseForm({
                         {" "}
                         <input
                           {...(register(
-                            `prestations[${index}].total_ttc`
+                            `prestations[${index}].total_ttc` as `prestations.${number}.total_ttc`
                           ) as any)}
                           className="w-20 p-1 border border-gray-400 rounded-md"
                           type="text"
@@ -654,7 +661,7 @@ export default function CaisseForm({
               </thead>
               <tbody className="border">
                 {PaiementsDeCommande.length > 0 ? (
-                  PaiementsDeCommande.map((item, index) => {
+                  PaiementsDeCommande.map((item: any, index: number) => {
                     return (
                       <tr key={index}>
                         <td className="border-r-2 py-1 text-sm  p-3">

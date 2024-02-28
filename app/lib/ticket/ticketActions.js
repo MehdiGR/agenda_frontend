@@ -1,6 +1,6 @@
 "use server";
 import { revalidatePath } from "next/cache";
-import connection from "../db";
+import connection from "@/app/lib/db";
 import { NextResponse } from "next/server";
 import puppeteer from "puppeteer";
 
@@ -36,7 +36,7 @@ export async function get_encaissements({ where = "", params = [] }) {
   } catch (error) {
     console.error("Could not execute query:", error);
     return new NextResponse(
-      { error: "Could not execute query" },
+      JSON.stringify({ error: "Could not execute query" }),
       { status: 500 }
     );
   }
@@ -74,7 +74,7 @@ export async function get_tickets({ where = "", params = [] }) {
   } catch (error) {
     console.error("Could not execute query:", error);
     return new NextResponse(
-      { error: "Could not execute query" },
+      JSON.stringify({ error: "Could not execute query" }),
       { status: 500 }
     );
   }
@@ -132,7 +132,7 @@ export async function get_ticket_lines({ where = "" }) {
   } catch (error) {
     console.error("Could not execute query:", error);
     return new NextResponse(
-      { error: "Could not execute query" },
+      JSON.stringify({ error: "Could not execute query" }),
       { status: 500 }
     );
   }
@@ -170,7 +170,7 @@ export async function get_ticket_paiements({ where = "" }) {
   } catch (error) {
     console.error("Could not execute query:", error);
     return new NextResponse(
-      { error: "Could not execute query" },
+      JSON.stringify({ error: "Could not execute query" }),
       { status: 500 }
     );
   }
@@ -199,7 +199,7 @@ export async function get_operation_caisse({ where = "", params = [] }) {
   } catch (error) {
     console.error("Could not execute query:", error);
     return new NextResponse(
-      { error: "Could not execute query" },
+      JSON.stringify({ error: "Could not execute query" }),
       { status: 500 }
     );
   }
@@ -228,7 +228,7 @@ export async function get_synths_paiements_jr({ having = "", params = [] }) {
   } catch (error) {
     console.error("Could not execute query:", error);
     return new NextResponse(
-      { error: "Could not execute query" },
+      JSON.stringify({ error: "Could not execute query" }),
       { status: 500 }
     );
   }
@@ -274,7 +274,7 @@ export async function get_synths_montant_en_caisse_jr({
   } catch (error) {
     console.error("Could not execute query:", error);
     return new NextResponse(
-      { error: "Could not execute query" },
+      JSON.stringify({ error: "Could not execute query" }),
       { status: 500 }
     );
   }
@@ -308,7 +308,7 @@ export async function get_synths_chiffre_affaires_jr({
   } catch (error) {
     console.error("Could not execute query:", error);
     return new NextResponse(
-      { error: "Could not execute query" },
+      JSON.stringify({ error: "Could not execute query" }),
       { status: 500 }
     );
   }
@@ -414,7 +414,7 @@ export async function get_synths_chiffre_affaires({
   } catch (error) {
     console.error("Could not execute query:", error);
     return new NextResponse(
-      { error: "Could not execute query" },
+      JSON.stringify({ error: "Could not execute query" }),
       { status: 500 }
     );
   }
@@ -456,7 +456,7 @@ export async function get_total_sales_by_article_type({
   } catch (error) {
     console.error("Could not execute query:", error);
     return new NextResponse(
-      { error: "Could not execute query" },
+      JSON.stringify({ error: "Could not execute query" }),
       { status: 500 }
     );
   }
@@ -586,7 +586,7 @@ export async function get_synths_detail_tva({ date = "", viewType = "" }) {
   } catch (error) {
     console.error("Could not execute query:", error);
     return new NextResponse(
-      { error: "Could not execute query" },
+      JSON.stringify({ error: "Could not execute query" }),
       { status: 500 }
     );
   }
@@ -696,7 +696,7 @@ export async function get_synths_reglement({ date = "", viewType = "" }) {
   } catch (error) {
     console.error("Could not execute query:", error);
     return new NextResponse(
-      { error: "Could not execute query" },
+      JSON.stringify({ error: "Could not execute query" }),
       { status: 500 }
     );
   }
@@ -810,7 +810,7 @@ export async function get_synths_fonds_caisse({ date = "", viewType = "" }) {
   } catch (error) {
     console.error("Could not execute query:", error);
     return new NextResponse(
-      { error: "Could not execute query" },
+      JSON.stringify({ error: "Could not execute query" }),
       { status: 500 }
     );
   }
