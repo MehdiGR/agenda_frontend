@@ -13,7 +13,7 @@ export default function Prestations({
     setShowSubfolders(!showSubfolders);
   };
   return (
-    <div className="bg-gray-200 border border-r-2 p-4 flex gap-2">
+    <div className="bg-gray-200 border border-r-2  flex gap-2 p-6 h-screen">
       {!showSubfolders ? (
         <>
           <div

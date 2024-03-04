@@ -17,7 +17,7 @@ export default function ChiffreAffaire({
     setData(filteredData);
   }, [salesData, viewType]);
   return (
-    <div className="space-y-4 overflow-x-auto">
+    <div className="space-y-4 overflow-x-auto  ">
       <ChartComponent
         salesData={salesData}
         salesByArticleType={salesByArticleType}

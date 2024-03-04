@@ -18,14 +18,17 @@ export default function Encaissements({ data }: any) {
     // sheet: "/",
   });
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 ">
       <button
         className="bg-green-500 text-white px-4 py-2 rounded flex ml-auto "
         onClick={onDownload}
       >
         Exporter
       </button>
-      <table className="w-full overflow-auto " ref={tableRef}>
+      <table
+        className="w-full overflow-auto bg-white rounded-md p-6 shadow-md "
+        ref={tableRef}
+      >
         <thead className="bg-slate-800 text-white">
           <tr>
             <th className="p-4  rounded-tl-lg">N° Ticket</th>

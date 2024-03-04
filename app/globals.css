@@ -3,6 +3,7 @@
 @tailwind utilities;
 body {
   /* min-width: 640px; */
+  background-color: #eee;
 }
 .fc-daygrid-day-frame,
 .fc-timegrid-slot-lane {

@@ -10,10 +10,10 @@ export default function Synths({ data }: any) {
 
   let totalMontant = 0;
   return (
-    <div className="space-y-4 border border-gray-300 p-4">
+    <div className="space-y-4    ">
       <div className="p-2"></div>
       <div className="flex flex-wrap gap-8 ">
-        <table className="flex-1">
+        <table className="flex-1 ">
           <tr>
             <td className="border border-gray-300 flex justify-between p-4">
               <p className="font-bold text-gray-600">

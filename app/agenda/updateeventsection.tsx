@@ -224,7 +224,7 @@ export default function UpdateEventSection({
   }, [clientIsRef, setValue]);
   return (
     <div
-      className={`relative   h-fit w-full ${
+      className={`relative bg-white rounded-lg p-6 shadow-md h-fit w-full ${
         !activeUpdateSection ? "hidden" : ""
       }`}
     >

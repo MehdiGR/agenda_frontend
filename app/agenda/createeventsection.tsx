@@ -236,7 +236,7 @@ export default function CreateEventSection({
 
   return (
     <div
-      className={`relative   h-fit w-full ${
+      className={`relative bg-white rounded-md p-6 shadow-md  h-fit w-full ${
         !activeCreateSection ? "hidden" : ""
       }`}
     >

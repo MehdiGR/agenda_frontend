@@ -58,19 +58,35 @@ export default function Container({
   const tabs = [
     {
       label: "Tickets",
-      content: <Tickets data={tickets} />,
+      content: (
+        <div className=" border p-6 overflow-auto">
+          <Tickets data={tickets} />
+        </div>
+      ),
     },
     {
       label: "Opération de caisse",
-      content: <OperationCaisse data={operation_caisse} />,
+      content: (
+        <div className=" border p-6 overflow-auto">
+          <OperationCaisse data={operation_caisse} />
+        </div>
+      ),
     },
     {
       label: "Encaissements",
-      content: <Encaissements data={encaissements} />,
+      content: (
+        <div className=" border p-6 overflow-auto">
+          <Encaissements data={encaissements} />
+        </div>
+      ),
     },
     {
       label: "Synthèse",
-      content: <Synths data={synths} />,
+      content: (
+        <div className=" border p-6 overflow-auto">
+          <Synths data={synths} />
+        </div>
+      ),
     },
   ];
   return (

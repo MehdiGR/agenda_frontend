@@ -226,33 +226,42 @@ export default function Home({
   //   };
   // }, [selectedEventsIndices]);
   return (
-    <div className="grid grid-flow-col auto-cols gap-10  h-full   ">
+    <div className="grid grid-flow-row md:grid-flow-col auto-cols gap-10 h-full">
       {activeCreateSection && (
-        <CreateEventSection
-          clients={clients}
-          villes={villes}
-          collaborateurs={collaborateurs}
-          prestations={prestations}
-          agendas={agendas}
-        />
+        <>
+          <div className="order-2 md:order-1">
+            <CreateEventSection
+              clients={clients}
+              villes={villes}
+              collaborateurs={collaborateurs}
+              prestations={prestations}
+              agendas={agendas}
+            />
+          </div>
+        </>
       )}
       {/* selectedEventsIndices.size > 0 && */}
       {activeUpdateSection && (
-        <UpdateEventSection
-          clients={clients}
-          villes={villes}
-          collaborateurs={collaborateurs}
-          prestations={prestations}
+        <div className="order-2 md:order-1">
+          <UpdateEventSection
+            clients={clients}
+            villes={villes}
+            collaborateurs={collaborateurs}
+            prestations={prestations}
+            agendas={agendas}
+          />
+        </div>
+      )}
+
+      <div className="order-1 md:order-2">
+        <MyCalendar
+          handleAddEvent={handleAddEvent}
+          handleEventDrop={handleEventDrop}
+          handleUpdateEvent={handleUpdateEvent}
+          handleEventResize={handleEventResize}
           agendas={agendas}
         />
-      )}
-      <MyCalendar
-        handleAddEvent={handleAddEvent}
-        handleEventDrop={handleEventDrop}
-        handleUpdateEvent={handleUpdateEvent}
-        handleEventResize={handleEventResize}
-        agendas={agendas}
-      />
+      </div>
     </div>
   );
 }

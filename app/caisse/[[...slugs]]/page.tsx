@@ -65,12 +65,12 @@ export default async function Caisse({
     // lg:overflow-y-hidden min-w-min
     <div className="h-screen  ">
       <Container
-        clients={clients}
-        collaborateurs={collaborateurs}
+        clients={JSON.parse(clients)}
+        collaborateurs={JSON.parse(collaborateurs)}
         ticketLines={JSON.parse(ticketLines as string)}
         ticketPaiements={JSON.parse(ticketPaiements as string)}
-        agendas={agendas}
-        prestations={prestations}
+        agendas={JSON.parse(agendas)}
+        prestations={JSON.parse(prestations)}
       />
     </div>
   );

@@ -350,7 +350,7 @@ export default function CaisseForm({
     // });
   };
   return (
-    <div className="relative max-h-[100vh]  ">
+    <div className="relative max-h-[100vh] p-6  ">
       {/* <img src="/vercel.svg" alt="" /> */}
       <form className=" h-full  " onSubmit={handleSubmit(handleCaisseForm)}>
         <div className="space-y-4 overflow-y-auto max-h-full  p-1">

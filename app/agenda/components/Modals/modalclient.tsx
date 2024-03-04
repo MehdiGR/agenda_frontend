@@ -51,7 +51,7 @@ export default function ModalClient({ villes, collaborateurs }: any) {
 
   // add client
   return (
-    <div>
+    <div className=" relative z-50">
       <Modal
         isOpen={modalIsOpen}
         onRequestClose={closeModal}
@@ -59,17 +59,20 @@ export default function ModalClient({ villes, collaborateurs }: any) {
         ariaHideApp={false}
         style={{
           overlay: {
-            // position: "fixed",
-            // top: 0,
-            // left: 0,
-            // right: 0,
-            // bottom: 0,
-            // backgroundColor: "rgba(255, 255, 255, 0.75)",
-            // overflow: "auto",
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(255, 255, 255, 0.75)",
+            overflow: "auto",
+            zIndex: 1000, // Set a high z-index for the overlay
           },
           content: {
+            position: "relative", // Set position to relative or absolute
             maxWidth: 800,
             margin: "auto",
+            zIndex: 1001, // Set a higher z-index for the content
           },
         }}
       >

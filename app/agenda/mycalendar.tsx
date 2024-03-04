@@ -55,7 +55,7 @@ export default function MyCalendar({
   }, [events, selectedDate]);
 
   return (
-    <div className="w-full text-center">
+    <div className="w-full text-center bg-white rounded-md p-6 shadow-md overflow-auto h-full ">
       <DateNavigation
         selectedDate={selectedDate}
         handlePreviousDay={handlePreviousDay}
@@ -63,8 +63,9 @@ export default function MyCalendar({
         handleDateChange={handleDateChange}
       />
 
-      <div className={` w-full `} style={{ zIndex: 0 }}>
+      <div className={` w-full  `} style={{ zIndex: 0 }}>
         <FullCalendar
+          height={750}
           ref={(calendar) => {
             if (calendar) {
               calendarApi = calendar.getApi();

@@ -55,7 +55,7 @@ export default function Tickets({ data }: any) {
           {tickets.map((ticket: any, index: number) => (
             <tr
               key={index}
-              className="p-16 even:bg-gray-200 odd:bg-gray-100 font-medium hover:bg-gray-300 transition "
+              className="p-16 even:bg-gray-200 odd:bg-white-100 font-medium hover:bg-gray-300 transition "
             >
               <td className="p-4 text-slate-800">{ticket?.Num_ticket}</td>
               <td className="p-4 text-slate-800">

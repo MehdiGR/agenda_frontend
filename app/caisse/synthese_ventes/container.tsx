@@ -136,7 +136,7 @@ export default function Container({
     {
       label: "Chiffre d'affaires",
       content: (
-        <div className="border p-4 overflow-auto">
+        <div className="  border p-10 overflow-auto">
           <ChiffreAffaire
             salesData={salesData}
             salesByArticleType={salesByArticleType}
@@ -148,7 +148,7 @@ export default function Container({
     {
       label: "Détail chiffres",
       content: (
-        <div className="border p-4  overflow-auto">
+        <div className=" border p-10  overflow-auto">
           <DetailChiffre
             salesByArticleType={salesByArticleType}
             viewType={viewType}
@@ -159,7 +159,7 @@ export default function Container({
     {
       label: "Tickets",
       content: (
-        <div className="border p-4  overflow-auto">
+        <div className=" border p-10  overflow-auto">
           <Tickets ticketsData={ticketsData} viewType={viewType} />
         </div>
       ),
@@ -167,7 +167,7 @@ export default function Container({
     {
       label: "Règlements",
       content: (
-        <div className="border p-4  overflow-auto">
+        <div className=" border p-10  overflow-auto">
           <Reglements reglementsData={reglementsData} viewType={viewType} />
         </div>
       ),
@@ -175,7 +175,7 @@ export default function Container({
     {
       label: "Fonds de caisse",
       content: (
-        <div className="border p-4  overflow-auto">
+        <div className=" border p-10  overflow-auto">
           <FondsCaisse fondsCaisseData={fondsCaisseData} viewType={viewType} />
         </div>
       ),
@@ -183,7 +183,7 @@ export default function Container({
     {
       label: "Détail TVA",
       content: (
-        <div className="border p-4  overflow-auto">
+        <div className=" border overflow-auto p-10  ">
           <DetailTVA detailTvaData={detailTvaData} viewType={viewType} />
         </div>
       ),
