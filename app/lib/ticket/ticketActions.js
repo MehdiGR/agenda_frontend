@@ -113,7 +113,7 @@ export async function get_ticket_lines({ where = "" }) {
                     dcl.iddocument = dce.id
                 JOIN client clt ON
                     clt.id = dce.tier_doc
-                JOIN collaborateur AS clb
+                LEFT JOIN collaborateur AS clb
                 ON
                     clb.id_collaborateur = clt.idCollab
                 JOIN p_tauxtva AS tva

@@ -163,8 +163,7 @@ export default function UpdateEventSection({
   const handleSaveReservat: any = async (data: any) => {
     // console.log("submitTypeRef.current", submitTypeRef.current);
     // return;
-    // console.log("data", data);
-    // return;
+
     // saveReservat(data)
     const ticketId = await saveReservation({
       ...data,
@@ -174,10 +173,10 @@ export default function UpdateEventSection({
       totalTax,
       submitType: submitTypeRef.current,
     });
-    console.log("ticketId", ticketId);
     if (submitTypeRef.current === "encaisser") {
       router.push("/caisse/ticket/" + ticketId);
     }
+    toggleEventSelected(null);
   };
 
   useEffect(() => {
@@ -187,10 +186,15 @@ export default function UpdateEventSection({
       (item: any) => ({
         line_id: item.line_id || "",
         start_time: item.start_time,
+        designation: item.intitule,
         id_art: item.id_art,
         qte: 1,
+        tva_id: item.tva_id,
         prixVente: item.prixVente,
         prixTTC: item.prixTTC,
+        ticketId: item.ticketId,
+        ticketId_line: item.ticketId_line,
+
         agenda: {
           label: item.agendaTitle,
           value: item.agendaId,

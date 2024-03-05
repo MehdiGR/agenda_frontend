@@ -198,6 +198,7 @@ export default function CreateEventSection({
         designation: item.intitule,
         id_art: item.id_art,
         qte: 1,
+        tva_id: item.tva_id,
         prixVente: item.prixVente,
         prixTTC: item.prixTTC,
         ticketId: item.ticketId,

@@ -28,6 +28,7 @@ export async function get_resavations(id = 0) {
                     clt.nom AS nomClient,
                     clt.id AS idClient,
                     res_dce.id_doc AS ticketId,
+                    tva.id AS prest_tva_id,
                     MAX(dcl.id) AS ticketId_ligne -- Using MAX to ensure a single dcl.id per group
                 FROM
                     reservat AS rsv
@@ -49,6 +50,9 @@ export async function get_resavations(id = 0) {
                 LEFT JOIN docligne AS dcl
                 ON
                     dcl.iddocument = res_dce.id_doc
+                LEFT JOIN p_tauxtva AS tva
+                ON
+                    art.code_tauxtvaVente = tva.code OR art.code_tauxtvaAchat = tva.code
                 GROUP BY
                     rsv.id,
                     -- Assuming rsv.id is a unique identifier for reservat

@@ -60,7 +60,8 @@ export default async function Caisse({
   const ticketPaiements = await get_ticket_paiements({
     where: ` WHERE dce.id = "${ticketId}"`,
   });
-
+  console.log("ticketId", ticketId);
+  console.log("ticketLines", ticketLines);
   return (
     // lg:overflow-y-hidden min-w-min
     <div className="h-screen  ">

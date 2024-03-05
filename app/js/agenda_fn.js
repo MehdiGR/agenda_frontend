@@ -454,6 +454,7 @@ export const processReservations = (reservations) => {
           prixVente: res.prest_prix_vente,
           code_tauxtvaVente: res.prest_code_tauxtvaVente,
           code_tauxtvaAchat: res.prest_code_tauxtvaAchat,
+          tva_id: res.prest_tva_id,
           // ticketId: res.ticketId,
           ticketId_line: res.ticketId_line,
         },
