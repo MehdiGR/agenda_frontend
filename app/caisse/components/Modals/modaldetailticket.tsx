@@ -11,9 +11,10 @@ import { IoMdAdd } from "react-icons/io";
 import { useEffect, useRef, useState } from "react";
 import { Props } from "react-select";
 import ReactToPrint from "react-to-print";
-import { PDFDownloadLink } from "@react-pdf/renderer";
+import { PDFDownloadLink, pdf } from "@react-pdf/renderer";
 import MyDocument from "@/app/caisse/components/Document/mydocument";
 import { CiCircleRemove } from "react-icons/ci";
+import { sendEmail } from "@/app/lib/mail/send_mail";
 
 import {
   get_ticket_lines,
@@ -53,6 +54,27 @@ export default function ModalDetailTK({
         });
     }
   }, [ticketId]);
+
+  // Function to generate PDF and send it via email
+  const sendPdfViaEmail = async () => {
+    const blob = await pdf(
+      <MyDocument
+        ticketLines={ticketLines}
+        PaiementsDeCommande={PaiementsDeCommande}
+      />
+    ).toBlob();
+
+    // Call the function to send the PDF via email
+    sendEmail({
+      recipientEmail: "pijiwa9174@bizatop.com",
+      subject: "Ticket" + ticketLines[0].Num_ticket,
+      emailBody: "Détail de votre ticket",
+      pdfBlob: blob,
+    });
+  };
+
+  // Function to send the PDF via email
+
   const customStyles = {
     content: {
       top: "50%",
@@ -108,8 +130,13 @@ export default function ModalDetailTK({
                   />
 
                   <PDFDownloadLink
-                    document={<MyDocument />}
-                    fileName="somename.pdf"
+                    document={
+                      <MyDocument
+                        ticketLines={ticketLines}
+                        PaiementsDeCommande={PaiementsDeCommande}
+                      />
+                    }
+                    fileName="detail_ticket.pdf"
                   >
                     {({ blob, url, loading, error }) =>
                       loading ? (
@@ -117,7 +144,7 @@ export default function ModalDetailTK({
                       ) : (
                         <button
                           className="flex items-center justify-center gap-2 h-12 leading-[48px] bg-slate-800 hover:bg-slate-500 min-w-[100px] text-white rounded-md px-3"
-                          onClick={downloadAsPdf}
+                          // onClick={downloadAsPdf}
                         >
                           <PiDownloadBold />
                           Télécharger
@@ -125,7 +152,10 @@ export default function ModalDetailTK({
                       )
                     }
                   </PDFDownloadLink>
-                  <button className=" flex items-center justify-center gap-2 h-12 leading-[48px] bg-slate-800 hover:bg-slate-500 min-w-[100px] text-white rounded-md px-3">
+                  <button
+                    className=" flex items-center justify-center gap-2 h-12 leading-[48px] bg-slate-800 hover:bg-slate-500 min-w-[100px] text-white rounded-md px-3"
+                    onClick={sendPdfViaEmail}
+                  >
                     <AiOutlineMail />
                     Envoyer
                   </button>

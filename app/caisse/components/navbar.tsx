@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import TicketsEnAttente from "./list_tickets_en_attente";
 import { RxHamburgerMenu } from "react-icons/rx";
+import { usePathname } from "next/navigation";
 
 const Navbar = ({ children }: { children: React.ReactNode }) => {
   const [isTicketEnAttenteHovered, setIsTicketEnAttenteHovered] =
@@ -13,6 +14,7 @@ const Navbar = ({ children }: { children: React.ReactNode }) => {
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
+  const pathname = usePathname();
 
   return (
     <>
@@ -26,7 +28,11 @@ const Navbar = ({ children }: { children: React.ReactNode }) => {
         >
           <Link href="/caisse">
             <div
-              className="px-6 text-slate-900 font-semibold h-[50px] leading-[50px] hover:bg-slate-900 hover:text-white transition cursor-pointer"
+              className={`px-6 text-slate-900 font-semibold h-[50px] leading-[50px]  hover:text-white transition cursor-pointer  ${
+                pathname == "/caisse"
+                  ? "bg-slate-900 text-white font-bold"
+                  : "hover:text-gray-500 text-gray-800 hover:bg-slate-600"
+              }`}
               onClick={() => setIsMenuOpen(false)}
             >
               Caisse
@@ -34,7 +40,7 @@ const Navbar = ({ children }: { children: React.ReactNode }) => {
           </Link>
 
           <div
-            className="relative  px-6 text-slate-900 font-semibold h-[50px] leading-[50px] hover:bg-slate-900 hover:text-white transition cursor-pointer"
+            className="relative  px-6 text-slate-900 font-semibold h-[50px] leading-[50px] hover:bg-slate-600 hover:text-white transition cursor-pointer"
             onMouseEnter={() => setIsTicketEnAttenteHovered(true)}
             onMouseLeave={() => setIsTicketEnAttenteHovered(false)}
             onClick={() => setIsMenuOpen(false)}
@@ -54,19 +60,28 @@ const Navbar = ({ children }: { children: React.ReactNode }) => {
           </div>
           <Link href="/caisse/journaux">
             <div
-              className="px-6 text-slate-900 font-semibold h-[50px] leading-[50px] hover:bg-slate-900 hover:text-white transition cursor-pointer"
+              className={`px-6 text-slate-900 font-semibold h-[50px] leading-[50px]  hover:text-white transition cursor-pointer ${
+                pathname == "/caisse/journaux"
+                  ? "bg-slate-900 text-white font-bold"
+                  : "hover:text-gray-500 text-gray-800 hover:bg-slate-600"
+              }`}
               onClick={() => setIsMenuOpen(false)}
             >
               Journées et tickets de caisse
             </div>
           </Link>
-
-          <div
-            className=" px-6 text-slate-900 font-semibold h-[50px] leading-[50px] hover:bg-slate-900 hover:text-white transition cursor-pointer"
-            onClick={() => setIsMenuOpen(false)}
-          >
-            <Link href="/caisse/synthese_ventes">Synthèse des ventes</Link>
-          </div>
+          <Link href="/caisse/synthese_ventes">
+            <div
+              className={`px-6 text-slate-900 font-semibold h-[50px] leading-[50px]  hover:text-white transition cursor-pointer ${
+                pathname == "/caisse/synthese_ventes"
+                  ? "bg-slate-900 text-white font-bold "
+                  : "hover:text-gray-500 text-gray-800 hover:bg-slate-600"
+              }`}
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Synthèse des ventes
+            </div>
+          </Link>
         </div>
         <div className="lg:hidden flex item-center px-4 h-full">
           {/* Hamburger menu for mobile view */}

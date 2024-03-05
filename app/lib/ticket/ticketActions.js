@@ -1100,3 +1100,5 @@ export async function removeMouvement(id) {
   await executeQuery(sql, values);
   revalidatePath("/caisse/journaux");
 }
+
+// pages/api/send-email.js

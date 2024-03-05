@@ -49,7 +49,7 @@ const MainMenu = () => {
           <Link href="/caisse">
             <span
               className={`text-gray-800 flex items-center cursor-pointer my-2 w-full border-t-gray-800 ${
-                pathname == "/caisse"
+                pathname.includes("/caisse")
                   ? "text-teal-500 font-bold"
                   : "hover:text-gray-500 text-gray-800"
               }`}
