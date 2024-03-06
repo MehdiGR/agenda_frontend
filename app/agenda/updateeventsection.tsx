@@ -73,8 +73,12 @@ export default function UpdateEventSection({
   const [selectedHourDB, selectedMinutesDB] =
     selectedEventFirst?.start.split("T")[1]?.split(":") || [];
 
-  const [clientIsRef, setIsRefClient] = useState(true);
-  const [selectedClientType, setSelectedClientType] = useState("client_ref");
+  const [clientIsRef, setIsRefClient] = useState(
+    selectedEventFirst?.client.value == null ? false : true
+  );
+  const [selectedClientType, setSelectedClientType] = useState(
+    selectedEventFirst?.client.value == null ? "client_psg" : "client_ref"
+  );
   const [clientOptions, setClientOptions] = useState(
     clients.map((client: any) => {
       return { value: client.id, label: client.nom };
@@ -173,12 +177,12 @@ export default function UpdateEventSection({
       totalTax,
       submitType: submitTypeRef.current,
     });
-    toggleEventSelected(null);
-    setActiveUpdateSection(false);
 
     if (submitTypeRef.current === "encaisser") {
       router.push("/caisse/ticket/" + ticketId);
     }
+    toggleEventSelected(null);
+    setActiveUpdateSection(false);
   };
 
   useEffect(() => {

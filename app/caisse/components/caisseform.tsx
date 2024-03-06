@@ -46,7 +46,12 @@ export default function CaisseForm({
   const searchParams = useSearchParams();
   const params = new URLSearchParams(searchParams.toString());
 
-  const [clientIsRef, setIsRefClient] = useState(true);
+  const [clientIsRef, setIsRefClient] = useState(
+    ticketLines[0]?.client?.value == null ? false : true
+  );
+  const [selectedClientType, setSelectedClientType] = useState(
+    ticketLines[0]?.client?.value == null ? "client_psg" : "client_ref"
+  );
   const [selectedClient, setSelectedClient] = useState({
     label: ticketLines[0]?.client,
     value: ticketLines[0]?.idClient,
@@ -72,7 +77,6 @@ export default function CaisseForm({
   const [montantRendu, setMontantRendu] = useState<number>(0);
   const [paye, setPaye] = useState(false);
 
-  const [selectedClientType, setSelectedClientType] = useState("client_ref");
   const [ticketId, setTicketId] = useState<any>(null);
 
   // modal states

@@ -41,7 +41,7 @@ export async function get_resavations(id = 0) {
                 JOIN agenda AS ag
                 ON
                     ag.id = lr.idAgenda
-                JOIN CLIENT AS clt
+                LEFT JOIN CLIENT AS clt
                 ON
                     clt.id = rsv.idClient
                 LEFT JOIN reservat_docentete AS res_dce
