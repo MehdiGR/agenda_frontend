@@ -111,7 +111,7 @@ export async function get_ticket_lines({ where = "" }) {
                 JOIN docligne AS dcl
                 ON
                     dcl.iddocument = dce.id
-                JOIN client clt ON
+                LEFT JOIN client clt ON
                     clt.id = dce.tier_doc
                 LEFT JOIN collaborateur AS clb
                 ON
@@ -870,7 +870,7 @@ async function addTicket(data) {
     addTicketSQL,
     addTicketValues
   );
-
+  console.log(addTicketSQL, addTicketValues, "addTicketSQL, addTicketValues");
   // if (ticketId) {
   //   const insertReservatTicketSQL =
   //     "INSERT INTO reservat_docentete(id_res,id_doc) VALUES (?,?)";

@@ -123,7 +123,6 @@ export default function CaisseForm({
   };
   // handle calculator clear button
   const handleClearClick = (): void => {
-    alert("clear");
     if (focusedInput && focusedInput instanceof HTMLInputElement) {
       const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
         window.HTMLInputElement.prototype,
@@ -299,6 +298,8 @@ export default function CaisseForm({
   const handleCaisseForm = async (formData: any) => {
     // return;
     const createTicketData = { ...formData };
+    // console.log("createTicketData", createTicketData);
+    // return;
     const createTicketDataFiltered = { ...createTicketData };
     createTicketDataFiltered.prestations = createTicketData.prestations.filter(
       (item: any) => !item.hasOwnProperty("readonly")

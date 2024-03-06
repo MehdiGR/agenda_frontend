@@ -179,11 +179,12 @@ export default function CreateEventSection({
       submitType: submitTypeRef.current,
     });
 
+    toggleEventSelected(null);
+    return;
     if (submitTypeRef.current === "encaisser" && insertedIdTicket) {
       router.push(`/caisse/ticket/${insertedIdTicket}`);
     }
     // setOnEditingEvent(true);
-    toggleEventSelected(null);
 
     // });
   };

@@ -174,10 +174,14 @@ export default function ModalDetailTK({
                       <span className="mr-1 font-bold">Ticket n° : </span>
                       <span>{ticketLines[0].Num_ticket}</span>
                     </div>
-                    <div>
-                      <span className="mr-1 font-bold">Client : </span>
-                      <span>{ticketLines[0].client}</span>
-                    </div>
+                    {ticketLines[0].client != undefined ? (
+                      <div>
+                        <span className="mr-1 font-bold">Client : </span>
+                        <span>{ticketLines[0].client}</span>
+                      </div>
+                    ) : (
+                      ""
+                    )}
                   </div>
                   <div className="mb-5">
                     <span className="mr-5 font-bold text-lg">

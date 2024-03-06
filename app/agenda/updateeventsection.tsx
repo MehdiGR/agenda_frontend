@@ -173,10 +173,12 @@ export default function UpdateEventSection({
       totalTax,
       submitType: submitTypeRef.current,
     });
+    toggleEventSelected(null);
+    setActiveUpdateSection(false);
+
     if (submitTypeRef.current === "encaisser") {
       router.push("/caisse/ticket/" + ticketId);
     }
-    toggleEventSelected(null);
   };
 
   useEffect(() => {
