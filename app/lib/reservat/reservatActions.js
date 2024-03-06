@@ -193,10 +193,10 @@ export async function saveReservation(data) {
     }
 
     // redirect("/caisse/" + insertedTicketId);
+    revalidatePath("/agenda");
     return insertedTicketId;
   }
   // revalidatePath("/");
-  revalidatePath("/agenda");
 }
 
 // async function executeQuery(sql, values) {
