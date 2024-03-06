@@ -29,6 +29,25 @@ body {
   }
 }
 
+/* Custom scrollbar styles */
+::-webkit-scrollbar {
+  width: 8px; /* Adjust the width of the scrollbar */
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1; /* Track color */
+}
+
+::-webkit-scrollbar-thumb {
+  background: #008080; /* Thumb color (blue sky) */
+  border-radius: 4px; /* Border radius */
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #6495ed; /* Darker blue on hover */
+}
+/* scroll bar styles */
+
 /* .added-event {
  
   box-shadow: 1px 1px 10px 1px yellow;

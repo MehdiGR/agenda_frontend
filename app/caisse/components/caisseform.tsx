@@ -79,78 +79,60 @@ export default function CaisseForm({
 
   const pathname = usePathname();
 
-  // const inputRefs: {
-  //   [key: string]: any;
-  // } = {
-  //   input1: useRef<HTMLInputElement | null>(null),
-  //   input2: useRef<HTMLInputElement | null>(null),
-  //   input3: useRef<HTMLInputElement | null>(null),
-  // };
+  const [focusedInput, setFocusedInput] = useState<HTMLInputElement | null>(
+    null
+  );
 
-  // const [inputValues, setInputValues] = useState({
-  //   input: "", // Use a single variable to handle all inputs
-  // });
-  const [focusedInput, setFocusedInput] = useState<{
-    index: number;
-    inputType: string;
-  } | null>(null);
-  // const inputRefs = useRef([]);
-  const inputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
+  const containerRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const handleFocus = (event: any) => {
+      const target = event.target;
+      if (
+        target.tagName === "INPUT" &&
+        target.classList.contains("change_by_calculator")
+      ) {
+        console.log("Input focused!", event.target);
+        setFocusedInput(target);
+        // console.log("Input focused!", event.target);
+      } else if (target.tagName === "INPUT") {
+        setFocusedInput(null);
+      }
+    };
 
-  const handleInputFocus = (index: number, inputType: string) => {
-    setFocusedInput({ index, inputType });
-  };
-  // handle calculator button click
-  // const handleClickCalculator = (value: string) => {
-  //   if (
-  //     focusedInput &&
-  //     inputRefs.current[`${focusedInput.inputType}${focusedInput.index}`]
-  //   ) {
-  //     const currentInput = inputRefs.current[
-  //       `${focusedInput.inputType}${focusedInput.index}`
-  //     ] as HTMLInputElement;
-  //     currentInput.value = currentInput.value
-  //       ? currentInput.value + value
-  //       : value;
-  //   }
-  // };
+    containerRef.current?.addEventListener("focus", handleFocus, true);
 
+    // Clean up event listener on unmount
+    return () => {
+      if (containerRef.current)
+        containerRef.current?.removeEventListener("focus", handleFocus, true);
+    };
+  }, []);
+
+  // handle calculator  click calculator
   const handleClickCalculator = (value: string) => {
-    if (
-      focusedInput &&
-      inputRefs.current[`${focusedInput.inputType}${focusedInput.index}`]
-    ) {
-      const currentInput = inputRefs.current[
-        `${focusedInput.inputType}${focusedInput.index}`
-      ] as HTMLInputElement;
-      const previousValue = currentInput.value;
-      currentInput.value = currentInput.value
-        ? currentInput.value + value
-        : value;
-
-      // Create a new event object to simulate the change event
-      const event = new Event("change", { bubbles: true });
-
-      // Dispatch the event to trigger the onChange handler
-      currentInput.dispatchEvent(event);
-
-      // If you need to update the state or perform other actions after the change, you can do so here
-      // For example, if you have a state update function for the input value, you can call it with the new value
-      // setInputValue(currentInput.value);
+    if (focusedInput && focusedInput instanceof HTMLInputElement) {
+      const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+        window.HTMLInputElement.prototype,
+        "value"
+      )?.set;
+      const newValue = focusedInput.value + value;
+      nativeInputValueSetter?.call(focusedInput, newValue);
+      const event = new Event("input", { bubbles: true });
+      focusedInput.dispatchEvent(event);
     }
   };
-
   // handle calculator clear button
   const handleClearClick = (): void => {
-    if (
-      focusedInput !== null &&
-      inputRefs.current[`${focusedInput.inputType}${focusedInput.index}`]
-    ) {
-      (
-        inputRefs.current[
-          `${focusedInput.inputType}${focusedInput.index}`
-        ] as HTMLInputElement
-      ).value = "";
+    alert("clear");
+    if (focusedInput && focusedInput instanceof HTMLInputElement) {
+      const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+        window.HTMLInputElement.prototype,
+        "value"
+      )?.set;
+      const newValue = "";
+      nativeInputValueSetter?.call(focusedInput, newValue);
+      const event = new Event("input", { bubbles: true });
+      focusedInput.dispatchEvent(event);
     }
   };
   const [clientOptions, setClientOptions] = useState(
@@ -350,7 +332,7 @@ export default function CaisseForm({
     // });
   };
   return (
-    <div className="relative max-h-[100vh] p-6">
+    <div className="relative max-h-[100vh] p-6" ref={containerRef}>
       {/* <img src="/vercel.svg" alt="" /> */}
       <form className=" h-full  " onSubmit={handleSubmit(handleCaisseForm)}>
         <div className="space-y-4 overflow-y-auto max-h-full  p-1">
@@ -474,11 +456,10 @@ export default function CaisseForm({
                       <td className="text-center py-4">
                         <input
                           {...register(`prestations[${index}].qte` as any)}
-                          className="w-20 p-1 border border-gray-400 rounded-md"
+                          className="w-20 p-1 border border-gray-400 rounded-md change_by_calculator"
                           type="number"
                           defaultValue={item.qte || 1}
-                          ref={(el) => (inputRefs.current[`qte${index}`] = el)}
-                          onFocus={() => handleInputFocus(index, "qte")}
+                          value={item.qte}
                           onChange={(e) =>
                             CalculateTikeLineTotal({
                               index,
@@ -493,20 +474,17 @@ export default function CaisseForm({
                       <td className="text-center py-4">
                         <input
                           {...register(`prestations[${index}].remise` as any)}
-                          className="w-20 p-1 border border-gray-400 rounded-md"
+                          className="w-20 p-1 border border-gray-400 rounded-md change_by_calculator"
                           type="text"
                           pattern="[0-9.]*"
-                          ref={(el) =>
-                            (inputRefs.current[`remise${index}`] = el)
-                          }
-                          onFocus={() => handleInputFocus(index, "remise")}
                           onInput={(event) => {
                             const input = event.target as HTMLInputElement;
                             input.value = input.value
                               .replace(/,/g, ".")
                               .replace(/[^0-9.]/g, "");
                           }}
-                          defaultValue={item.remise || 0}
+                          // defaultValue={item.remise || 0}
+                          value={item.remise || 0}
                           onChange={(e) =>
                             CalculateTikeLineTotal({
                               index,
@@ -679,7 +657,7 @@ export default function CaisseForm({
                             name="montant_p"
                             type="text"
                             value={item.montant}
-                            className="border border-gray-400 rounded-md p-3 text-right"
+                            className="border border-gray-400 rounded-md p-3 text-right change_by_calculator"
                             onChange={(e) =>
                               updatePaiementItemMontant(index, e.target.value)
                             }
@@ -775,7 +753,7 @@ export default function CaisseForm({
           </div>
         </div>
         {ticketLines.length > 0 && ticketLines[0]?.valide == null ? (
-          <div className="flex justify-center absolute bottom-0  gap-1  bg-white p-1 w-full ">
+          <div className="flex  absolute bottom-0 left-0 gap-1  bg-white  w-full ">
             <button
               type="button"
               className="flex items-center justify-center gap-2  bg-slate-800 shadow-md border rounded-md font-semibold text-sm text-white min-h-[60px] min-w-[130px]  w-full "
