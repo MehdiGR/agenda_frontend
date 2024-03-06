@@ -47,10 +47,11 @@ export default function CaisseForm({
   const params = new URLSearchParams(searchParams.toString());
 
   const [clientIsRef, setIsRefClient] = useState(
-    ticketLines[0]?.client?.value == null ? false : true
+    ticketLines[0]?.client === "" ? false : true
   );
+  console.log(ticketLines[0], "ticketLines[0]?.client?.value");
   const [selectedClientType, setSelectedClientType] = useState(
-    ticketLines[0]?.client?.value == null ? "client_psg" : "client_ref"
+    ticketLines[0]?.client === "" ? "client_psg" : "client_ref"
   );
   const [selectedClient, setSelectedClient] = useState({
     label: ticketLines[0]?.client,
