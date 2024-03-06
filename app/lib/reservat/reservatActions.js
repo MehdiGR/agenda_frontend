@@ -179,9 +179,10 @@ export async function saveReservation(data) {
       }
     })
   );
-  if (data.submitType === "enregistrer") {
-    revalidatePath("/agenda");
-  } else {
+  // if (data.submitType === "enregistrer") {
+  //   revalidatePath("/agenda");
+  // }
+  if (data.submitType === "encaisser") {
     // check if data.idRes is not empty, indicate that it's an update click
     let insertedTicketId = "";
 
@@ -195,6 +196,7 @@ export async function saveReservation(data) {
     return insertedTicketId;
   }
   // revalidatePath("/");
+  revalidatePath("/agenda");
 }
 
 // async function executeQuery(sql, values) {
