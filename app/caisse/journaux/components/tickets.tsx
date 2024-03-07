@@ -62,9 +62,13 @@ export default function Tickets({ data }: any) {
                 {ticket?.date_creation.slice(0, 10)}
               </td>
               <td className="p-4 text-slate-800">{ticket?.client}</td>
-              <td className="p-4 text-slate-800">{Number(ticket?.mntht)}</td>
-              <td className="p-4 text-slate-800">{Number(ticket?.mnttva)}</td>
-              <td className="p-4 text-slate-800">{Number(ticket?.mntttc)}</td>
+              <td className="p-4 text-slate-800">{Number(ticket?.total_ht)}</td>
+              <td className="p-4 text-slate-800">
+                {Number(ticket?.total_tva)}
+              </td>
+              <td className="p-4 text-slate-800">
+                {Number(ticket?.total_ttc)}
+              </td>
               <td className="p-4 text-slate-800">
                 <button onClick={() => setTicketId(ticket.ticketId)}>
                   <CiEdit size={25} color="blue" />
