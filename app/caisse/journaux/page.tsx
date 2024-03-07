@@ -33,17 +33,17 @@ export default async function Journaux({
       where: `WHERE idtypedoc = 21 ${
         validDate ? `AND DATE(dce.date_doc)=?` : ""
       }`,
-      params: validDate ? [validDate.toISOString().slice(0, 10)] : [],
+      params: validDate ? [validDate.toISOString().split("T")[0]] : [],
     })) as string
   );
-  console.log("validDate", validDate.toISOString().slice(0, 10));
+  console.log("validDate", validDate.toISOString().split("T")[0]);
 
   const encaissements = JSON.parse(
     (await get_encaissements({
       where: `WHERE idtypedoc = 21 ${
         validDate ? `AND DATE(dce.date_doc)=?` : ""
       }`,
-      params: validDate ? [validDate.toISOString().slice(0, 10)] : [],
+      params: validDate ? [validDate.toISOString().split("T")[0]] : [],
     })) as string
   );
 
@@ -52,7 +52,7 @@ export default async function Journaux({
       where: `WHERE id_caisse = 1 ${
         validDate ? `AND DATE(date_et_heur)=?` : ""
       }`,
-      params: validDate ? [validDate.toISOString().slice(0, 10)] : [],
+      params: validDate ? [validDate.toISOString().split("T")[0]] : [],
     })) as string
   );
   const montant_en_caisse = JSON.parse(
