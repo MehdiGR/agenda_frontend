@@ -340,12 +340,12 @@ export async function get_synths_chiffre_affaires({
         DATE_FORMAT(ds.date_sequence, '%Y-%m-%d') AS day,
         COALESCE(ROUND(SUM(CASE WHEN art.idTypeArticle = 3 THEN dcl.prix ELSE 0 END), 2), 0) AS total_prestations,
         COALESCE(ROUND(SUM(CASE WHEN art.idTypeArticle = 2 THEN dcl.prix ELSE 0 END), 2), 0) AS total_products,
-        COALESCE(ROUND(SUM(DISTINCT dce.mntht), 2), 0) AS total_ht,
+        COALESCE(ROUND(SUM(dcl.prix), 2), 0) AS total_ht,
 
         COALESCE(ROUND(SUM(CASE WHEN art.code_tauxtvaVente = "v0" THEN (dcl.total_ttc-dcl.prix) ELSE 0 END), 2), 0) AS total_tva_v0,
         COALESCE(ROUND(SUM(CASE WHEN art.code_tauxtvaVente = "v20" THEN (dcl.total_ttc-dcl.prix) ELSE 0 END), 2), 0) AS total_tva_v20,
         COALESCE(ROUND(SUM(CASE WHEN art.code_tauxtvaVente = "v21" THEN (dcl.total_ttc-dcl.prix) ELSE 0 END), 2), 0) AS total_tva_v21,
-        COALESCE(ROUND(SUM(DISTINCT dce.mntttc), 2), 0) AS total_ttc,
+        COALESCE(ROUND(SUM(dcl.total_ttc), 2), 0) AS total_ttc,
         CASE 
             WHEN MAX(dce.cloture) = 1 THEN "cloture" 
             ELSE "ouvert" 
