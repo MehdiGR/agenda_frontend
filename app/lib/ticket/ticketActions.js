@@ -983,7 +983,6 @@ async function updateTicketLine(item) {
 }
 async function handleTicketLines(ticketLines, ticketId) {
   const updateTicketLinePromises = ticketLines.map(async (item) => {
-    console.log(item, "item");
     const removedRecord = item?.removedRow;
     // check if item.line_id exist
     if (item.line_id && removedRecord) {
@@ -991,7 +990,6 @@ async function handleTicketLines(ticketLines, ticketId) {
     } else if (item.line_id && !removedRecord) {
       updateTicketLine(item);
     } else {
-      console.log(item, "added item");
       const data = { ...item, ticketId };
       addTicketLines(data);
     }

@@ -1,6 +1,5 @@
 // helper functions
 import { parse } from "path";
-import { useStore } from "../store/store";
 import { exportStore, useStore } from "../store/store";
 export const cancelCreationEvent = ({ activeSection }) => {
   if (activeSection == "create") {
