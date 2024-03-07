@@ -19,8 +19,8 @@ export async function get_encaissements({ where = "", params = [] }) {
         clb.nom AS vendeur 
       FROM
           docentete AS dce
-      JOIN client clt ON clt.id = dce.tier_doc
-      JOIN collaborateur clb ON clt.idCollab = clb.id_collaborateur
+      LEFT JOIN client clt ON clt.id = dce.tier_doc
+      LEFT JOIN collaborateur clb ON clt.idCollab = clb.id_collaborateur
       JOIN paiement_caisse AS pm ON pm.id_doc = dce.id
       JOIN paiement_tier AS pmt ON pmt.id = pm.id_paiement
       LEFT JOIN methode_paiement AS mtp ON mtp.id = pmt.id_method
@@ -60,7 +60,7 @@ export async function get_tickets({ where = "", params = [] }) {
         Date(dce.date_doc) AS date_creation
       FROM
         docentete AS dce
-      JOIN client clt ON
+      LEFT JOIN client clt ON
         clt.id = dce.tier_doc
       ${where}`;
     console.log(params);

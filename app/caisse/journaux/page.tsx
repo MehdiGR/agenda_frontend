@@ -28,7 +28,6 @@ export default async function Journaux({
   // Convert the string to a Date object
   // const validDate = new Date(valueDate);
   const validDate = valueDate ? new Date(valueDate) : new Date();
-  console.log("validDate", validDate);
   const tickets = JSON.parse(
     (await get_tickets({
       where: `WHERE idtypedoc = 21 ${
@@ -37,6 +36,7 @@ export default async function Journaux({
       params: validDate ? [validDate.toISOString().slice(0, 10)] : [],
     })) as string
   );
+  console.log("validDate", validDate.toISOString().slice(0, 10));
 
   const encaissements = JSON.parse(
     (await get_encaissements({
