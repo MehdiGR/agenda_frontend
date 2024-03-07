@@ -409,7 +409,6 @@ export async function get_synths_chiffre_affaires({
         error ? reject(error) : resolve(results)
       )
     );
-
     return JSON.stringify(synths);
   } catch (error) {
     console.error("Could not execute query:", error);
@@ -797,9 +796,9 @@ export async function get_synths_fonds_caisse({ date = "", viewType = "" }) {
               m.month_name
             ORDER BY 
               m.month_number;`;
-      queryParams = [date];
+      queryParams = [date, date];
     }
-
+    // console.log(sql, queryParams);
     const synths = await new Promise((resolve, reject) =>
       connection.query(sql, queryParams, (error, results) =>
         error ? reject(error) : resolve(results)
