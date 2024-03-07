@@ -58,7 +58,7 @@ export default async function Journaux({
   const montant_en_caisse = JSON.parse(
     (await get_synths_montant_en_caisse_jr({
       having: validDate ? `HAVING DATE(synths_date)=?` : "",
-      params: validDate ? [validDate.toISOString().slice(0, 10)] : [],
+      params: validDate ? [validDate.toISOString().split("T")[0]] : [],
     })) as string
   );
   const paiements = JSON.parse(
@@ -66,13 +66,13 @@ export default async function Journaux({
       having: validDate
         ? `HAVING SUM(pmt.montant) <> 0 AND DATE(synths_date)=?`
         : "HAVING SUM(pmt.montant) <> 0",
-      params: validDate ? [validDate.toISOString().slice(0, 10)] : [],
+      params: validDate ? [validDate.toISOString().split("T")[0]] : [],
     })) as string
   );
   const chiffre_affaires = JSON.parse(
     (await get_synths_chiffre_affaires_jr({
       having: validDate ? `HAVING DATE(synths_date)=?` : "",
-      params: validDate ? [validDate.toISOString().slice(0, 10)] : [],
+      params: validDate ? [validDate.toISOString().split("T")[0]] : [],
     })) as string
   );
   const synths = {
