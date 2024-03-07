@@ -1,5 +1,5 @@
 "use server";
-import { exportStore } from "@/app/store/store_new2";
+import { exportStore } from "@/app/store/store";
 
 import { revalidatePath } from "next/cache";
 
@@ -135,7 +135,6 @@ export async function saveReservation(data) {
       const duree_line = duration_hours * 60 + duration_minutes;
 
       const existingRecord = await checkExistingRecord(agenda_prest.line_id);
-      console.log("existingRecord", existingRecord);
       if (existingRecord) {
         const removedRecord = agenda_prest?.removedRow;
         if (removedRecord) {
@@ -173,8 +172,10 @@ export async function saveReservation(data) {
           agenda_prest.start_time,
         ];
         await executeQuery(insertRecordSQL, insertRecordValues);
-        if (data.ticketId !== null && data.submitType === "encaisser") {
-          addTicketLignes(data);
+        if (data.ticketId != null && data.submitType === "encaisser") {
+          const ticketId = data.ticketId;
+          const item = { ...agenda_prest, ticketId };
+          addTicketLines(item);
         }
       }
     })
@@ -196,6 +197,7 @@ export async function saveReservation(data) {
     revalidatePath("/agenda");
     return insertedTicketId;
   }
+  revalidatePath("/agenda");
   // revalidatePath("/");
 }
 
@@ -222,8 +224,6 @@ async function executeQuery(sql, values) {
 async function checkExistingRecord(line_id) {
   const sql = "SELECT * FROM ligne_res WHERE id=?";
   const values = [line_id];
-  console.log("sql", sql);
-  console.log("values", values);
 
   return new Promise((resolve, reject) => {
     connection.query(sql, values, function (err, result, fields) {
@@ -236,9 +236,14 @@ async function checkExistingRecord(line_id) {
 async function createTicket(data) {
   try {
     const ticketId = await addTicket(data);
-    console.log("ticketId", ticketId);
     if (ticketId) {
-      await addTicketLignes({ ...data, ticketId });
+      const prestations_lines = data.agenda_prestationArr.map((item) => ({
+        ...item,
+        ticketId, // Add ticketId to each item
+      }));
+      for (const item of prestations_lines) {
+        await addTicketLines(item);
+      }
       console.log("Document and line items inserted successfully.");
     } else {
       console.log("Failed to insert document.");
@@ -251,8 +256,6 @@ async function createTicket(data) {
 }
 
 async function addTicket(data) {
-  console.log("doc", data);
-
   const selectMaxNumDocSQL =
     "SELECT Max(CAST(SUBSTRING(Num_doc ,4 ) as UNSIGNED)) as max FROM docentete WHERE idtypedoc=21";
   const maxNumDocResult = await executeQuery(selectMaxNumDocSQL);
@@ -290,25 +293,25 @@ async function addTicket(data) {
   return ticketId;
 }
 
-async function addTicketLignes(data) {
-  const addTicketLignePromises = data.agenda_prestationArr.map(async (item) => {
-    const addTicketLigneSQL =
-      "INSERT INTO docligne(iddocument,idproduit,Designation,qte,prix,idtauxtva,pUnet,total_ttc) VALUES (?,?,?,?,?,?,?,?)";
+async function addTicketLines(item) {
+  // const addTicketLignePromises = data.agenda_prestationArr.map(async (item) => {
+  const addTicketLinesQL =
+    "INSERT INTO docligne(iddocument,idproduit,Designation,qte,prix,idtauxtva,pUnet,total_ttc) VALUES (?,?,?,?,?,?,?,?)";
 
-    const addTicketLigneValues = [
-      data.ticketId,
-      item.id_art,
-      item.designation,
-      item?.qte,
-      item.prixVente,
-      item.tva_id,
-      item.prixVente,
-      item.prixTTC,
-    ];
-    await executeQuery(addTicketLigneSQL, addTicketLigneValues);
-  });
+  const addTicketLigneValues = [
+    item.ticketId,
+    item.id_art,
+    item.designation,
+    item?.qte,
+    item.prixVente,
+    item.tva_id,
+    item.prixVente,
+    item.prixTTC,
+  ];
+  await executeQuery(addTicketLinesQL, addTicketLigneValues);
+  // });
 
-  await Promise.all(addTicketLignePromises);
+  // await Promise.all(addTicketLignePromises);
 }
 async function removeTicketLigne(ticketLigneId) {
   try {

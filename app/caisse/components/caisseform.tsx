@@ -9,7 +9,7 @@ import {
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import Select from "react-select";
-import { useStore_new2 } from "../../store/store_new2";
+import { useStore } from "../../store/store";
 import { IoMdClose } from "react-icons/io";
 import { IoTicketOutline } from "react-icons/io5";
 import { CiPause1 } from "react-icons/ci";
@@ -537,7 +537,7 @@ export default function CaisseForm({
                         )}
                         {item?.readonly && (
                           <input
-                            type="text"
+                            type="hidden"
                             {...register(
                               `prestations[${index}].readonly` as any
                             )}

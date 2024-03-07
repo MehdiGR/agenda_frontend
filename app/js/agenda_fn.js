@@ -1,21 +1,21 @@
 // helper functions
 import { parse } from "path";
 import { useStore } from "../store/store";
-import { exportStore, useStore_new2 } from "../store/store_new2";
+import { exportStore, useStore } from "../store/store";
 export const cancelCreationEvent = ({ activeSection }) => {
   if (activeSection == "create") {
-    useStore_new2.getState().setActiveCreateSection(false);
+    useStore.getState().setActiveCreateSection(false);
   }
   if (activeSection == "edit") {
-    useStore_new2.getState().setActiveUpdateSection(false);
+    useStore.getState().setActiveUpdateSection(false);
   }
 
-  useStore_new2.getState().setOnEditingEvent(false);
-  const events = useStore_new2.getState().events;
-  const manageEvents = useStore_new2.getState().manageEvents;
+  useStore.getState().setOnEditingEvent(false);
+  const events = useStore.getState().events;
+  const manageEvents = useStore.getState().manageEvents;
   const updatedEvent = events.filter((event) => event.saved == true);
   manageEvents([{ action: "add_all", payload: { events: updatedEvent } }]);
-  useStore_new2.getState().toggleEventSelected(null);
+  useStore.getState().toggleEventSelected(null);
 };
 
 export const handleOptionChangeTypeClt = (
@@ -85,7 +85,7 @@ export const addPrestation = async (data) => {
   //   eventAgenda,
   // } = useStore.getState();
   const { manageEvents, events, selectedEventsIndices, toggleEventSelected } =
-    useStore_new2.getState();
+    useStore.getState();
   const current_event = events.find((event) => event.isTemp);
   // if exist a temp event
   const EventIndices = [...selectedEventsIndices];
@@ -222,7 +222,7 @@ export const addPrestation = async (data) => {
         },
       },
     ]);
-    // const newData = useStore_new2.getState().selectedEventsIndices;
+    // const newData = useStore.getState().selectedEventsIndices;
     // console.log("EventIndices", newData);
   }
 
@@ -397,8 +397,8 @@ export const processReservations = (reservations) => {
   // console.log("reservations", reservations);
   // return;
   // const setEvents = useStore.getState().setEvents;
-  const manageEvents = useStore_new2.getState().manageEvents;
-  const toggleEventSelected = useStore_new2.getState().toggleEventSelected;
+  const manageEvents = useStore.getState().manageEvents;
+  const toggleEventSelected = useStore.getState().toggleEventSelected;
   const events = [];
   reservations.map((res, index) => {
     const startDate = res.dateRes.split("T")[0];

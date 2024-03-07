@@ -4,7 +4,7 @@ import interactionPlugin from "@fullcalendar/interaction";
 import resourceTimeGridPlugin from "@fullcalendar/resource-timegrid";
 import frLocale from "@fullcalendar/core/locales/fr";
 import { useEffect, useState } from "react";
-import { useStore_new2 } from "@/app/store/store_new2";
+import { useStore } from "@/app/store/store";
 import "@/app/styles/fullcalendar.css";
 import { MdNavigateNext } from "react-icons/md";
 import { MdNavigateBefore } from "react-icons/md";
@@ -18,7 +18,7 @@ export default function MyCalendar({
   agendas,
 }: any) {
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const { events } = useStore_new2();
+  const { events } = useStore();
 
   const handleNextDay = () => {
     setSelectedDate(

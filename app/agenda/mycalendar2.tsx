@@ -2,7 +2,7 @@
 // import moment from "moment";
 // import "react-big-calendar/lib/css/react-big-calendar.css";
 // import { useEffect, useState } from "react";
-// import { useStore_new2 } from "@/app/store/store_new2";
+// import { useStore } from "@/app/store/store";
 // import DateNavigation from "../components/datenavigation";
 
 // const localizer = momentLocalizer(moment);
@@ -14,7 +14,7 @@
 //   agendas,
 // }: any) {
 //   const [selectedDate, setSelectedDate] = useState(new Date());
-//   const { events } = useStore_new2();
+//   const { events } = useStore();
 
 //   const handleNextDay = () => {
 //     setSelectedDate(moment(selectedDate).add(1, "days").toDate());

@@ -1,5 +1,8 @@
-// store.js
 import { create } from "zustand";
+import { produce, enableMapSet } from "immer";
+
+// Enable the MapSet plugin
+enableMapSet();
 const updateTime = ({
   select_type,
   duration,
@@ -8,278 +11,360 @@ const updateTime = ({
   updateHour = false,
   updateMinutes = false,
 }) => {
-  const newHour = updateHour
+  let newHour = updateHour
     ? parseInt(hour) + Math.floor(duration / 60)
     : parseInt(hour);
-  const newMinutes = updateMinutes
-    ? parseInt(minutes) + Math.floor(duration % 60)
+  let newMinutes = updateMinutes
+    ? parseInt(minutes) + (duration % 60)
     : parseInt(minutes);
+
+  newHour += Math.floor(newMinutes / 60);
+  newMinutes %= 60;
+
+  newHour %= 24;
 
   const paddedHour = newHour.toString().padStart(2, "0");
   const paddedMinutes = newMinutes.toString().padStart(2, "0");
 
-  if (select_type === "select_hour") {
-    return `${paddedHour}:${paddedMinutes}`;
-  } else if (select_type === "select_minutes") {
-    return `${paddedHour}:${paddedMinutes}`;
-  }
-
-  return null;
+  return `${paddedHour}:${paddedMinutes}`;
 };
 
 export const useStore = create((set) => ({
-  activeCreateSection: false,
   events: [],
-  savedEvents: [],
-  eventAgenda: {},
-  eventInfo: {
-    dateRes: "",
-    hourDB: "",
-    minuteDB: "",
-  },
-  addedEventId: null,
-  modalIsOpen: false,
-  agenda_prestationArr: [],
-  duration_hours: [],
-  duration_minutes: [],
-  totalPrice: 0,
-  totalDuration: 0,
-  dateTime: {
-    dateDB: "",
-    hourDB: { label: "", value: "" },
-    minutesDB: { label: "", value: "" },
-  },
   onEditingEvent: false,
+  activeCreateSection: null,
+  activeUpdateSection: null,
+  modalIsOpen: false,
+  idRes: null,
+  selectedEventsIndices: new Set(),
+
+  // Setters
+  setModalIsOpen: (value) => set(() => ({ modalIsOpen: value })),
+
   setOnEditingEvent: (value) => set(() => ({ onEditingEvent: value })),
 
   setActiveCreateSection: (value) =>
     set(() => ({ activeCreateSection: value })),
-  addEvent: (newEvent) =>
-    set((state) => ({ events: [...state.events, newEvent] })),
-  // Function to add array of events
-  setEvents: (events) => set(() => ({ events: events })),
-  addSavedEvent: (newEvent) =>
-    set((state) => ({ savedEvents: [...state.events, newEvent] })),
-  // update function add condition if index is an array
-  updateEvent: (updatedEvent, index = null) =>
+
+  setActiveUpdateSection: (value) =>
+    set(() => ({ activeUpdateSection: value })),
+
+  setIdRes: (value) => set(() => ({ idRes: value })),
+
+  manageEvents: (actions) => {
     set((state) => {
-      if (index != null) {
-        return {
-          events: state.events.map((event, i) =>
-            i === index ? updatedEvent : event
-          ),
-        };
-      } else {
-        return {
-          events: state.events.map((event) => ({
-            ...event,
-            start: updatedEvent.start,
-            end: updatedEvent.end,
-          })),
-        };
-      }
-    }),
-  // Refactored code to update events in the app
-  // Refactored code to update events in the app
-  fixUpdatedEvents: (updatedEvents) =>
-    set((state) => ({
-      events: state.events.map((event) => {
-        const updatedEvent = updatedEvents.find(
-          (updatedEvent) => updatedEvent.eventIndex === event.eventIndex
-        );
-        return {
-          ...event,
-          ...(updatedEvent ? updatedEvent : {}),
-        };
-      }),
-    })),
-  // update time for all events by moving the start and end times of event with the duration
-  updateEventsTime: ({
-    index,
-    duration,
-    select_type,
-    globalChange = false,
-    idAgenda = null,
-    dateDB = null,
-    idRes = null,
-  }) =>
-    set((state) => {
-      // return;
-      let i;
-      let prevIndex;
+      return produce(state, (draft) => {
+        draft.events = draft.events || [];
+        draft.selectedEventsIndices = draft.selectedEventsIndices || new Set();
 
-      const modEndTimes = [];
-      const updatedEvents = state.events.map((event) => {
-        i = event.eventIndex;
-        //  if idRes not null add it to condition
-        let existIdRes;
-        if (idRes != "") {
-          existIdRes = event.idRes == idRes ? true : false;
-        } else {
-          existIdRes = true;
-        }
-
-        if (
-          event.resourceId == idAgenda &&
-          dateDB == event.start.split("T")[0] &&
-          (i == index || i > index)
-        ) {
-          // console.log("i", i, "eventIndex", index);
-          // If this is the event you want to update or events after it, update the event
-          const [startD, startT] = event.start.split("T");
-          const [endD, endT] = event.end.split("T");
-
-          let hour, minutes;
-          let newEvent = { ...event };
-          let EndHour, EndMinutes;
-
-          if (i === index) {
-            EndHour = globalChange ? endT.split(":")[0] : "";
-            EndMinutes = globalChange ? endT.split(":")[1] : "";
-            if (select_type === "select_hour") {
-              hour = startT.split(":")[0];
-              minutes = endT.split(":")[1];
-            } else if (select_type === "select_minutes") {
-              minutes = startT.split(":")[1];
-              hour = globalChange ? startT.split(":")[0] : endT.split(":")[0];
-            }
-            const newTime = updateTime({
-              select_type,
-              duration,
-              hour,
-              minutes,
-              updateHour:
-                globalChange && select_type === "select_minutes" ? false : true,
-              updateMinutes: true,
-            });
-
-            if (globalChange === false) newEvent.end = `${startD}T${newTime}`;
-            else if (globalChange === true) {
-              const newEndTime = updateTime({
-                select_type,
-                duration,
-                hour: EndHour,
-                minutes: EndMinutes,
-                updateHour: select_type === "select_minutes" ? false : true,
-                updateMinutes: true,
+        actions.forEach(({ action, payload }) => {
+          switch (action) {
+            case "add":
+              draft.events.push({
+                ...payload.newEvent,
+                agenda_prestationArr: [],
               });
-              newEvent.start = `${startD}T${newTime}`;
-              newEvent.end = `${startD}T${newEndTime}`;
+              break;
+            case "add_all":
+              draft.events = payload.events;
+              break;
+            case "update":
+              draft.events = draft.events.map((event, i) =>
+                i === payload.index
+                  ? { ...event, ...payload.updatedEvent }
+                  : event
+              );
+              break;
+            case "updateEvents":
+              draft.events = draft.events.map((event) => {
+                const updatedEvent = payload.updatedEvents.find(
+                  (uEvent) => uEvent.eventIndex === event.eventIndex
+                );
+                return updatedEvent ? { ...event, ...updatedEvent } : event;
+              });
+              break;
+            case "remove":
+              draft.events = draft.events.filter(
+                (event) => event.eventIndex !== payload.index
+              );
+              break;
+            case "updateDates":
+              draft.events = draft.events.map((event) => {
+                if (draft.selectedEventsIndices.has(event.eventIndex)) {
+                  return {
+                    ...event,
+                    start: `${payload.newDate}T${event.start.split("T")[1]}`,
+                    end: `${payload.newDate}T${event.end?.split("T")[1]}`,
+                  };
+                }
+                return event;
+              });
+              break;
+            case "manageAgendaPres":
+              draft.events = draft.events.map((event, i) => {
+                if (
+                  draft.selectedEventsIndices.has(event.eventIndex) &&
+                  event.eventIndex === payload.index
+                ) {
+                  console.log(
+                    " payload.index",
+                    payload.index,
+                    "event.eventIndex",
+                    event.eventIndex
+                  );
+                  console.log("payload", payload);
+                  // return;
+                  let agenda_prestationArr = [...event.agenda_prestationArr];
+                  // let agenda_prestationArr = JSON.parse(
+                  //   JSON.stringify(event.agenda_prestationArr)
+                  // );
+                  let otherProps = {};
+                  switch (payload.action) {
+                    case "add":
+                      agenda_prestationArr.push(payload.newAgenda);
+                      break;
+                    case "add_all":
+                      agenda_prestationArr = payload.agendas;
+                      break;
+                    case "updateAgenda":
+                      const { agendaId, agendaTitle } = payload.updatedAgenda;
+                      agenda_prestationArr[payload.agendaIndex].agendaId =
+                        agendaId;
+                      agenda_prestationArr[payload.agendaIndex].agendaTitle =
+                        agendaTitle;
+                      otherProps = { resourceId: agendaId };
+                      break;
+                    case "updateDurationHours":
+                      agenda_prestationArr[payload.agendaIndex].duration_hours =
+                        payload.duration_hours;
+                      console.log(payload.duration_hours);
+                      break;
+                    case "updateDurationMinutes":
+                      agenda_prestationArr[
+                        payload.agendaIndex
+                      ].duration_minutes = payload.duration_minutes;
+                      break;
+                    case "remove":
+                      agenda_prestationArr = agenda_prestationArr.filter(
+                        (_, idx) => idx !== payload.agendaIndex
+                      );
+                      break;
+                  }
+                  // console.log(agenda_prestationArr);
+                  return {
+                    ...event,
+                    ...otherProps,
+                    agenda_prestationArr,
+                  };
+                }
+                return event;
+              });
+              break;
+            case "updateEventsTime": {
+              const {
+                index,
+                duration,
+                select_type,
+                globalChange = false,
+                idAgenda = null,
+                dateDB = null,
+                idRes = null,
+              } = payload;
+
+              let prevIndex;
+              const modEndTimes = [];
+
+              draft.events = draft.events.map((event) => {
+                const i = event.eventIndex;
+                const isSelected = draft.selectedEventsIndices.has(i);
+                const eventIndices = [...draft.selectedEventsIndices];
+                console.log(eventIndices, "eventIndices");
+                let existIdRes = true;
+                if (idRes) {
+                  existIdRes = event.idRes === idRes;
+                }
+                if (
+                  isSelected &&
+                  existIdRes &&
+                  // event.resourceId === idAgenda &&
+                  // dateDB === event.start.split("T")[0] &&
+                  (i === index || i > index)
+                ) {
+                  const [startD, startT] = event.start.split("T");
+                  const [endD, endT] = event.end.split("T");
+
+                  let hour, minutes;
+                  let newEvent = { ...event };
+                  let EndHour, EndMinutes;
+                  console.log(index, "index");
+                  console.log(i, "i");
+                  if (i === index) {
+                    EndHour = globalChange ? endT.split(":")[0] : "";
+                    EndMinutes = globalChange ? endT.split(":")[1] : "";
+
+                    console.log("EndHour", EndHour);
+                    console.log("EndMinutes", EndMinutes);
+                    if (select_type === "select_hour") {
+                      hour = startT.split(":")[0];
+
+                      // minutes = endT.split(":")[1];
+                      minutes = globalChange
+                        ? startT.split(":")[1]
+                        : endT.split(":")[1];
+                    } else if (select_type === "select_minutes") {
+                      minutes = startT.split(":")[1];
+                      hour = globalChange
+                        ? startT.split(":")[0]
+                        : endT.split(":")[0];
+                    }
+                    const newTime = updateTime({
+                      select_type,
+                      duration,
+                      hour,
+                      minutes,
+                      updateHour: !(
+                        globalChange && select_type === "select_minutes"
+                      ),
+                      updateMinutes: true,
+                    });
+
+                    if (!globalChange) {
+                      newEvent.end = `${startD}T${newTime}`;
+                    } else {
+                      const newEndTime = updateTime({
+                        select_type,
+                        duration,
+                        hour: EndHour,
+                        minutes: EndMinutes,
+                        updateHour: select_type !== "select_minutes",
+                        updateMinutes: true,
+                      });
+                      newEvent.start = `${startD}T${newTime}`;
+                      newEvent.agenda_prestationArr[0].start_time = `${newTime}`;
+                      newEvent.end = `${startD}T${newEndTime}`;
+                    }
+                    prevIndex = i;
+                    modEndTimes[i] = newEvent.end;
+                  } else if (i > index && existIdRes) {
+                    const prevEventEnd = modEndTimes[prevIndex];
+                    if (prevEventEnd) {
+                      const [prevEndD, prevEndT] = prevEventEnd.split("T");
+                      const [prevEndH, prevEndM] = prevEndT.split(":");
+                      const timeDiff =
+                        (parseInt(endT.split(":")[0]) -
+                          parseInt(startT.split(":")[0])) *
+                          60 +
+                        (parseInt(endT.split(":")[1]) -
+                          parseInt(startT.split(":")[1]));
+                      const nextEndTime = updateTime({
+                        select_type,
+                        duration: timeDiff,
+                        hour: prevEndH,
+                        minutes: prevEndM,
+                        updateHour: true,
+                        updateMinutes: true,
+                      });
+                      newEvent.start = prevEventEnd;
+                      newEvent.agenda_prestationArr[0].start_time = `${prevEndT}`;
+                      newEvent.end = `${startD}T${nextEndTime}`;
+                      modEndTimes[i] = newEvent.end;
+                    }
+                    prevIndex = i;
+                  }
+                  return newEvent;
+                }
+                return event;
+              });
+              break;
             }
-            prevIndex = i;
-            modEndTimes[i] = newEvent.end;
-            // console.log(modEndTimes[i - 1]);
-            // && typeof modEndTimes[i - 1] !== "undefined"
-          } else if (i > index && existIdRes) {
-            console.log(existIdRes);
-            // console.log("prev", prevIndex);
-            // console.log("i next", i);
-            // console.log(modEndTimes[prevIndex]);
-            const [curStartD, curStartT] = state.events[i].start.split("T");
-            const [curStartH, curStartM] = curStartT.split(":");
-            const [curEndD, curEndT] = state.events[i].end.split("T");
-            const [curEndH, curEndM] = curEndT.split(":");
-            const timeDiff = (curEndH - curStartH) * 60 + (curEndM - curStartM);
-            const [nextEndH, nextEndM] = modEndTimes[prevIndex]
-              .split("T")[1]
-              .split(":");
-            const nextEndTime = updateTime({
-              select_type,
-              duration: timeDiff,
-              hour: nextEndH,
-              minutes: nextEndM,
-              updateHour: true,
-              updateMinutes: true,
-            });
-            newEvent.start = modEndTimes[prevIndex];
-            newEvent.end = `${curStartD}T${nextEndTime}`;
-            modEndTimes[i] = newEvent.end;
-            prevIndex = i;
+
+            // ... (rest of the switch statement)
+
+            default:
+              break;
           }
-          return newEvent;
-        }
-        // If this is not the event to update, return the original event
-        return event;
+        });
       });
-
-      return { ...state, events: updatedEvents };
-    }),
-
-  //update stardate and enddate for all events
-  updateEventDates: (newDate) =>
-    set((state) => {
-      const updateEvents = state.events.map((event) => {
-        let upEvent = { ...event };
-        const starTime = event.start.split("T")[1];
-        const endTime = event.end.split("T")[1];
-        upEvent.start = `${newDate}T${starTime}`;
-        upEvent.end = `${newDate}T${endTime}`;
-
-        return upEvent;
-      });
-      return { ...state, events: updateEvents };
-    }),
-
-  removeEvent: (index) =>
-    set((state) => ({
-      events: state.events.filter((event, i) => event.eventIndex !== index),
-    })),
-  setEventAgenda: (value) => set(() => ({ eventAgenda: value })),
-  setEventInfo: (value) => set(() => ({ eventInfo: value })),
-  setAddedEventId: (value) => set(() => ({ addedEventId: value })),
+    });
+  },
   setIsOpen: (value) => set(() => ({ modalIsOpen: value })),
-  addAllAgendaPres: (agenda_prestation) =>
-    set((state) => ({ agenda_prestationArr: [...agenda_prestation] })),
-  // setAgendaPrestationArr: (agenda_prestation) =>
-  //   set((state) => ({
-  //     agenda_prestationArr: [...state.agenda_prestationArr, agenda_prestation],
-  //   })),
-  addAgendaPres: (newAgenda) =>
-    set((state) => ({
-      agenda_prestationArr: [...state.agenda_prestationArr, newAgenda],
-    })),
-  removeAgendaPres: (index) =>
-    set((state) => ({
-      agenda_prestationArr: state.agenda_prestationArr.filter(
-        (agenda_pres, i) => agenda_pres.eventIndex !== index
-      ),
-    })),
-  // initialize duration hours and minutes
-
-  resetDurationHour: () => set(() => ({ duration_hours: [] })),
-
-  resetDurationMinutes: () => set(() => ({ duration_minutes: [] })),
-  addDurationHour: (value) =>
-    set((state) => ({ duration_hours: [...state.duration_hours, value] })),
-  updateDurationHour: (value, index) =>
-    set((state) => ({
-      duration_hours: state.duration_hours.map((hour, i) =>
-        i === index ? value : hour
-      ),
-    })),
-  removeDurationHour: (index) =>
-    set((state) => ({
-      duration_hours: state.duration_hours.filter((_, i) => i !== index),
-    })),
-  addDurationMinutes: (value) =>
-    set((state) => ({ duration_minutes: [...state.duration_minutes, value] })),
-  updateDurationMinutes: (value, index) =>
-    set((state) => ({
-      duration_minutes: state.duration_minutes.map((minutes, i) =>
-        i === index ? value : minutes
-      ),
-    })),
-  removeDurationMinutes: (index) =>
-    set((state) => ({
-      duration_minutes: state.duration_minutes.filter((_, i) => i !== index),
-    })),
-  setDateTime: (value) => set(() => ({ dateTime: value })),
-
-  setTotalDuration: (value) => set(() => ({ totalDuration: value })),
-  setTotalPrice: (value) => set(() => ({ totalPrice: value })),
-  setClientOptions: (value) => set(() => ({ clientOptions: value })),
+  // create getEvents
+  getEvents: () => this.events,
+  toggleEventSelected: (eventIndices) => {
+    set((state) => {
+      return produce(state, (draft) => {
+        if (Array.isArray(eventIndices)) {
+          eventIndices.forEach((index) => {
+            if (draft.selectedEventsIndices.has(index)) {
+              draft.selectedEventsIndices.delete(index);
+            } else {
+              draft.selectedEventsIndices.add(index);
+            }
+          });
+        } else {
+          if (
+            eventIndices === null ||
+            eventIndices === undefined ||
+            eventIndices === ""
+          ) {
+            draft.selectedEventsIndices.clear();
+          } else if (draft.selectedEventsIndices.has(eventIndices)) {
+            draft.selectedEventsIndices.delete(eventIndices);
+          } else {
+            draft.selectedEventsIndices.add(eventIndices);
+          }
+        }
+      });
+    });
+  },
 }));
-export const exposeStore = () => ({
-  getTotalDuration: () => useStore.getState().totalDuration,
-  // setOnEditingEvent: () => useStore.getState().setOnEditingEvent,
-});
+
+export const exportStore = () => {
+  const TotalDuration = () => {
+    const events = useStore.getState().events;
+    const selectedEventsIndices = useStore.getState().selectedEventsIndices;
+
+    let totalDuration = events.reduce((total, event, index) => {
+      if (selectedEventsIndices.has(index)) {
+        return (
+          total +
+          event.agenda_prestationArr.reduce(
+            (sum, prestation) => sum + prestation.duree,
+            0
+          )
+        );
+      }
+      return total;
+    }, 0);
+
+    return totalDuration || 0;
+  };
+
+  const calculateTotals = () => {
+    const events = useStore.getState().events;
+    const selectedEventsIndices = useStore.getState().selectedEventsIndices;
+
+    let totalTTC = 0;
+    let totalHT = 0;
+    let totalTax = 0;
+
+    events.forEach((event, index) => {
+      if (selectedEventsIndices.has(index)) {
+        event.agenda_prestationArr.forEach((prestation) => {
+          totalTTC += prestation.prixTTC;
+          totalHT += prestation.prixVente;
+        });
+      }
+    });
+
+    totalTax = totalTTC - totalHT;
+
+    return { totalTTC, totalHT, totalTax };
+  };
+
+  return {
+    useStore,
+    TotalDuration,
+    calculateTotals,
+  };
+};

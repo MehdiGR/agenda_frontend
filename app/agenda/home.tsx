@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import MyCalendar from "./mycalendar";
 import CreateEventSection from "./createeventsection";
 import { useStore } from "@/app/store/store";
-import { useStore_new2 } from "@/app/store/store_new2";
 import { processReservations } from "@/app/js/agenda_fn";
 import UpdateEventSection from "./updateeventsection";
 export default function Home({
@@ -45,7 +44,7 @@ export default function Home({
     setOnEditingEvent,
     setIdRes,
     selectedEventsIndices,
-  } = useStore_new2();
+  } = useStore();
   // const [activeCreateSection, setActiveCreateSection] = useState(false);
 
   useEffect(() => {
@@ -92,7 +91,6 @@ export default function Home({
         // toggleEventSelected(lastIndex);
         manageEvents([{ action: "update", payload: { updatedEvent, index } }]);
       }
-
       // setAddedEventId(newEvent.resourceId);
 
       // resetDurationHour();
@@ -141,17 +139,21 @@ export default function Home({
 
   const updatedIndices = useRef(false);
   const handleUpdateEvent = (info: any) => {
-    if (info.event.extendedProps.idRes && !onEditingEvent) {
-      const idRes = info.event.extendedProps.idRes;
-      const Indices = events
-        .filter((res: any) => res.idRes == idRes)
-        .map((res: any) => res.eventIndex);
-      toggleEventSelected(Indices);
-      setActiveUpdateSection(true);
-      updatedIndices.current = true;
-      setOnEditingEvent(true);
-
-      return;
+    const existTemp = events.findIndex((event: any) => event.isTemp == true);
+    // //  && event.saved == false
+    console.log("existTemp", existTemp);
+    if (existTemp == -1) {
+      if (info.event.extendedProps.idRes && !onEditingEvent) {
+        const idRes = info.event.extendedProps.idRes;
+        const Indices = events
+          .filter((res: any) => res.idRes == idRes)
+          .map((res: any) => res.eventIndex);
+        toggleEventSelected(Indices);
+        setActiveUpdateSection(true);
+        updatedIndices.current = true;
+        setOnEditingEvent(true);
+        return;
+      }
     }
   };
   const formatDate = (date: Date) => {

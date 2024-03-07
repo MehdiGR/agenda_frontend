@@ -831,7 +831,14 @@ async function createTicket(data) {
   try {
     const ticketId = await addTicket(data);
     if (ticketId) {
-      await addTicketLines({ ...data, ticketId });
+      const prestations_lines = data.prestations.map((item) => ({
+        ...item,
+        ticketId, // Add ticketId to each item
+      }));
+      for (const item of prestations_lines) {
+        await addTicketLines(item);
+      }
+      // await addTicketLines({ ...data, ticketId });
       console.log("Document and line items inserted successfully.");
     } else {
       console.log("Failed to insert document.");
@@ -881,26 +888,26 @@ async function addTicket(data) {
   return ticketId;
 }
 
-async function addTicketLines(data) {
-  const addTicketLinePromises = data.prestations.map(async (item) => {
-    const addTicketLineSQL =
-      "INSERT INTO docligne(iddocument,idproduit,Designation,qte,prix,idtauxtva,pUnet,total_ttc,idCollab) VALUES (?,?,?,?,?,?,?,?,?)";
+async function addTicketLines(item) {
+  // const addTicketLinePromises = data.prestations.map(async (item) => {
+  const addTicketLineSQL =
+    "INSERT INTO docligne(iddocument,idproduit,Designation,qte,prix,idtauxtva,pUnet,total_ttc,idCollab) VALUES (?,?,?,?,?,?,?,?,?)";
 
-    const addTicketLineValues = [
-      data.ticketId,
-      item.id_art,
-      item.Designation,
-      item?.qte,
-      item.prix,
-      item.tva_id,
-      item.prix,
-      item.total_ttc,
-      item.idCollab,
-    ];
-    await executeQuery(addTicketLineSQL, addTicketLineValues);
-  });
+  const addTicketLineValues = [
+    item.ticketId,
+    item.id_art,
+    item.Designation,
+    item?.qte,
+    item.prix,
+    item.tva_id,
+    item.prix,
+    item.total_ttc,
+    item.idCollab,
+  ];
+  await executeQuery(addTicketLineSQL, addTicketLineValues);
+  // });
 
-  await Promise.all(addTicketLinePromises);
+  // await Promise.all(addTicketLinePromises);
 }
 async function removeTicketLine(ticketLineId) {
   try {
@@ -961,12 +968,20 @@ export async function removeTicket(id) {
     console.error("Stack trace:", error.stack);
   }
 }
-async function updateTicketLine(ticketLine) {
-  const updateTicketLineSQL = "UPDATE docligne SET qte = ? WHERE id = ?";
-  const updateTicketLineValues = [ticketLine.qte, ticketLine.id];
+async function updateTicketLine(item) {
+  // const updateTicketLineSQL = "UPDATE docligne SET qte = ? WHERE id = ?";
+  const updateTicketLineSQL =
+    "UPDATE docligne SET qte = ? , Remise=?, total_ttc=? WHERE id = ?";
+  // const updateTicketLineValues = [ticketLine.qte, ticketLine.id];
+  const updateTicketLineValues = [
+    item.qte,
+    item.remise,
+    item.total_ttc,
+    item.id,
+  ];
   await executeQuery(updateTicketLineSQL, updateTicketLineValues);
 }
-async function handleTicketLines(ticketLines) {
+async function handleTicketLines(ticketLines, ticketId) {
   const updateTicketLinePromises = ticketLines.map(async (item) => {
     console.log(item, "item");
     const removedRecord = item?.removedRow;
@@ -975,16 +990,20 @@ async function handleTicketLines(ticketLines) {
       removeTicketLine(item.id);
     } else if (item.line_id && !removedRecord) {
       updateTicketLine(item);
+    } else {
+      console.log(item, "added item");
+      const data = { ...item, ticketId };
+      addTicketLines(data);
     }
-    const updateTicketLineSQL =
-      "UPDATE docligne SET qte = ? , Remise=?, total_ttc=? WHERE id = ?";
-    const updateTicketLineValues = [
-      item.qte,
-      item.remise,
-      item.total_ttc,
-      item.id,
-    ];
-    await executeQuery(updateTicketLineSQL, updateTicketLineValues);
+    // const updateTicketLineSQL =
+    //   "UPDATE docligne SET qte = ? , Remise=?, total_ttc=? WHERE id = ?";
+    // const updateTicketLineValues = [
+    //   item.qte,
+    //   item.remise,
+    //   item.total_ttc,
+    //   item.id,
+    // ];
+    // await executeQuery(updateTicketLineSQL, updateTicketLineValues);
   });
   await Promise.all(updateTicketLinePromises);
 }
@@ -1009,7 +1028,7 @@ export async function CaissePayement(PayementData, createTicketData) {
     const insertedTicket = await createTicket(createTicketData);
     ticketId = insertedTicket;
   } else {
-    handleTicketLines(createTicketData.prestations);
+    handleTicketLines(createTicketData.prestations, ticketId);
   }
   // console.log(data);
   // return;

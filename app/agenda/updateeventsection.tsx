@@ -24,9 +24,8 @@ import {
   formatDuration,
   cancelCreationEvent,
 } from "@/app/js/agenda_fn";
-import { useStore } from "@/app/store/store";
 import { saveReservation } from "@/app/lib/reservat/reservatActions";
-import { exportStore, useStore_new2 } from "@/app/store/store_new2";
+import { exportStore, useStore } from "@/app/store/store";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -44,7 +43,7 @@ export default function UpdateEventSection({
     manageEvents,
     selectedEventsIndices,
     toggleEventSelected,
-  } = useStore_new2();
+  } = useStore();
   // useEffect(() => {
   //   console.log("ud");
   // }, [selectedEventsIndices]);
@@ -166,6 +165,8 @@ export default function UpdateEventSection({
 
   const handleSaveReservat: any = async (data: any) => {
     // console.log("submitTypeRef.current", submitTypeRef.current);
+    // return;
+    // console.log(data, "data");
     // return;
 
     // saveReservat(data)

@@ -24,9 +24,8 @@ import {
   formatDuration,
   cancelCreationEvent,
 } from "@/app/js/agenda_fn";
-import { useStore } from "@/app/store/store";
 import { saveReservation } from "@/app/lib/reservat/reservatActions";
-import { exportStore, useStore_new2 } from "@/app/store/store_new2";
+import { exportStore, useStore } from "@/app/store/store";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { CiNoWaitingSign } from "react-icons/ci";
@@ -46,7 +45,7 @@ export default function CreateEventSection({
     selectedEventsIndices,
     toggleEventSelected,
     setOnEditingEvent,
-  } = useStore_new2();
+  } = useStore();
   // Copy the selectedEventsIndices array
   const EventsIndices = [...selectedEventsIndices];
 
